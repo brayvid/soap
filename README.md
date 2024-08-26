@@ -1,4 +1,6 @@
-# Next steps
+# SOAP: A new kind of political polling
+### Read about the platform here: <a href="https://soap.fyi">https://soap.fyi</a>
+## To do
 - Nav bar
 - Be able to click on a word and see ranking of politicians
 - User login
@@ -8,5 +10,3 @@
 - Word cloud
 - Comparison between two people or group
 - State by state, locality aware
-- 
-- 
