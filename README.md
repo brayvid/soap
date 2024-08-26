@@ -13,7 +13,7 @@
 
 ## Run this demo locally
 - Clone this repo to your machine.
-- Make sure you have ```node.js``` installed.
+- Make sure you have ```node.js``` installed. <a href="https://nodejs.org/en/download/prebuilt-installer">(Instructions)</a>
 - Run ```node index.js``` in your terminal from the project directory.
 - Navigate to ```localhost:3000``` in your browser.
 
