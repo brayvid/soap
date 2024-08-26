@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOAP: Political Polling</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>List of Politicians</h1>
+    <ul id="politician-list">
+        <!-- Politicians will be dynamically added here -->
+    </ul>
+
+    <h2>Add a New Politician</h2>
+    <form id="add-politician-form">
+        <label for="new-politician-name">Name:</label>
+        <input type="text" id="new-politician-name" name="name" required>
+        <br>
+        <label for="new-politician-position">Position:</label>
+        <input type="text" id="new-politician-position" name="position" required>
+        <br>
+        <button type="submit">Add Politician</button>
+    </form>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
