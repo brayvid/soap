@@ -17,4 +17,5 @@
 - Run ```node index.js``` in your terminal from the project directory.
 - Navigate to ```localhost:3000``` in your browser.
 
+## Example
 <img width=45% src="images/demo.png">
