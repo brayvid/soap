@@ -16,3 +16,5 @@
 - Make sure you have ```node.js``` installed.
 - Run ```node index.js``` in your terminal from the project directory.
 - Navigate to ```localhost:3000``` in your browser.
+
+<img width=45% src="images/demo.png">
