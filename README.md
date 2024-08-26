@@ -10,3 +10,9 @@
 - Word cloud
 - Comparison between two people or group
 - State by state, locality aware
+
+## Run this demo locally
+- Clone this repo to your machine.
+- Make sure you have ```node.js``` installed.
+- Run ```node index.js``` in your terminal from that directory.
+- Navigate to ```localhost:3000``` in your browser.
