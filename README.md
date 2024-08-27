@@ -2,11 +2,12 @@
 ### Read about the platform here: <a href="https://soap.fyi">https://soap.fyi</a>
 ## To do
 - Navigation bar
-- Be able to click on a word and see ranking of politicians with respect to that word
+- Click on a word to see ranking of politicians with respect to that word
 - User login, demographics
 - Public vs logged-in view
 - Security so you can't click and add votes indefinitely
 - Word cloud
+- Table of politicians with sort, filter and search capability
 - Comparison between two or more politicians
 - Locality aware
 - Universe of words
@@ -14,6 +15,7 @@
 - Word selection tool
 - Ranked choice voting system
 - Reasons why user selected a particular word
+- More robust and secure database
 
 ## Run this demo locally
 - Clone this repo to your machine.
