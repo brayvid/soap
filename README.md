@@ -12,10 +12,10 @@
 - Locality aware
 - Universe of words
 - Valence of words
-- Word selection tool
+- NLP word selection tool
 - Ranked choice voting system
-- Reasons why user selected a particular word
-- More robust and secure database
+- User can submit reasons why they selected a particular word
+- More robust and secure database system
 
 ## Run this demo locally
 - Clone this repo to your machine.
