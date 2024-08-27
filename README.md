@@ -22,4 +22,5 @@
 - Navigate to ```http://localhost:3000``` in your browser.
 
 ## Example
-<img src="images/demo.png">
+<img src="images/demo1.png">
+<img src="images/demo2.png">
