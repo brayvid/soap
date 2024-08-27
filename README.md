@@ -21,6 +21,6 @@
 - Run ```node index.js``` in your terminal from the project directory.
 - Navigate to ```http://localhost:3000``` in your browser.
 
-## Example
+## Demo
 <img src="images/demo1.png">
 <img src="images/demo2.png">
