@@ -16,6 +16,7 @@
 - Ranked choice voting system
 - User can submit reasons why they selected a particular word
 - More robust and secure database system
+- Social features
 
 ## Run this demo locally
 - Clone this repo to your machine.
