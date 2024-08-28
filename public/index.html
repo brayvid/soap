@@ -7,10 +7,28 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>List of Politicians</h1>
-    <ul id="politician-list">
-        <!-- Politicians will be dynamically added here -->
-    </ul>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="index.html">Home</a>
+        <div class="navbar-title">SOAP: Political Polling</div>
+        <div class="spacer"></div> <!-- Spacer to balance the title -->
+    </nav>
+    <!-- Search and Filter Input -->
+    <input type="text" id="filter-input" placeholder="Search for politicians..." onkeyup="filterTable()">
+
+    <!-- Politicians Table -->
+    <table id="politicians-table" class="sortable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Name</th>
+                <th onclick="sortTable(1)">Position</th>
+                <!-- Dynamic headers for words will be added by JavaScript -->
+            </tr>
+        </thead>
+        <tbody id="politician-list">
+            <!-- Politicians will be dynamically added here -->
+        </tbody>
+    </table>
 
     <h2>Add a New Politician</h2>
     <form id="add-politician-form">
@@ -22,7 +40,10 @@
         <br>
         <button type="submit">Add Politician</button>
     </form>
-
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 <a class="footer-name" href="https://blakerayvid.com">Blake Rayvid</a></p>
+    </footer>
     <script src="scripts.js"></script>
 </body>
 </html>

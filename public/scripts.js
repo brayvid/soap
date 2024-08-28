@@ -1,34 +1,126 @@
 let chartInstance = null;  // Store the chart instance
 
-// Function to fetch and display all politicians on the homepage
+// Function to load politicians and display in the table
 function loadPoliticians() {
     fetch('/politicians')
         .then(response => response.json())
-        .then(politicians => {
-            const politicianList = document.getElementById('politician-list');
-            if (politicianList) {
-                politicianList.innerHTML = ''; // Clear existing list
-
-                if (politicians.length === 0) {
-                    const noOption = document.createElement('li');
-                    noOption.textContent = 'No politicians available';
-                    politicianList.appendChild(noOption);
-                } else {
-                    politicians.forEach(politician => {
-                        const li = document.createElement('li');
-                        const a = document.createElement('a');
-                        a.href = `/politician.html?id=${politician.politician_id}`;
-                        a.textContent = `${politician.name} (${politician.position})`;
-                        li.appendChild(a);
-                        politicianList.appendChild(li);
-                    });
-                }
+        .then(async politicians => {
+            // Fetch vote counts for each politician
+            for (let politician of politicians) {
+                const response = await fetch(`/politician/${politician.politician_id}/data`);
+                const data = await response.json();
+                politician.votesForPolitician = data.votesForPolitician || {};
             }
+            politiciansData = politicians; // Store the fetched data
+            renderTable();
         })
         .catch(error => {
             console.error('Error loading politicians:', error);
-            alert('Error loading politicians');
+            showMessage('Error loading politicians', 'error');
         });
+}
+// Function to render the table based on current politiciansData
+function renderTable() {
+    const politicianList = document.getElementById('politician-list');
+    const tableHead = document.querySelector('#politicians-table thead tr');
+
+    politicianList.innerHTML = ''; // Clear existing list
+    tableHead.innerHTML = '<th onclick="sortTable(0)">Name</th><th onclick="sortTable(1)">Position</th>'; // Reset headers
+
+    if (politiciansData.length > 0) {
+        const wordKeys = Object.keys(politiciansData[0].votesForPolitician || {});
+
+        // Add word columns dynamically
+        wordKeys.forEach((word, index) => {
+            const th = document.createElement('th');
+            th.textContent = word.charAt(0).toUpperCase() + word.slice(1);
+            th.onclick = () => sortTable(index + 2); // Adjust for the name and position columns
+            tableHead.appendChild(th);
+        });
+
+        politiciansData.forEach(politician => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td><a href="/politician.html?id=${politician.politician_id}">${politician.name}</a></td><td>${politician.position}</td>`;
+            
+            wordKeys.forEach(word => {
+                const cell = document.createElement('td');
+                cell.textContent = politician.votesForPolitician[word] || 0;
+                row.appendChild(cell);
+            });
+
+            politicianList.appendChild(row);
+        });
+    }
+}
+
+// Function to filter the table
+function filterTable() {
+    const filter = document.getElementById('filter-input').value.toLowerCase();
+    
+    // If the filter is empty, display the full list
+    if (filter === '') {
+        renderTable();
+        return;
+    }
+
+    const filteredData = politiciansData.filter(politician => 
+        politician.name.toLowerCase().includes(filter) ||
+        politician.position.toLowerCase().includes(filter)
+    );
+    
+    renderFilteredTable(filteredData);
+}
+
+// Function to render the filtered table
+function renderFilteredTable(filteredData) {
+    const politicianList = document.getElementById('politician-list');
+    const tableHead = document.querySelector('#politicians-table thead tr');
+
+    politicianList.innerHTML = ''; // Clear existing list
+    tableHead.innerHTML = '<th onclick="sortTable(0)">Name</th><th onclick="sortTable(1)">Position</th>'; // Reset headers
+
+    if (filteredData.length > 0) {
+        const wordKeys = Object.keys(filteredData[0].votesForPolitician || {});
+
+        // Add word columns dynamically
+        wordKeys.forEach((word, index) => {
+            const th = document.createElement('th');
+            th.textContent = word.charAt(0).toUpperCase() + word.slice(1);
+            th.onclick = () => sortTable(index + 2); // Adjust for the name and position columns
+            tableHead.appendChild(th);
+        });
+
+        filteredData.forEach(politician => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td><a href="/politician.html?id=${politician.politician_id}">${politician.name}</a></td><td>${politician.position}</td>`;
+            
+            wordKeys.forEach(word => {
+                const cell = document.createElement('td');
+                cell.textContent = politician.votesForPolitician[word] || 0;
+                row.appendChild(cell);
+            });
+
+            politicianList.appendChild(row);
+        });
+    }
+}
+// Function to sort the table
+function sortTable(columnIndex) {
+    const direction = this.sortDirection || 'asc';
+    politiciansData.sort((a, b) => {
+        let valueA = columnIndex < 2 ? a[Object.keys(a)[columnIndex]] : a.votesForPolitician[Object.keys(a.votesForPolitician)[columnIndex - 2]];
+        let valueB = columnIndex < 2 ? b[Object.keys(b)[columnIndex]] : b.votesForPolitician[Object.keys(b.votesForPolitician)[columnIndex - 2]];
+
+        if (typeof valueA === 'string') valueA = valueA.toLowerCase();
+        if (typeof valueB === 'string') valueB = valueB.toLowerCase();
+
+        if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+        if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    this.sortDirection = direction === 'asc' ? 'desc' : 'asc'; // Toggle the direction for next time
+    renderTable();
 }
 
 // Function to handle the submission of a new politician
@@ -117,29 +209,38 @@ function loadPoliticianData() {
                         y: {
                             beginAtZero: true
                         }
+                    },
+
+                    plugins: {
+                        afterRender: () => {
+                            positionVoteButtons(labelsPolitician, votesPolitician, politicianId);
+                        },
+                        legend: {
+                            display: false  // Disable the legend
+                        }
                     }
                 }
             });
 
-            const wordsList = document.getElementById('words');
-            if (wordsList) {
-                wordsList.innerHTML = '';
-
-                labelsPolitician.forEach((word, index) => {
-                    const li = document.createElement('li');
-                    const button = document.createElement('button');
-                    button.textContent = `Vote (${votesPolitician[index]})`;
-                    button.onclick = () => submitVoteForWord(word, politicianId);
-                    li.textContent = word + ' ';
-                    li.appendChild(button);
-                    wordsList.appendChild(li);
-                });
-            }
+            positionVoteButtons(labelsPolitician, votesPolitician, politicianId);
         })
         .catch(error => {
             console.error('Error fetching politician data:', error);
-            alert('Error loading politician data');
+            showMessage('Error loading politician data', 'error');
         });
+}
+
+// Function to position the vote buttons below the chart bars
+function positionVoteButtons(labels, votes, politicianId) {
+    const voteButtonsContainer = document.getElementById('vote-buttons-container');
+    voteButtonsContainer.innerHTML = '';  // Clear existing buttons
+
+    labels.forEach((word, index) => {
+        const button = document.createElement('button');
+        button.textContent = `Vote (${votes[index]})`;
+        button.onclick = () => submitVoteForWord(word, politicianId);
+        voteButtonsContainer.appendChild(button);
+    });
 }
 
 // Function to submit a vote for an existing word
