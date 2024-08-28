@@ -5,8 +5,9 @@
 - <s>Table of politicians with sort, filter and search capability</s>
 - <s>Click on a word to see ranking of politicians with respect to that word</s>
 - User login, demographics
+- Ranked choice voting system
+- Security so you can't add votes indefinitely
 - Public vs logged-in view
-- Security so you can't click and add votes indefinitely
 - Word cloud
 - Comparison between two or more politicians
 - Locality aware
@@ -14,7 +15,6 @@
 - Valence of words
 - Definitions of words
 - NLP word selection tool
-- Ranked choice voting system
 - User can submit reasons why they selected a particular word
 - More robust and secure database system
 - Social features
