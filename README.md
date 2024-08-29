@@ -4,13 +4,10 @@
 - <s>Navigation bar</s>
 - <s>Table of politicians with sort, filter and search capability</s>
 - <s>Click on a word to see ranking of politicians with respect to that word</s>
-- User login, demographics
-- Ranked choice voting system
-- Security so you can't add votes indefinitely
-- Public vs logged-in view
 - Word cloud
+- Ranked choice voting system
 - Comparison between two or more politicians
-- Locality aware
+- Locality aware - federal, state, local
 - Universe of words
 - Valence of words
 - Definitions of words
@@ -19,6 +16,9 @@
 - More robust and secure database system
 - Social features
 - Support additional languages
+- Security so you can't add votes indefinitely
+- User login, demographics, location
+- Public vs logged-in views
 
 ## Run this demo locally
 - Clone this repo to your machine.
