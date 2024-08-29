@@ -20,13 +20,13 @@
     <table id="politicians-table" class="sortable">
         <thead>
             <tr>
-                <th onclick="sortTable(0)">Name</th>
-                <th onclick="sortTable(1)">Position</th>
-                <!-- Dynamic headers for words will be added by JavaScript -->
+                <th>Name <span class="sort-arrow" onclick="sortTable(0)">⇅</span></th>
+                <th>Position <span class="sort-arrow" onclick="sortTable(1)">⇅</span></th>
+                <!-- Word columns will be dynamically added here -->
             </tr>
         </thead>
         <tbody id="politician-list">
-            <!-- Politicians will be dynamically added here -->
+            <!-- Rows will be dynamically added here -->
         </tbody>
     </table>
 

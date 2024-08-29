@@ -1,10 +1,14 @@
+let politiciansData = []; // To store the fetched data for filtering and sorting
 let chartInstance = null;  // Store the chart instance
 
-// Function to load politicians and display in the table
+// Function to load politicians and display them in the table
 function loadPoliticians() {
     fetch('/politicians')
         .then(response => response.json())
         .then(async politicians => {
+            // Log the fetched politician data
+            console.log('Fetched Politicians Data:', politicians);
+            
             // Fetch vote counts for each politician
             for (let politician of politicians) {
                 const response = await fetch(`/politician/${politician.politician_id}/data`);
@@ -12,36 +16,50 @@ function loadPoliticians() {
                 politician.votesForPolitician = data.votesForPolitician || {};
             }
             politiciansData = politicians; // Store the fetched data
+            
+            // Log the fully populated politiciansData
+            console.log('Fully Populated Politicians Data:', politiciansData);
+            
             renderTable();
         })
         .catch(error => {
             console.error('Error loading politicians:', error);
-            showMessage('Error loading politicians', 'error');
         });
 }
+
 // Function to render the table based on current politiciansData
-function renderTable() {
+function renderTable(sortedWordKeys = null) {
     const politicianList = document.getElementById('politician-list');
     const tableHead = document.querySelector('#politicians-table thead tr');
 
     politicianList.innerHTML = ''; // Clear existing list
-    tableHead.innerHTML = '<th onclick="sortTable(0)">Name</th><th onclick="sortTable(1)">Position</th>'; // Reset headers
+    tableHead.innerHTML = '<th>Name <span class="sort-arrow" onclick="sortTable(0)">⇅</span></th><th>Position <span class="sort-arrow" onclick="sortTable(1)">⇅</span></th>'; // Reset headers
 
     if (politiciansData.length > 0) {
-        const wordKeys = Object.keys(politiciansData[0].votesForPolitician || {});
+        let wordKeys = Object.keys(politiciansData[0].votesForPolitician || {});
 
-        // Add word columns dynamically
+        // Use sortedWordKeys to reorder the columns if provided
+        if (sortedWordKeys) {
+            wordKeys = sortedWordKeys;
+        }
+
+        // Add word columns dynamically based on the sorted order
         wordKeys.forEach((word, index) => {
             const th = document.createElement('th');
-            th.textContent = word.charAt(0).toUpperCase() + word.slice(1);
-            th.onclick = () => sortTable(index + 2); // Adjust for the name and position columns
+            th.innerHTML = `${word.charAt(0).toUpperCase() + word.slice(1)} <span class="sort-arrow" onclick="sortTable(${index + 2})">⇅</span>`;
             tableHead.appendChild(th);
         });
 
         politiciansData.forEach(politician => {
             const row = document.createElement('tr');
-            row.innerHTML = `<td><a href="/politician.html?id=${politician.politician_id}">${politician.name}</a></td><td>${politician.position}</td>`;
-            
+            row.innerHTML = `
+                <td>
+                    <span class="sort-handle" onclick="sortWordColumns(${politician.politician_id})">⇆</span>
+                    <a href="/politician.html?id=${politician.politician_id}">${politician.name}</a>
+                </td>
+                <td>${politician.position}</td>`;
+
+            // Populate cells according to the reordered word columns
             wordKeys.forEach(word => {
                 const cell = document.createElement('td');
                 cell.textContent = politician.votesForPolitician[word] || 0;
@@ -50,6 +68,68 @@ function renderTable() {
 
             politicianList.appendChild(row);
         });
+    }
+}
+
+
+// Function to sort the table by a specific column index (row sorting)
+function sortTable(columnIndex) {
+    // If this is the first time sorting this column, start with descending order
+    if (this.currentSortColumn !== columnIndex) {
+        this.sortDirection = 'desc';
+        this.currentSortColumn = columnIndex;
+    } else {
+        // Toggle the sort direction on subsequent clicks
+        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    }
+
+    politiciansData.sort((a, b) => {
+        let valueA, valueB;
+
+        if (columnIndex === 0) {  // Sorting by Name
+            valueA = a.name.toLowerCase();
+            valueB = b.name.toLowerCase();
+        } else if (columnIndex === 1) {  // Sorting by Position
+            valueA = a.position.toLowerCase();
+            valueB = b.position.toLowerCase();
+        } else {  // Sorting by Word columns
+            const wordKey = Object.keys(a.votesForPolitician)[columnIndex - 2];
+            valueA = a.votesForPolitician[wordKey] || 0;
+            valueB = b.votesForPolitician[wordKey] || 0;
+        }
+
+        if (valueA < valueB) return this.sortDirection === 'asc' ? -1 : 1;
+        if (valueA > valueB) return this.sortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    renderTable();
+}
+
+// Function to sort word columns by votes for a specific politician (column sorting)
+function sortWordColumns(politicianId) {
+    console.log(`Function sortWordColumns triggered for politician with ID: ${politicianId}`);
+
+    // Log the entire politiciansData array to check the IDs and ensure the data is correct
+    console.log('Current politiciansData:', politiciansData);
+
+    // Log each politician's ID and name to verify what IDs are present
+    politiciansData.forEach(politician => {
+        console.log(`Politician ID: ${politician.politician_id}, Name: ${politician.name}`);
+    });
+
+    // Find the politician by ID, ensuring type consistency
+    const politician = politiciansData.find(p => String(p.politician_id) === String(politicianId));
+
+    if (politician) {
+        const sortedWords = Object.entries(politician.votesForPolitician).sort((a, b) => b[1] - a[1]); 
+        const sortedWordKeys = sortedWords.map(entry => entry[0]);
+
+        console.log('Sorted Word Keys:', sortedWordKeys); // Log the sorted keys
+
+        renderTable(sortedWordKeys); // Re-render the table with sorted columns
+    } else {
+        console.error(`Politician with ID ${politicianId} not found`);
     }
 }
 
@@ -77,7 +157,7 @@ function renderFilteredTable(filteredData) {
     const tableHead = document.querySelector('#politicians-table thead tr');
 
     politicianList.innerHTML = ''; // Clear existing list
-    tableHead.innerHTML = '<th onclick="sortTable(0)">Name</th><th onclick="sortTable(1)">Position</th>'; // Reset headers
+    tableHead.innerHTML = '<th onclick="sortTable(0)">Name <span class="sort-trigger" onclick="sortWords()">⇅</span></th><th onclick="sortTable(1)">Position</th>'; // Reset headers
 
     if (filteredData.length > 0) {
         const wordKeys = Object.keys(filteredData[0].votesForPolitician || {});
@@ -92,7 +172,7 @@ function renderFilteredTable(filteredData) {
 
         filteredData.forEach(politician => {
             const row = document.createElement('tr');
-            row.innerHTML = `<td><a href="/politician.html?id=${politician.politician_id}">${politician.name}</a></td><td>${politician.position}</td>`;
+            row.innerHTML = `<td class="name-cell" onclick="sortWordColumns(${politician.politician_id})"><a href="/politician.html?id=${politician.politician_id}">${politician.name}</a></td><td>${politician.position}</td>`;
             
             wordKeys.forEach(word => {
                 const cell = document.createElement('td');
@@ -104,26 +184,8 @@ function renderFilteredTable(filteredData) {
         });
     }
 }
-// Function to sort the table
-function sortTable(columnIndex) {
-    const direction = this.sortDirection || 'asc';
-    politiciansData.sort((a, b) => {
-        let valueA = columnIndex < 2 ? a[Object.keys(a)[columnIndex]] : a.votesForPolitician[Object.keys(a.votesForPolitician)[columnIndex - 2]];
-        let valueB = columnIndex < 2 ? b[Object.keys(b)[columnIndex]] : b.votesForPolitician[Object.keys(b.votesForPolitician)[columnIndex - 2]];
 
-        if (typeof valueA === 'string') valueA = valueA.toLowerCase();
-        if (typeof valueB === 'string') valueB = valueB.toLowerCase();
-
-        if (valueA < valueB) return direction === 'asc' ? -1 : 1;
-        if (valueA > valueB) return direction === 'asc' ? 1 : -1;
-        return 0;
-    });
-
-    this.sortDirection = direction === 'asc' ? 'desc' : 'asc'; // Toggle the direction for next time
-    renderTable();
-}
-
-// Function to handle the submission of a new politician
+// Function to submit a new politician
 function submitNewPolitician(event) {
     event.preventDefault();
 
@@ -170,8 +232,6 @@ function loadPoliticianData() {
             return response.json();
         })
         .then(data => {
-            console.log('Fetched Politician Data:', data);  // Log the fetched data for debugging
-
             if (!data || !data.politician || !data.votesForPolitician) {
                 console.error('Incomplete data received:', data);
                 return;
@@ -180,17 +240,24 @@ function loadPoliticianData() {
             document.getElementById('politician-name').textContent = data.politician.name;
             document.getElementById('politician-position').textContent = data.politician.position;
 
+            // Sort the words first by count (descending) and then alphabetically for equal counts
+            const sortedWords = Object.entries(data.votesForPolitician)
+                .sort((a, b) => {
+                    if (b[1] === a[1]) {
+                        return a[0].localeCompare(b[0]); // Alphabetical order for equal counts
+                    }
+                    return b[1] - a[1]; // Sort by count (descending)
+                });
+
+            const labelsPolitician = sortedWords.map(entry => entry[0]);
+            const votesPolitician = sortedWords.map(entry => entry[1]);
+
             // Destroy existing chart instance if it exists
             if (chartInstance) {
                 chartInstance.destroy();
             }
 
             const ctxPolitician = document.getElementById('votesChart').getContext('2d');
-            const labelsPolitician = Object.keys(data.votesForPolitician);
-            const votesPolitician = Object.values(data.votesForPolitician);
-
-            console.log('Chart Labels:', labelsPolitician);
-            console.log('Chart Data:', votesPolitician);
 
             chartInstance = new Chart(ctxPolitician, {
                 type: 'bar',
@@ -207,14 +274,14 @@ function loadPoliticianData() {
                 options: {
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            stepSize: 1, // Ensure y-axis labels are integers
+                            ticks: {
+                                precision: 0 // Remove decimal places from the y-axis labels
+                            }
                         }
                     },
-
                     plugins: {
-                        afterRender: () => {
-                            positionVoteButtons(labelsPolitician, votesPolitician, politicianId);
-                        },
                         legend: {
                             display: false  // Disable the legend
                         }
@@ -222,13 +289,14 @@ function loadPoliticianData() {
                 }
             });
 
+            // Position vote buttons
             positionVoteButtons(labelsPolitician, votesPolitician, politicianId);
         })
         .catch(error => {
             console.error('Error fetching politician data:', error);
-            showMessage('Error loading politician data', 'error');
         });
 }
+
 
 // Function to position the vote buttons below the chart bars
 function positionVoteButtons(labels, votes, politicianId) {

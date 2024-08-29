@@ -204,3 +204,21 @@ tr:hover {
 .spacer {
     width: 80px;
 }
+
+/* Style for the sort handle/button */
+.sort-handle {
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 14px;
+}
+
+.sort-handle:hover {
+    color: #007BFF; /* Change color on hover */
+}
+
+.sort-arrow {
+    cursor: pointer;
+    margin-left: 5px;
+    font-size: 14px;
+}
+
