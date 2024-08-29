@@ -1,14 +1,12 @@
 let politiciansData = []; // To store the fetched data for filtering and sorting
 let chartInstance = null;  // Store the chart instance
+let currentColumnOrder = null; // To store the current order of columns
 
 // Function to load politicians and display them in the table
 function loadPoliticians() {
     fetch('/politicians')
         .then(response => response.json())
         .then(async politicians => {
-            // Log the fetched politician data
-            console.log('Fetched Politicians Data:', politicians);
-            
             // Fetch vote counts for each politician
             for (let politician of politicians) {
                 const response = await fetch(`/politician/${politician.politician_id}/data`);
@@ -16,11 +14,13 @@ function loadPoliticians() {
                 politician.votesForPolitician = data.votesForPolitician || {};
             }
             politiciansData = politicians; // Store the fetched data
-            
-            // Log the fully populated politiciansData
-            console.log('Fully Populated Politicians Data:', politiciansData);
-            
-            renderTable();
+
+            // Set default column order to alphabetical if not already set
+            if (!currentColumnOrder) {
+                currentColumnOrder = Object.keys(politiciansData[0].votesForPolitician || {}).sort();
+            }
+
+            renderTable(); // Render the table with the default column order
         })
         .catch(error => {
             console.error('Error loading politicians:', error);
@@ -41,6 +41,9 @@ function renderTable(sortedWordKeys = null) {
         // Use sortedWordKeys to reorder the columns if provided
         if (sortedWordKeys) {
             wordKeys = sortedWordKeys;
+            currentColumnOrder = sortedWordKeys; // Update the current column order
+        } else if (currentColumnOrder) {
+            wordKeys = currentColumnOrder; // Use the existing column order
         }
 
         // Add word columns dynamically based on the sorted order
@@ -74,10 +77,10 @@ function renderTable(sortedWordKeys = null) {
 
 // Function to sort the table by a specific column index (row sorting)
 function sortTable(columnIndex) {
-    // If this is the first time sorting this column, start with descending order
-    if (this.currentSortColumn !== columnIndex) {
-        this.sortDirection = 'desc';
+    // Initialize sort direction and column on the first click
+    if (typeof this.currentSortColumn === 'undefined' || this.currentSortColumn !== columnIndex) {
         this.currentSortColumn = columnIndex;
+        this.sortDirection = 'desc';  // Default to descending order
     } else {
         // Toggle the sort direction on subsequent clicks
         this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -93,7 +96,7 @@ function sortTable(columnIndex) {
             valueA = a.position.toLowerCase();
             valueB = b.position.toLowerCase();
         } else {  // Sorting by Word columns
-            const wordKey = Object.keys(a.votesForPolitician)[columnIndex - 2];
+            const wordKey = currentColumnOrder[columnIndex - 2];
             valueA = a.votesForPolitician[wordKey] || 0;
             valueB = b.votesForPolitician[wordKey] || 0;
         }
@@ -103,7 +106,7 @@ function sortTable(columnIndex) {
         return 0;
     });
 
-    renderTable();
+    renderTable(currentColumnOrder); // Preserve the current column order
 }
 
 // Function to sort word columns by votes for a specific politician (column sorting)
