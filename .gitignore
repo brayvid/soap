@@ -4,3 +4,4 @@ instance/
 .env
 site.db
 .DS_Store
+node_modules
