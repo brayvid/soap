@@ -21,7 +21,7 @@
 - Public vs logged-in views
 
 ## Known bugs
-- Sorting either rows or columns when a search filter is applied resets the filter
+- Sorting either rows or columns when a search filter is applied resets the filter.
 
 ## Run this demo locally
 - Clone this repo to your machine.
