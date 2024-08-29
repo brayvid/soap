@@ -1,5 +1,6 @@
 # SOAP: A new kind of political polling
 ### Read about the platform here: <a href="https://soap.fyi">https://soap.fyi</a>
+### Run the demo here: <a href="https://soap-mdoz.onrender.com">https://soap-mdoz.onrender.com</a>
 ## To do
 - <s>Navigation bar</s>
 - <s>Table of politicians with sort, filter and search capability</s>
@@ -25,7 +26,7 @@
 
 ## Run this demo locally
 - Clone this repo to your machine.
-- Make sure you have ```node.js``` installed. <a href="https://nodejs.org/en/download/prebuilt-installer">(Instructions)</a>
+- Make sure you have ```node``` installed. <a href="https://nodejs.org/en/download/prebuilt-installer">(Instructions)</a>
 - Run ```npm i``` in your terminal from the project directory to install required node modules.
 - Run ```node index.js``` to start the server.
 - Navigate to ```http://localhost:3000``` in your browser.
