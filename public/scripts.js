@@ -1,6 +1,8 @@
 let politiciansData = []; // To store the fetched data for filtering and sorting
 let chartInstance = null;  // Store the chart instance
 let currentColumnOrder = null; // To store the current order of columns
+let sortDirection = 'desc';  // Default sorting direction
+let currentSortColumn = 0;  // Default sorting by Name column
 
 // Function to load politicians and display them in the table
 function loadPoliticians() {
@@ -28,23 +30,17 @@ function loadPoliticians() {
 }
 
 // Function to render the table based on current politiciansData
-function renderTable(sortedWordKeys = null) {
+function renderTable(filteredData = null) {
     const politicianList = document.getElementById('politician-list');
     const tableHead = document.querySelector('#politicians-table thead tr');
+
+    const dataToRender = filteredData || politiciansData;
 
     politicianList.innerHTML = ''; // Clear existing list
     tableHead.innerHTML = '<th>Name <span class="sort-arrow" onclick="sortTable(0)">⇅</span></th><th>Position <span class="sort-arrow" onclick="sortTable(1)">⇅</span></th>'; // Reset headers
 
-    if (politiciansData.length > 0) {
-        let wordKeys = Object.keys(politiciansData[0].votesForPolitician || {});
-
-        // Use sortedWordKeys to reorder the columns if provided
-        if (sortedWordKeys) {
-            wordKeys = sortedWordKeys;
-            currentColumnOrder = sortedWordKeys; // Update the current column order
-        } else if (currentColumnOrder) {
-            wordKeys = currentColumnOrder; // Use the existing column order
-        }
+    if (dataToRender.length > 0) {
+        const wordKeys = currentColumnOrder;
 
         // Add word columns dynamically based on the sorted order
         wordKeys.forEach((word, index) => {
@@ -53,7 +49,7 @@ function renderTable(sortedWordKeys = null) {
             tableHead.appendChild(th);
         });
 
-        politiciansData.forEach(politician => {
+        dataToRender.forEach(politician => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>
@@ -74,16 +70,15 @@ function renderTable(sortedWordKeys = null) {
     }
 }
 
-
 // Function to sort the table by a specific column index (row sorting)
 function sortTable(columnIndex) {
     // Initialize sort direction and column on the first click
-    if (typeof this.currentSortColumn === 'undefined' || this.currentSortColumn !== columnIndex) {
-        this.currentSortColumn = columnIndex;
-        this.sortDirection = 'desc';  // Default to descending order
+    if (currentSortColumn !== columnIndex) {
+        currentSortColumn = columnIndex;
+        sortDirection = 'desc';  // Default to descending order
     } else {
         // Toggle the sort direction on subsequent clicks
-        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
     }
 
     politiciansData.sort((a, b) => {
@@ -101,12 +96,12 @@ function sortTable(columnIndex) {
             valueB = b.votesForPolitician[wordKey] || 0;
         }
 
-        if (valueA < valueB) return this.sortDirection === 'asc' ? -1 : 1;
-        if (valueA > valueB) return this.sortDirection === 'asc' ? 1 : -1;
+        if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
+        if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
         return 0;
     });
 
-    renderTable(currentColumnOrder); // Preserve the current column order
+    renderTable(); // Preserve the current column order and sorting
 }
 
 // Function to sort word columns by votes for a specific politician (column sorting)
@@ -130,28 +125,25 @@ function sortWordColumns(politicianId) {
 
         console.log('Sorted Word Keys:', sortedWordKeys); // Log the sorted keys
 
-        renderTable(sortedWordKeys); // Re-render the table with sorted columns
+        currentColumnOrder = sortedWordKeys; // Update currentColumnOrder with the new order
+
+        renderTable(); // Re-render the table with sorted columns
     } else {
         console.error(`Politician with ID ${politicianId} not found`);
     }
 }
 
-// Function to filter the table
+// Function to filter the table based on the search input
 function filterTable() {
     const filter = document.getElementById('filter-input').value.toLowerCase();
     
-    // If the filter is empty, display the full list
-    if (filter === '') {
-        renderTable();
-        return;
-    }
-
+    // Filter the data
     const filteredData = politiciansData.filter(politician => 
         politician.name.toLowerCase().includes(filter) ||
         politician.position.toLowerCase().includes(filter)
     );
     
-    renderFilteredTable(filteredData);
+    renderTable(filteredData); // Render the filtered table without resetting the column order
 }
 
 // Function to render the filtered table
