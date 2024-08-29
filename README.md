@@ -20,6 +20,9 @@
 - User login, demographics, location
 - Public vs logged-in views
 
+## Known bugs
+- Sorting either rows or columns when a search filter is applied resets the filter
+
 ## Run this demo locally
 - Clone this repo to your machine.
 - Make sure you have ```node.js``` installed. <a href="https://nodejs.org/en/download/prebuilt-installer">(Instructions)</a>
