@@ -1,6 +1,3 @@
 politician_id,name,position,created_at
-1,John Doe,Senator,2024-08-26T12:00:00Z
-2,Jane Smith,Governor,2024-08-26T12:30:00Z
-3,Jim Bob,President,2024-08-26T19:18:41.296Z4
-4,The Rock,Representative,2024-08-26T19:22:39.562Z
-5,Barack Obama,President,2024-08-26T19:24:16.240Z
+1,Donald Trump,President,2024-08-26T12:00:00Z
+2,Kamala Harris,President,2024-08-26T12:30:00Z
