@@ -140,7 +140,7 @@ app.post('/words', async (req, res) => {
         const newVoteId = votes.length > 0 ? (parseInt(votes[votes.length - 1].vote_id) + 1).toString() : '1';
         const newVote = {
             vote_id: newVoteId,
-            user_id: '1', // In a real application, this should be dynamic based on the logged-in user
+            user_id: '1', // This should be dynamic based on the logged-in user
             politician_id: politician_id,
             word_id: wordEntry.word_id,
             created_at: new Date().toISOString(),
