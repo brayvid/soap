@@ -1,29 +1,29 @@
 # SOAP: A new kind of political polling
 ### Read about the platform here: <a href="https://soap.fyi">https://soap.fyi</a>
-### Run the demo here: <a href="https://soap-mdoz.onrender.com">https://soap-mdoz.onrender.com</a>
+### Try the demo here: <a href="https://soap-mdoz.onrender.com">https://soap-mdoz.onrender.com</a>
 ## To do
+
+Phase 1
 - <s>Navigation bar</s>
 - <s>Table of politicians with sort, filter and search capability</s>
 - <s>Click on a word to see ranking of politicians with respect to that word</s>
-
-Phase 1
 - Ranked choice voting system
 - Prevent voting indefinitely
 - User login, demographics, location
 - Public vs logged-in views
+- Locality aware - federal, state, local
+- More robust and secure database system
+- Word cloud
 
 Phase 2
-- Locality aware - federal, state, local
 - Universe of words
 - Valence of words
 - Definitions of words
 - NLP word selection tool
-- Word cloud
 - Comparison between two or more politicians
 - User can submit reasons why they selected a particular word
-- More robust and secure database system
 - Social features
-- Support additional languages
+- Support multiple languages
 
 ## Known bugs
 - Sorting either rows or columns when a search filter is applied resets the filter.
