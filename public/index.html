@@ -3,16 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOAP: Political Polling</title>
+    <title>SOAP Political Polling</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar">
         <a href="index.html">Home</a>
-        <div class="navbar-title">SOAP: Political Polling</div>
+        <div class="navbar-title">SOAP Political Polling</div>
         <div class="spacer"></div> <!-- Spacer to balance the title -->
     </nav>
+
+    <!-- Instructions Section -->
+    <section id="instructions">
+        <p><strong>Welcome to SOAP, where you can see how the public describes politicians. Click on a politician to add your opinion.</strong></p>
+    </section>
+
     <!-- Search and Filter Input -->
     <input type="text" id="filter-input" placeholder="Search for politicians..." onkeyup="filterTable()">
 
@@ -29,20 +35,21 @@
             <!-- Rows will be dynamically added here -->
         </tbody>
     </table>
-
-    <h2>Add a New Politician</h2>
-    <form id="add-politician-form">
-        <label for="new-politician-name">Name:</label>
-        <input type="text" id="new-politician-name" name="name" required>
-        <br>
-        <label for="new-politician-position">Position:</label>
-        <input type="text" id="new-politician-position" name="position" required>
-        <br>
-        <button type="submit">Add Politician</button>
-    </form>
+    <section id="add-politician">
+        <h2>Add a New Politician</h2>
+        <form id="add-politician-form">
+            <label for="new-politician-name">Name:</label>
+            <input type="text" id="new-politician-name" name="name" required>
+            <br>
+            <label for="new-politician-position">Position:</label>
+            <input type="text" id="new-politician-position" name="position" required>
+            <br>
+            <button type="submit">Add Politician</button>
+        </form>
+    </section>
     <!-- Footer -->
     <footer class="footer">
-        <p>&copy; 2024 <a class="footer-name" href="https://blakerayvid.com">Blake Rayvid</a></p>
+        <p>&copy; 2024 Blake Rayvid. <a class="footer-link" href="https://github.com/brayvid/soap">View on GitHub</a>.</p>
     </footer>
     <script src="scripts.js"></script>
 </body>

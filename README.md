@@ -5,21 +5,25 @@
 - <s>Navigation bar</s>
 - <s>Table of politicians with sort, filter and search capability</s>
 - <s>Click on a word to see ranking of politicians with respect to that word</s>
-- Word cloud
+
+Phase 1
 - Ranked choice voting system
-- Comparison between two or more politicians
+- Prevent voting indefinitely
+- User login, demographics, location
+- Public vs logged-in views
+
+Phase 2
 - Locality aware - federal, state, local
 - Universe of words
 - Valence of words
 - Definitions of words
 - NLP word selection tool
+- Word cloud
+- Comparison between two or more politicians
 - User can submit reasons why they selected a particular word
 - More robust and secure database system
 - Social features
 - Support additional languages
-- Security so you can't add votes indefinitely
-- User login, demographics, location
-- Public vs logged-in views
 
 ## Known bugs
 - Sorting either rows or columns when a search filter is applied resets the filter.
