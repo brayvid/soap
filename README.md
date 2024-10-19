@@ -1,6 +1,6 @@
 # SOAP: A new kind of political polling
 ### Read about the platform here: <a href="https://soap.fyi">https://soap.fyi</a>
-### Try the demo here: <a href="https://soap-mdoz.onrender.com">https://soap-mdoz.onrender.com</a>
+
 ## To do
 
 Phase 1
