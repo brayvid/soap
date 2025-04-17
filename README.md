@@ -1,6 +1,5 @@
 # SOAP: A new kind of political polling
 
-Introducing Soap: Revolutionizing How We Talk About Politicians
 Constructive political criticism online is hard to find. Discussions quickly turn mean, and even minor disagreements can escalate into major arguments. Messages often get lost if the audience is too small, and misunderstood words can lead to undeserved backlash.
 
 That's where Soap comes in—a new kind of social platform designed to change the way we talk about politicians. Soap is a public utility disguised as a social network where users can describe elected officials and candidates one word at a time. This straightforward approach aims to foster thoughtful, concise, and reasonable discourse about our politicians.
@@ -22,7 +21,7 @@ In addition to being a platform for public engagement, Soap will offer an array 
 Join the Conversation
 Soap is more than just a social platform—it's a movement towards more constructive discourse about our politicians. Join us in shaping a new way to discuss politics, where every word counts and every voice is heard. Together, we can create a more thoughtful, reasonable, and effective conversation about our elected officials and candidates.
 
-<h3><a href="https://use.soap.fyi">Try the platform</a></h3>
+<h3><a href="https://use.soap.fyi">Try the platform here</a></h3>
 
 ---
 
