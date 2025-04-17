@@ -11,9 +11,16 @@ function loadPoliticians() {
         .then(async politicians => {
             // Fetch vote counts for each politician
             for (let politician of politicians) {
-                const response = await fetch(`/politician/${politician.politician_id}/data`);
-                const data = await response.json();
-                politician.votesForPolitician = data.votesForPolitician || {};
+                try {
+                    const response = await fetch(`/politician/${politician.politician_id}/data`);
+                    if (!response.ok) throw new Error('Failed to fetch politician data');
+                    const data = await response.json();
+                
+                    politician.votesForPolitician = data?.votesForPolitician || {};
+                } catch (err) {
+                    console.error(`❌ Error fetching data for politician ID ${politician.politician_id}:`, err);
+                    politician.votesForPolitician = {};
+                }                
             }
             politiciansData = politicians; // Store the fetched data
 
@@ -197,7 +204,7 @@ function submitNewPolitician(event) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name, position: position }),
     })
-    .then(response => response.text())
+    .then(response => response.json())
     .then(data => {
         // alert('New politician added successfully');
         loadPoliticians();  // Reload the list to show the new politician
@@ -342,7 +349,7 @@ function submitNewWord(event) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ word: newWord, politician_id: politicianId }),
     })
-    .then(response => response.text())
+    .then(response => response.json())
     .then(data => {
         // alert('New word added and vote submitted successfully');
         document.getElementById('new-word').value = ''; // Clear the input field

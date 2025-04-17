@@ -31,13 +31,15 @@ app.post('/politicians', async (req, res) => {
   }
 
   try {
+    console.log('🆕 Adding politician:', name, position);
     await db('politicians').insert({ name, position });
-    res.status(201).send('Politician added successfully');
+    res.status(201).json({ message: 'Politician added successfully' });
   } catch (err) {
-    console.error('Error adding politician:', err);
-    res.status(500).send('Error adding politician');
+    console.error('❌ Error adding politician:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
+
 
 // --------------------------------
 // Get data for a specific politician
