@@ -5,4 +5,6 @@ instance/
 site.db
 .DS_Store
 node_modules/
-
+politicians.csv
+votes.csv
+words.csv
