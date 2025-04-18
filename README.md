@@ -1,4 +1,4 @@
-# SOAP: A new kind of political polling
+# SOAP: Revolutionizing How We Talk About Politicians
 
 Constructive political criticism online is hard to find. Discussions quickly turn mean, and even minor disagreements can escalate into major arguments. Messages often get lost if the audience is too small, and misunderstood words can lead to undeserved backlash.
 
