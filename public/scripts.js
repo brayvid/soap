@@ -188,32 +188,26 @@ function renderFilteredTable(filteredData) {
 }
 
 // Function to submit a new politician
-function submitNewPolitician(event) {
-    event.preventDefault();
+async function submitNewPolitician(event) {
+  event.preventDefault();
+  const name = document.getElementById('name').value;
+  const position = document.getElementById('position').value;
 
-    const name = document.getElementById('new-politician-name').value.trim();
-    const position = document.getElementById('new-politician-position').value.trim();
-
-    if (!name || !position) {
-        alert('Please enter both a name and a position.');
-        return;
-    }
-
-    fetch('/politicians', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, position: position }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        // alert('New politician added successfully');
-        loadPoliticians();  // Reload the list to show the new politician
-        document.getElementById('add-politician-form').reset();  // Clear the form
-    })
-    .catch(error => {
-        console.error('Error adding politician:', error);
-        alert('Error adding politician');
+  try {
+    const response = await fetch('/politicians', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, position })
     });
+
+    if (!response.ok) throw new Error(await response.text());
+    const newPol = await response.json();
+    console.log('Added:', newPol);
+    loadPoliticians();
+  } catch (err) {
+    console.error('Error adding politician:', err);
+    alert('Failed to add politician: ' + err.message);
+  }
 }
 
 // Function to fetch and display specific politician's data on their page

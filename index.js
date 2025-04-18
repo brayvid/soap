@@ -103,8 +103,8 @@ app.post('/words', async (req, res) => {
 
     res.status(201).send('Word submitted and vote added');
   } catch (err) {
-    console.error('Error submitting word/vote:', err);
-    res.status(500).send('Error submitting word/vote');
+    console.error('Error submitting word/vote:', err.message, err.stack);
+    res.status(500).json({ error: 'Error submitting word/vote' });
   }
 });
 
