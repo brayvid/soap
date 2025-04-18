@@ -1,5 +1,6 @@
-# SOAP: Revolutionizing How We Talk About Politicians
+# <strong>SOAP</strong>: A new kind of polling platform
 
+<h3>Revolutionizing How We Talk About Politicians</h3>
 Constructive political criticism online is hard to find. Discussions quickly turn mean, and even minor disagreements can escalate into major arguments. Messages often get lost if the audience is too small, and misunderstood words can lead to undeserved backlash.
 
 That's where Soap comes in—a new kind of social platform designed to change the way we talk about politicians. Soap is a public utility disguised as a social network where users can describe elected officials and candidates one word at a time. This straightforward approach aims to foster thoughtful, concise, and reasonable discourse about our politicians.
@@ -25,7 +26,7 @@ Phase 1
 - User login, demographics, location
 - Public vs logged-in views
 - Locality aware - federal, state, local
-- More robust and secure database system
+- <s>More robust and secure database system</s> 2025-04-18
 - Word cloud
 
 Phase 2
