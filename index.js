@@ -1,3 +1,5 @@
+// Copyright 2025 Blake Rayvid <https://github.com/brayvid>
+
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
