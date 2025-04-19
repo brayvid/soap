@@ -56,4 +56,4 @@ Phase 2
 <img src="images/demo2.png">
 
 
-<p style="text-align:center;"><i>&copy; Copyright 2025 Blake Rayvid. All rights reserved.</i></p>
+<p align="center"><i>&copy; Copyright 2025 Blake Rayvid. All rights reserved.</i></p>
