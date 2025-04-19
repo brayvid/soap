@@ -1,6 +1,7 @@
 # <strong>SOAP</strong>: A new kind of polling platform
 
 <h3>Revolutionizing How We Talk About Politicians</h3>
+
 Constructive political criticism online is hard to find. Discussions quickly turn mean, and even minor disagreements can escalate into major arguments. Messages often get lost if the audience is too small, and misunderstood words can lead to undeserved backlash.
 
 That's where Soap comes in—a new kind of social platform designed to change the way we talk about politicians. Soap is a public utility disguised as a social network where users can describe elected officials and candidates one word at a time. This straightforward approach aims to foster thoughtful, concise, and reasonable discourse about our politicians.
@@ -19,7 +20,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 
 Phase 1
 - <s>More robust and secure database system</s> (2025-04-18)
-- <s>Word clouds</s> (2025-04-19)
+- <s>Word cloud</s> (2025-04-19)
 - User login, demographics, location
 - Prevent repeated voting
 - Ability to undo submissions
@@ -32,24 +33,15 @@ Phase 2
 - Universe of words
 - Valence of words
 - Definitions of words
-- Word selection tool
+- NLP word selection tool
 - Comparison between two or more politicians
-- User can submit reasons why they selected a particular word
+- Users can submit reasons why they selected a particular word
 - Social features
 - Support multiple languages
-
-Phase 3
-- Create data products
-- Marketing
+- Marketing/grow users
+- Data products
 
 ## Known bugs
 - Sorting either rows or columns when a search filter is applied resets the filter.
-
-## Run this demo locally
-- Clone this repo to your machine.
-- Make sure you have ```node``` installed. <a href="https://nodejs.org/en/download/prebuilt-installer">(Instructions)</a>
-- Run ```npm i``` in your terminal from the project directory to install required node modules.
-- Run ```node index.js``` to start the server.
-- Navigate to ```http://localhost:3000``` in your browser.
 
 <p align="center">&copy; Copyright 2025 Blake Rayvid. All rights reserved.</p>
