@@ -29,6 +29,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 - Ability to undo submissions
 - Ranked choice voting system
 - Locality aware - federal, state, local
+- Form a business entity
 
 <h3>Phase 2</h3>
 
