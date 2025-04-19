@@ -89,18 +89,23 @@ app.post('/words', async (req, res) => {
 
   try {
     // Check if word exists
-    let wordEntry = await db('words').whereRaw('LOWER(word) = ?', word.toLowerCase()).first();
+    let wordEntry = await db('words')
+      .whereRaw('LOWER(word) = ?', word.toLowerCase())
+      .first();
 
     if (!wordEntry) {
-      const [newWordId] = await db('words').insert({ word: word.toLowerCase() }).returning('word_id');
-      wordEntry = { word_id: newWordId };
+      const [row] = await db('words')
+        .insert({ word: word.toLowerCase() })
+        .returning('word_id');
+
+      wordEntry = row; // ✅ Extract just the object with word_id
     }
 
     // Add vote
     await db('votes').insert({
       politician_id,
       word_id: wordEntry.word_id,
-      user_id: '1', // Placeholder until user accounts added
+      user_id: '1', // Placeholder
     });
 
     res.status(201).send('Word submitted and vote added');
@@ -109,6 +114,7 @@ app.post('/words', async (req, res) => {
     res.status(500).json({ error: 'Error submitting word/vote' });
   }
 });
+
 
 // --------------------------------
 // Serve HTML pages
