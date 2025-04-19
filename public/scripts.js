@@ -1,3 +1,5 @@
+// Copyright 2025 Blake Rayvid <https://github.com/brayvid>
+
 let politiciansData = []; // To store the fetched data for filtering and sorting
 let chartInstance = null;  // Store the chart instance
 let currentColumnOrder = null; // To store the current order of columns

@@ -2,6 +2,9 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
+
+// Copyright 2025 Blake Rayvid <https://github.com/brayvid>
+
 exports.up = function(knex) {
   return knex.schema.createTable('votes', table => {
     table.increments('vote_id').primary();
