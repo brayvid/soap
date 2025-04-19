@@ -11,7 +11,7 @@ Users can edit their choices at any time, allowing for a dynamic and evolving re
 
 Soap is more than just a social platform—it's a movement towards more constructive discourse about our politicians. Join us in shaping a new way to discuss politics, where every word counts and every voice is heard. Together, we can create a more thoughtful, reasonable, and effective conversation about our elected officials and candidates.
 
-<h3><a href="https://use.soap.fyi">Try the platform here</a></h3>
+<h3><a href="https://use.soap.fyi">Try the platform 🧼</a></h3>
 
 ---
 
