@@ -21,20 +21,21 @@ Phase 1
 - <s>Navigation bar</s>
 - <s>Table of politicians with sort, filter and search capability</s>
 - <s>Click on a word to see ranking of politicians with respect to that word</s>
+- <s>More robust and secure database system</s> 2025-04-18
 - Ranked choice voting system
 - User login, demographics, location
-- Prevent voting indefinitely
-- Undo submissions
+- Limit voting frequency
+- Ability to undo submissions
 - Public vs logged-in views
 - Locality aware - federal, state, local
-- <s>More robust and secure database system</s> 2025-04-18
 - Word cloud
 
 Phase 2
 - Universe of words
 - Valence of words
+- Universe of politicians
 - Definitions of words
-- NLP word selection tool
+- Word selection tool
 - Comparison between two or more politicians
 - User can submit reasons why they selected a particular word
 - Social features
@@ -53,3 +54,6 @@ Phase 2
 ## Demo
 <img src="images/demo1.png">
 <img src="images/demo2.png">
+
+
+<i>&copy; Copyright 2025 Blake Rayvid</i>

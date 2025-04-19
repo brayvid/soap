@@ -1,3 +1,5 @@
+// Copyright 2025 Blake Rayvid <https://github.com/brayvid>
+
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const politicianId = urlParams.get('id');
