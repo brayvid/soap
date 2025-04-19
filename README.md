@@ -22,13 +22,13 @@ Phase 1
 - <s>Table of politicians with sort, filter and search capability</s>
 - <s>Click on a word to see ranking of politicians with respect to that word</s>
 - <s>More robust and secure database system</s> 2025-04-18
+- <s>Word cloud</s> 2025-04-19
 - Ranked choice voting system
 - User login, demographics, location
 - Limit voting frequency
 - Ability to undo submissions
 - Public vs logged-in views
 - Locality aware - federal, state, local
-- Word cloud
 
 Phase 2
 - Universe of words
@@ -51,9 +51,4 @@ Phase 2
 - Run ```node index.js``` to start the server.
 - Navigate to ```http://localhost:3000``` in your browser.
 
-## Demo
-<img src="images/demo1.png">
-<img src="images/demo2.png">
-
-
-<p align="center"><i>&copy; Copyright 2025 Blake Rayvid. All rights reserved.</i></p>
+<p align="center">&copy; Copyright 2025 Blake Rayvid. All rights reserved.</p>
