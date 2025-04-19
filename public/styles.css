@@ -234,3 +234,26 @@ tr:hover {
     font-size: 14px;
 }
 
+
+
+
+#bubble-chart-container {
+    display: none; /* hidden by default */
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    max-width: 100%;
+    height: 100vw; /* makes it a square */
+    max-height: 80vh;
+    margin-bottom: 20px;
+}
+
+#bubble-chart {
+    width: 100%;
+    height: 100%;
+}
+@media (max-width: 768px) {
+    #bubble-chart-container {
+        height: 90vw;
+    }
+}

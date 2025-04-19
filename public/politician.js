@@ -58,6 +58,12 @@ function drawBubbleChart(voteData, politicianId) {
     const width = 500;
     const height = 500;
 
+    document.getElementById('bubble-chart-container').style.display = 'flex';
+
+    const data = Object.entries(voteData)
+        .map(([word, count]) => ({ word, value: count }));
+
+
     const svg = d3.select("#bubble-chart");
     svg.selectAll("*").remove(); // Clear previous chart
 

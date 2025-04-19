@@ -18,28 +18,29 @@ Soap is more than just a social platform—it's a movement towards more construc
 ## To do
 
 Phase 1
-- <s>Navigation bar</s>
-- <s>Table of politicians with sort, filter and search capability</s>
-- <s>Click on a word to see ranking of politicians with respect to that word</s>
-- <s>More robust and secure database system</s> 2025-04-18
-- <s>Word cloud</s> 2025-04-19
-- Ranked choice voting system
+- <s>More robust and secure database system</s> (2025-04-18)
+- <s>Word clouds</s> (2025-04-19)
 - User login, demographics, location
-- Limit voting frequency
+- Prevent repeated voting
 - Ability to undo submissions
+- Ranked choice voting system
 - Public vs logged-in views
 - Locality aware - federal, state, local
 
 Phase 2
+- Universe of politicians
 - Universe of words
 - Valence of words
-- Universe of politicians
 - Definitions of words
 - Word selection tool
 - Comparison between two or more politicians
 - User can submit reasons why they selected a particular word
 - Social features
 - Support multiple languages
+
+Phase 3
+- Create data products
+- Marketing
 
 ## Known bugs
 - Sorting either rows or columns when a search filter is applied resets the filter.
