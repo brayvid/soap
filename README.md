@@ -22,8 +22,9 @@ Phase 1
 - <s>Table of politicians with sort, filter and search capability</s>
 - <s>Click on a word to see ranking of politicians with respect to that word</s>
 - Ranked choice voting system
-- Prevent voting indefinitely
 - User login, demographics, location
+- Prevent voting indefinitely
+- Undo submissions
 - Public vs logged-in views
 - Locality aware - federal, state, local
 - <s>More robust and secure database system</s> 2025-04-18
