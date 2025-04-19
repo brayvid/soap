@@ -41,8 +41,8 @@ Soap is more than just a social platform—it's a movement towards more construc
 - Users can submit reasons why they selected a particular word
 - Social features
 - Support multiple languages
-- Marketing/grow users
 - Data products
+- Release
 
 ## Known bugs
 - Sorting either rows or columns when a search filter is applied resets the filter.
