@@ -12,23 +12,26 @@ Users can edit their choices at any time, allowing for a dynamic and evolving re
 
 Soap is more than just a social platform—it's a movement towards more constructive discourse about our politicians. Join us in shaping a new way to discuss politics, where every word counts and every voice is heard. Together, we can create a more thoughtful, reasonable, and effective conversation about our elected officials and candidates.
 
-<h3><a href="https://use.soap.fyi">Try the platform 🧼</a></h3>
+<h3><a href="https://use.soap.fyi">Try now 🧼</a></h3>
 
 ---
 
 ## To do
 
-Phase 1
-- <s>More robust and secure database system</s> (2025-04-18)
-- <s>Word cloud</s> (2025-04-19)
-- User login, demographics, location
-- Prevent repeated voting
+<h3>Phase 1</h3>
+
+- <s>More robust and secure database system</s> (4/18/25)
+- <s>Word cloud</s> (4/19/25)
+- Prevent sql injection
+- User registration, login, demographics, location
+- Prevent repeat voting until some time has passed
+- Public vs logged-in views
 - Ability to undo submissions
 - Ranked choice voting system
-- Public vs logged-in views
 - Locality aware - federal, state, local
 
-Phase 2
+<h3>Phase 2</h3>
+
 - Universe of politicians
 - Universe of words
 - Valence of words
@@ -43,5 +46,5 @@ Phase 2
 
 ## Known bugs
 - Sorting either rows or columns when a search filter is applied resets the filter.
-
+<br><br>
 <p align="center">&copy; Copyright 2025 Blake Rayvid. All rights reserved.</p>
