@@ -1,5 +1,96 @@
 // Copyright 2025 Blake Rayvid <https://github.com/brayvid>
 
+
+const API_BASE = ''; // leave blank for same-origin
+
+function register() {
+  const data = getAuthData();
+  fetch(`${API_BASE}/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+    .then(res => res.json())
+    .then(res => {
+      if (res.token) saveToken(res.token);
+      alert('Registered successfully!');
+    })
+    .catch(console.error);
+}
+
+function login() {
+    const username = document.getElementById('username')?.value.trim();
+    const password = document.getElementById('password')?.value;
+  
+    if (!username || !password) {
+      alert('Please enter both username and password.');
+      return;
+    }
+  
+    fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.token) {
+          localStorage.setItem('token', res.token);
+          updateAuthUI();
+        } else {
+          alert(res.error || 'Login failed.');
+        }
+      })
+      .catch(console.error);
+  }
+  
+
+function logout() {
+  localStorage.removeItem('token');
+  updateAuthUI();
+}
+
+function getAuthData() {
+  return {
+    username: document.getElementById('username')?.value,
+    email: document.getElementById('email')?.value,
+    password: document.getElementById('password')?.value,
+  };
+}
+
+function saveToken(token) {
+  localStorage.setItem('token', token);
+  updateAuthUI();
+}
+
+function updateAuthUI() {
+  const token = localStorage.getItem('token');
+  const userInfo = document.getElementById('user-info');
+  const authForm = document.getElementById('auth');
+  if (token) {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    document.getElementById('logged-in-user').textContent = `User #${payload.id}`;
+    userInfo.style.display = 'block';
+    authForm.style.display = 'none';
+  } else {
+    userInfo.style.display = 'none';
+    authForm.style.display = 'block';
+  }
+}
+
+updateAuthUI();
+
+// Utility: add token to all fetch requests
+const originalFetch = window.fetch;
+window.fetch = function (url, options = {}) {
+  const token = localStorage.getItem('token');
+  options.headers = options.headers || {};
+  if (token) options.headers['Authorization'] = `Bearer ${token}`;
+  return originalFetch(url, options);
+};
+
+
+
 let politiciansData = []; // To store the fetched data for filtering and sorting
 let chartInstance = null;  // Store the chart instance
 let currentColumnOrder = null; // To store the current order of columns

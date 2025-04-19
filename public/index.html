@@ -3,52 +3,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOAP Political Polling</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SOAP Political Polling</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <a href="index.html">Home</a>
-        <div class="navbar-title">SOAP Political Polling</div>
-        <div class="spacer"></div> <!-- Spacer to balance the title -->
-    </nav>
-
-    <!-- Instructions Section -->
+  <!-- Navbar with embedded login/register -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <a href="index.html">Home</a>
+    </div>
+  
+    <div class="navbar-center">
+      <span class="navbar-title">SOAP Political Polling</span>
+    </div>
+  
+    <div class="navbar-auth" id="auth">
+      <form id="login-form" onsubmit="event.preventDefault(); login();">
+        <div class="auth-row">
+          <input type="text" id="username" name="username" placeholder="Username" autocomplete="username" required />
+          <input type="password" id="password" name="password" placeholder="Password" autocomplete="current-password" required />
+          <button type="submit">Login</button>
+        </div>
+      </form>
+      <div class="auth-row">
+        <a href="register.html"><button type="button">Register</button></a>
+      </div>
+    </div>
+  
+    <div class="navbar-user" id="user-info" style="display: none;">
+      <span>Logged in as <strong id="logged-in-user"></strong></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </nav>
+  
+  <div class="container">
+    <!-- Instructions -->
     <section id="instructions">
-        <p><strong>Welcome to Soap, where you can see how the public describes politicians. Click on a politician to add your opinion.</strong></p>
+      <p><strong>Welcome to Soap, where you can see how the public describes politicians. Click on a politician to add your opinion.</strong></p>
     </section>
 
-    <!-- Search and Filter Input -->
-    <input type="text" id="filter-input" placeholder="Search for politicians..." onkeyup="filterTable()">
+    <!-- Search and Filter -->
+    <input type="text" id="filter-input" placeholder="Search for politicians..." onkeyup="filterTable()" />
 
     <!-- Politicians Table -->
     <table id="politicians-table" class="sortable">
-        <thead>
-            <tr>
-                <th>Name <span class="sort-arrow" onclick="sortTable(0)">⇅</span></th>
-                <th>Position <span class="sort-arrow" onclick="sortTable(1)">⇅</span></th>
-                <!-- Word columns will be dynamically added here -->
-            </tr>
-        </thead>
-        <tbody id="politician-list">
-            <!-- Rows will be dynamically added here -->
-        </tbody>
+      <thead>
+        <tr>
+          <th>Name <span class="sort-arrow" onclick="sortTable(0)">⇅</span></th>
+          <th>Position <span class="sort-arrow" onclick="sortTable(1)">⇅</span></th>
+        </tr>
+      </thead>
+      <tbody id="politician-list">
+        <!-- Dynamic rows go here -->
+      </tbody>
     </table>
-    <section id="add-politician">
-        <h2>Add a New Politician</h2>
-        <form id="add-politician-form">
-            <input type="text" id="name" name="name" placeholder="Name" required />
-            <input type="text" id="position" name="position" placeholder="Position" required />
-            <button type="submit">Add Politician</button>
-          </form>          
+
+    <!-- Add Politician Form (only for logged-in users) -->
+    <section id="add-politician" style="display: none;">
+      <h2>Add a New Politician</h2>
+      <form id="add-politician-form">
+        <input type="text" id="name" name="name" placeholder="Name" required />
+        <input type="text" id="position" name="position" placeholder="Position" required />
+        <button type="submit">Add Politician</button>
+      </form>
     </section>
-    <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; Copyright 2025 Blake Rayvid. <a class="footer-link" href="mailto:info@soap.fyi">Contact</a></p>
-    </footer>
-    <script src="scripts.js" defer></script>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; Copyright 2025 Blake Rayvid.
+      <a class="footer-link" href="mailto:info@soap.fyi">Contact</a>
+    </p>
+  </footer>
+
+  <script src="scripts.js" defer></script>
+  <script>
+    function updateAuthUI() {
+      const token = localStorage.getItem('token');
+      const authBox = document.getElementById('auth');
+      const userInfo = document.getElementById('user-info');
+      const addPolitician = document.getElementById('add-politician');
+
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        document.getElementById('logged-in-user').textContent = `User #${payload.id}`;
+        authBox.style.display = 'none';
+        userInfo.style.display = 'flex';
+        if (addPolitician) addPolitician.style.display = 'block';
+      } else {
+        authBox.style.display = 'flex';
+        userInfo.style.display = 'none';
+        if (addPolitician) addPolitician.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', updateAuthUI);
+  </script>
 </body>
 </html>

@@ -1,18 +1,20 @@
 /* Copyright 2025 Blake Rayvid <https://github.com/brayvid> */
 
-body, html {
+/* Reset base margins */
+html, body {
     margin: 0;
     padding: 0;
-    min-height: 100%;
-}
+    box-sizing: border-box;
+  }
+  
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+    background-color: #f8f8f8;
     margin: 0;
+    font-family: sans-serif;
     padding: 0;
     display: flex;
     flex-direction: column;
-    padding-top: 65px;
 }
 
 nav, #instructions, #filter-input, #politicians-table, #add-politician {
@@ -21,8 +23,11 @@ nav, #instructions, #filter-input, #politicians-table, #add-politician {
 
 .container {
     width: 80%;
+    padding: 20px;
+    margin-top: 20px; /* ✅ Push content below navbar */
     margin: 0 auto;
 }
+  
 
 header {
     background-color: #007bff;
@@ -115,17 +120,15 @@ tr:hover {
 
 /* Navbar styling */
 .navbar {
+    padding: 10px 16px;
     background-color: #333;
-    overflow: hidden;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px;
-}
+    flex-wrap: wrap;
+  }
+  
 
 .navbar a {
     float: left;
@@ -233,4 +236,99 @@ tr:hover {
     margin-left: 5px;
     font-size: 14px;
 }
-
+.navbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: #333;
+    color: white;
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+  }
+  
+  .navbar-left {
+    z-index: 1;
+  }
+  
+  .navbar-left a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .navbar-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none; /* So links underneath still clickable */
+  }
+  
+  .navbar-title {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: white;
+    white-space: nowrap;
+  }
+  
+  .navbar-auth,
+  .navbar-user {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    padding-right: 12px;
+    z-index: 1;
+  }
+  
+  .auth-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  
+  .auth-row input {
+    padding: 4px;
+    font-size: 0.9em;
+    max-width: 130px;
+  }
+  
+  .auth-row button {
+    padding: 5px 12px;
+    font-size: 0.9em;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  
+  .navbar-user {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .navbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .navbar-center {
+      position: static;
+      transform: none;
+      text-align: center;
+      margin: 10px 0;
+    }
+  
+    .navbar-auth,
+    .navbar-user {
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+  
+    .auth-row {
+      justify-content: center;
+    }
+  }
+  

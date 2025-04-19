@@ -3,10 +3,12 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const db = require('./db'); // Our knex instance
-
+const db = require('./db');
+const authRoutes = require('./auth');
+const authRequired = require('./middleware/authRequired');
 const app = express();
 app.use(express.json());
+app.use(authRoutes);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --------------------------------
@@ -25,7 +27,7 @@ app.get('/politicians', async (req, res) => {
 // --------------------------------
 // Add a new politician
 // --------------------------------
-app.post('/politicians', async (req, res) => {
+app.post('/politicians', authRequired, async (req, res) => {
   const { name, position } = req.body;
 
   if (!name || !position) {
@@ -80,7 +82,7 @@ app.get('/politician/:id/data', async (req, res) => {
 // --------------------------------
 // Submit a word and cast a vote
 // --------------------------------
-app.post('/words', async (req, res) => {
+app.post('/words', authRequired, async (req, res) => {
   const { word, politician_id } = req.body;
 
   if (!word || !politician_id) {
@@ -128,3 +130,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+

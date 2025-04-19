@@ -1,47 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOAP Political Polling</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SOAP Political Polling</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <a href="index.html">Home</a>
-        <div class="navbar-title">SOAP Political Polling</div>
-        <div class="spacer"></div> <!-- Spacer to balance the title -->
-    </nav>
-    <div class="container">
-        <header>
-            <h1 id="politician-name">Politician Name</h1>
-            <p id="politician-position">Position</p>
-        </header>
-
-        <section id="votes-summary">
-            <h2>Votes Summary</h2>
-            <div id="chart-container" style="position: relative;">
-                <canvas id="votesChart" width="400" height="80"></canvas>
-                <div id="vote-buttons-container" class="vote-buttons-container"></div>
-            </div>
-        </section>
-
-        <section id="add-word">
-            <h2>Add a New Word</h2>
-            <form id="add-word-form">
-                <label for="new-word">New Word:</label>
-                <input type="text" id="new-word" name="new-word" required>
-                <button type="submit">Add Word</button>
-            </form>
-        </section>
-
+  <!-- Navbar with embedded login/register -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <a href="index.html">Home</a>
     </div>
-    <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; Copyright 2025 Blake Rayvid. <a class="footer-link" href="mailto:info@soap.fyi">Contact</a></p>
-    </footer>
-    <script src="scripts.js" defer></script>
+  
+    <div class="navbar-center">
+      <span class="navbar-title">SOAP Political Polling</span>
+    </div>
+  
+    <div class="navbar-auth" id="auth">
+      <form id="login-form" onsubmit="event.preventDefault(); login();">
+        <div class="auth-row">
+          <input type="text" id="username" name="username" placeholder="Username" autocomplete="username" required />
+          <input type="password" id="password" name="password" placeholder="Password" autocomplete="current-password" required />
+          <button type="submit">Login</button>
+        </div>
+      </form>
+      <div class="auth-row">
+        <a href="register.html"><button type="button">Register</button></a>
+      </div>
+    </div>
+  
+    <div class="navbar-user" id="user-info" style="display: none;">
+      <span>Logged in as <strong id="logged-in-user"></strong></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </nav>
+  
+  <div class="container">
+    <header>
+      <h1 id="politician-name">Politician Name</h1>
+      <p id="politician-position">Position</p>
+    </header>
+
+    <!-- Votes Summary -->
+    <section id="votes-summary">
+      <h2>Votes Summary</h2>
+      <div id="chart-container" style="position: relative;">
+        <canvas id="votesChart" width="400" height="80"></canvas>
+        <div id="vote-buttons-container" class="vote-buttons-container" style="display: none;">
+          <!-- Voting buttons will be dynamically injected -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Add Word (Authenticated Users Only) -->
+    <section id="add-word" style="display: none;">
+      <h2>Add a New Word</h2>
+      <form id="add-word-form">
+        <label for="new-word">New Word:</label>
+        <input type="text" id="new-word" name="new-word" required />
+        <button type="submit">Add Word</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; Copyright 2025 Blake Rayvid.
+      <a class="footer-link" href="mailto:info@soap.fyi">Contact</a>
+    </p>
+  </footer>
+
+  <script src="scripts.js" defer></script>
+  <script>
+    function updateAuthUI() {
+      const token = localStorage.getItem('token');
+      const authBox = document.getElementById('auth');
+      const userInfo = document.getElementById('user-info');
+      const addWordSection = document.getElementById('add-word');
+      const voteButtons = document.getElementById('vote-buttons-container');
+
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        document.getElementById('logged-in-user').textContent = `User #${payload.id}`;
+        authBox.style.display = 'none';
+        userInfo.style.display = 'flex';
+        if (addWordSection) addWordSection.style.display = 'block';
+        if (voteButtons) voteButtons.style.display = 'flex';
+      } else {
+        authBox.style.display = 'flex';
+        userInfo.style.display = 'none';
+        if (addWordSection) addWordSection.style.display = 'none';
+        if (voteButtons) voteButtons.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateAuthUI();
+
+      const form = document.getElementById('add-word-form');
+      form?.addEventListener('submit', e => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          e.preventDefault();
+          alert('You must be logged in to add a word.');
+        }
+      });
+    });
+  </script>
 </body>
 </html>
