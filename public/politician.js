@@ -1,80 +1,127 @@
-// Copyright 2025 Blake Rayvid <https://github.com/brayvid>
+document.addEventListener('DOMContentLoaded', loadPoliticianData);
 
-document.addEventListener('DOMContentLoaded', function() {
+function submitNewWord(event) {
+    event.preventDefault();
+  
+    const newWord = document.getElementById('new-word').value.trim();
     const urlParams = new URLSearchParams(window.location.search);
     const politicianId = urlParams.get('id');
-
-    if (!politicianId) {
-        alert('No politician specified');
-        return;
+  
+    if (!newWord || !politicianId) {
+      alert('Please enter a valid word.');
+      return;
     }
-
+  
+    fetch('/words', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word: newWord, politician_id: politicianId }),
+    })
+    .then(response => {
+      // Even if response is text, we still proceed on success
+      if (!response.ok) throw new Error('Failed to submit word');
+      return response.text();
+    })
+    .then(() => {
+      document.getElementById('new-word').value = '';
+      loadPoliticianData(); // 💥 Always re-renders the bubble chart
+    })
+    .catch(error => {
+      console.error('Error submitting new word:', error);
+      alert('Error submitting new word');
+    });
+  }
+  
+function loadPoliticianData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const politicianId = urlParams.get('id');
+  
+    if (!politicianId) return;
+  
     fetch(`/politician/${politicianId}/data`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            document.getElementById('politician-name').textContent = data.politician.name;
-            document.getElementById('politician-position').textContent = data.politician.position;
+      .then(res => res.json())
+      .then(data => {
+        const { name, position } = data.politician;
+        document.getElementById('politician-name').textContent = name;
+        document.getElementById('politician-position').textContent = position;
+  
+        drawBubbleChart(data.votesForPolitician, politicianId); // 💥 Refresh chart
+      })
+      .catch(err => {
+        console.error('Error loading data:', err);
+      });
+  }
 
-            // Chart for votes specific to this politician
-            const ctxPolitician = document.getElementById('votesChart').getContext('2d');
-            const labelsPolitician = Object.keys(data.votesForPolitician);
-            const votesPolitician = Object.values(data.votesForPolitician);
+  
 
-            new Chart(ctxPolitician, {
-                type: 'bar',
-                data: {
-                    labels: labelsPolitician,
-                    datasets: [{
-                        label: `Votes for ${data.politician.name}`,
-                        data: votesPolitician,
-                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching politician data:', error);
-            alert('Error loading politician data');
+function drawBubbleChart(voteData, politicianId) {
+    const width = 500;
+    const height = 500;
+
+    const svg = d3.select("#bubble-chart");
+    svg.selectAll("*").remove(); // Clear previous chart
+
+    const root = d3.hierarchy({
+        children: Object.entries(voteData)
+          .filter(([_, count]) => count > 0) // ✅ Only include positive vote counts
+          .map(([word, count]) => ({ word, value: count }))
+      }).sum(d => d.value);      
+
+    const pack = d3.pack()
+        .size([width, height])
+        .padding(10);
+
+    const nodes = pack(root).leaves();
+
+    const bubbleGroup = svg
+        .attr("viewBox", [0, 0, width, height])
+        .append("g");
+
+    const node = bubbleGroup.selectAll("g")
+        .data(nodes)
+        .enter()
+        .append("g")
+        .attr("transform", d => `translate(${d.x},${d.y})`)
+        .style("cursor", "pointer")
+        .on("click", (event, d) => {
+            voteForWord(d.data.word, politicianId);
         });
-});
 
-function submitAdjective() {
-    const politicianId = new URLSearchParams(window.location.search).get('id');
-    const adjective = document.getElementById('adjective-input').value.trim().toLowerCase();
+    node.append("circle")
+        .attr("r", d => d.r)
+        .attr("fill", "steelblue")
+        .attr("opacity", 0.8);
 
-    if (adjective) {
-        fetch('/words', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ word: adjective, politician_id: politicianId }),
-        })
-        .then(response => response.text())
-        .then(data => {
-            alert('Adjective submitted and vote added');
-            document.getElementById('adjective-input').value = '';
-            location.reload(); // Reload the page to update the chart with the new vote
-        })
-        .catch(error => {
-            console.error('Error submitting adjective:', error);
-            alert('Error submitting adjective');
-        });
-    } else {
-        alert('Please enter a word.');
-    }
+    node.append("text")
+        .text(d => `${d.data.word} (${d.data.value})`)
+        .attr("text-anchor", "middle")
+        .attr("alignment-baseline", "middle")
+        .style("fill", "white")
+        .style("font-size", d => {
+            const label = `${d.data.word} (${d.data.value})`;
+            const scaledSize = 2 * d.r / label.length;
+            return `${Math.max(Math.min(scaledSize, 18), 10)}px`; // min 10px, max 18px
+          })
+        .style("pointer-events", "none");
+    
+}
+
+function voteForWord(word, politicianId) {
+    fetch('/words', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word, politician_id: politicianId }),
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to vote');
+        return response.text();
+    })
+    .then(() => {
+        // alert(`Voted for "${word}"`);
+        location.reload();
+    })
+    .catch(err => {
+        console.error('Vote error:', err);
+        alert('Could not submit vote');
+    });
 }

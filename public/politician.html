@@ -5,15 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOAP Political Polling</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Remove Chart.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar">
         <a href="index.html">Home</a>
         <div class="navbar-title">SOAP Political Polling</div>
-        <div class="spacer"></div> <!-- Spacer to balance the title -->
+        <div class="spacer"></div>
     </nav>
+
     <div class="container">
         <header>
             <h1 id="politician-name">Politician Name</h1>
@@ -22,12 +24,12 @@
 
         <section id="votes-summary">
             <h2>Votes Summary</h2>
-            <div id="chart-container" style="position: relative;">
-                <canvas id="votesChart" width="400" height="80"></canvas>
-                <div id="vote-buttons-container" class="vote-buttons-container"></div>
+            <!-- Bubble chart will render in this SVG -->
+            <div id="word-cloud" style="width: 100%; height: 500px;">
+                <svg id="bubble-chart" width="100%" height="100%"></svg>
             </div>
         </section>
-
+        
         <section id="add-word">
             <h2>Add a New Word</h2>
             <form id="add-word-form">
@@ -36,12 +38,17 @@
                 <button type="submit">Add Word</button>
             </form>
         </section>
-
     </div>
+
     <!-- Footer -->
     <footer class="footer">
-        <p>&copy; Copyright 2025 Blake Rayvid. <a class="footer-link" href="mailto:info@soap.fyi">Contact</a></p>
+        <p>&copy; Copyright 2025 Blake Rayvid. 
+            <a class="footer-link" href="mailto:info@soap.fyi">Contact</a>
+        </p>
     </footer>
+
+    <!-- Include scripts -->
     <script src="scripts.js" defer></script>
+    <script src="politician.js" defer></script>
 </body>
 </html>
