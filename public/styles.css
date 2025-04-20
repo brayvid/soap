@@ -114,22 +114,22 @@ tr:hover {
 }
 
 
-
   
-  #bubble-chart-container {
-    width: 100%;
-    aspect-ratio: 2 / 1; /* For desktop */
-    max-width: 800px; /* Match with #votes-summary */
-    margin: auto;
-    overflow: hidden; /* Prevents content from overflowing */
-    box-sizing: border-box;
-  }
-  
-  @media (max-width: 768px) {
+  @media (max-width: 600px) {
     #bubble-chart-container {
-      aspect-ratio: 1 / 1; /* For mobile */
+      height: auto;
+      max-height: none;
+      padding: 0;
+      margin: 0;
+    }
+  
+    #bubble-chart {
+      width: 100%;
+      height: auto;
     }
   }
+
+  
   
   #bubble-chart {
     width: 100%;
