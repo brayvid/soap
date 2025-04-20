@@ -24,7 +24,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 - <s>Word cloud</s> (4/19/25)
 - <s>RESTful urls, 404 handling</s> (4/20/25)
 - <s>Rate limit submissions</s> (4/20/25)
-- Switch from table to something more mobile friendly
+- <s>Switch from table to something more mobile friendly</s> (4/20/25)
 - User registration, login, demographics, location
 - Public vs logged-in views
 - Ability to undo submissions
