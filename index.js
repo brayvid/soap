@@ -7,6 +7,8 @@ const db = require('./db'); // Our knex instance
 
 const app = express();
 app.use(express.json());
+
+// ✅ Serve static files FIRST
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --------------------------------
@@ -33,7 +35,6 @@ app.post('/politicians', async (req, res) => {
   }
 
   try {
-    // Prevent duplicates by name
     const existing = await db('politicians').where({ name }).first();
     if (existing) {
       return res.status(409).json({ error: 'Politician already exists' });
@@ -50,9 +51,9 @@ app.post('/politicians', async (req, res) => {
   }
 });
 
-
 // --------------------------------
 // Get data for a specific politician
+// ✅ MUST come before the /politician/:id route
 // --------------------------------
 app.get('/politician/:id/data', async (req, res) => {
   const { id } = req.params;
@@ -67,7 +68,7 @@ app.get('/politician/:id/data', async (req, res) => {
     const words = await db('words').select('word_id', 'word');
     const votes = await db('votes').where({ politician_id: id });
 
-    // Count the votes for each word
+    // Count votes
     const wordCounts = {};
     words.forEach(w => (wordCounts[w.word] = 0));
     votes.forEach(vote => {
@@ -96,7 +97,6 @@ app.post('/words', async (req, res) => {
   }
 
   try {
-    // Check if word exists
     let wordEntry = await db('words')
       .whereRaw('LOWER(word) = ?', word.toLowerCase())
       .first();
@@ -106,14 +106,13 @@ app.post('/words', async (req, res) => {
         .insert({ word: word.toLowerCase() })
         .returning('word_id');
 
-      wordEntry = row; // ✅ Extract just the object with word_id
+      wordEntry = row;
     }
 
-    // Add vote
     await db('votes').insert({
       politician_id,
       word_id: wordEntry.word_id,
-      user_id: '1', // Placeholder
+      user_id: '1', // Placeholder user
     });
 
     res.status(201).send('Word submitted and vote added');
@@ -123,20 +122,56 @@ app.post('/words', async (req, res) => {
   }
 });
 
-
 // --------------------------------
-// Serve HTML pages
+// Homepage
 // --------------------------------
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/politician/:id', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'politician.html'));
+// --------------------------------
+// Serve the dynamic politician page
+// ✅ This must come AFTER /politician/:id/data
+// --------------------------------
+app.get('/politician/:id', async (req, res) => {
+  const { id } = req.params;
+  // console.log("🚨 HIT /politician/:id with", id);
+
+  // ✅ Validate that id is numeric before querying
+  if (!/^\d+$/.test(id)) {
+    // console.warn("❌ Invalid ID, not a number:", id);
+    return res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+  }
+
+  try {
+    // ✅ Cast to number before querying
+    const politician = await db('politicians')
+      .where({ politician_id: Number(id) })
+      .first();
+
+    if (!politician) {
+      // console.warn("❌ No politician found for ID:", id);
+      return res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+    }
+
+    res.sendFile(path.join(__dirname, 'public', 'politician.html'));
+  } catch (err) {
+    console.error('Error checking politician:', err);
+    res.status(500).send('Error loading politician');
+  }
+});
+
+
+
+// --------------------------------
+// Catch-all 404 page
+// --------------------------------
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
 // --------------------------------
-// Start the server (dev only)
+// Start the server
 // --------------------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {

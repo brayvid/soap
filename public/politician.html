@@ -1,53 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOAP Social Polling</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- <link rel="icon" href="/favicon.ico" type="image/x-icon"> -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOAP Social Polling</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <a href="index.html">Home</a>
-        <div class="navbar-title">🧼 Social Polling</div>
-        <div class="spacer"></div>
-    </nav>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/">Home</a>
+    <div class="navbar-title">🧼 Social Polling</div>
+    <div class="spacer"></div>
+  </nav>
 
-    <div class="container">
-        <header>
-            <h1 id="politician-name">Politician Name</h1>
-            <p id="politician-position">Position</p>
-        </header>
+  <div class="container">
+    <header>
+      <h1 id="politician-name">Politician Name</h1>
+      <p id="politician-position">Position</p>
+    </header>
 
-        <section id="votes-summary">
-            <h2>Votes Summary</h2>
-            <!-- Bubble chart will render in this SVG -->
-             
-            <div id="bubble-chart-container">
-                <svg id="bubble-chart" width="100%" height="100%"></svg>
-            </div>
-        </section>
-        
-        <section id="add-word">
-            <h2>Add a New Word</h2>
-            <form id="add-word-form">
-                <label for="new-word">New Word:</label>
-                <input type="text" id="new-word" name="new-word" required>
-                <button type="submit">Add Word</button>
-            </form>
-        </section>
-    </div>
+    <section id="votes-summary">
+      <h2>Votes Summary</h2>
+      <div id="bubble-chart-container">
+        <svg id="bubble-chart" width="100%" height="100%"></svg>
+      </div>
+    </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; Copyright 2024-2025 <a class="footer-link" href="https://soap.fyi">soap.fyi</a>. All rights reserved.</p>
-    </footer>
+    <section id="add-word">
+      <h2>Add a New Word</h2>
+      <form id="add-word-form">
+        <label for="new-word">New Word:</label>
+        <input type="text" id="new-word" name="new-word" required />
+        <button type="submit">Add Word</button>
+      </form>
+    </section>
+  </div>
 
-    <!-- Include scripts -->
-    <script src="scripts.js" defer></script>
-    <script src="politician.js" defer></script>
+  <footer class="footer">
+    <p>&copy; 2024-2025 <a class="footer-link" href="https://soap.fyi">soap.fyi</a>. All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/scripts.js" defer></script>
+  <script src="/politician.js" defer></script>
 </body>
 </html>

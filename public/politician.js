@@ -4,8 +4,10 @@ function submitNewWord(event) {
     event.preventDefault();
   
     const newWord = document.getElementById('new-word').value.trim();
-    const urlParams = new URLSearchParams(window.location.search);
-    const politicianId = urlParams.get('id');
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const politicianId = pathParts[pathParts.length - 1];
+    
+    // console.log("🧠 politicianId =", politicianId);  
   
     if (!newWord || !politicianId) {
       alert('Please enter a valid word.');
@@ -15,7 +17,8 @@ function submitNewWord(event) {
     fetch('/words', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ word: newWord, politician_id: politicianId }),
+      body: JSON.stringify({ word: newWord, politician_id: Number(politicianId) }),
+
     })
     .then(response => {
       // Even if response is text, we still proceed on success
@@ -33,48 +36,63 @@ function submitNewWord(event) {
   }
   
   function loadPoliticianData() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const politicianId = urlParams.get('id');
-
-    if (!politicianId) return;
-
+    // ✅ Extract ID from path (e.g., /politician/1)
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const politicianId = pathParts[pathParts.length - 1];
+    // console.log("🧠 politicianId =", politicianId);
+  
+    // ✅ Guard: ensure it's a valid number
+    if (!politicianId || isNaN(Number(politicianId))) {
+      console.error("❌ Invalid politician ID:", politicianId);
+      window.location.href = '/404.html';
+      return;
+    }
+  
+    // ✅ Fetch data from backend
     fetch(`/politician/${politicianId}/data`)
-        .then(res => res.json())
-        .then(data => {
-            const { name, position } = data.politician;
-            document.getElementById('politician-name').textContent = name;
-            document.getElementById('politician-position').textContent = position;
-
-            const voteData = data.votesForPolitician || {};
-            const hasValidVotes = Object.values(voteData).some(count => count > 0);
-            const bubbleContainer = document.getElementById('bubble-chart-container');
-
-            if (!hasValidVotes) {
-              // Reset layout for message mode
-              bubbleContainer.style.display = 'block';
-              bubbleContainer.style.justifyContent = '';
-              bubbleContainer.style.alignItems = '';
-              bubbleContainer.style.height = 'auto'; // Clear any previous fixed height
-          
-              bubbleContainer.innerHTML = `
-                  <div style="text-align: center; padding: 2rem; font-size: 1.2rem; color: #555;">
-                      Be the first to add a word.
-                  </div>
-              `;
-          }else {
-            bubbleContainer.style.display = 'flex';
-            bubbleContainer.style.justifyContent = 'center';
-            bubbleContainer.style.alignItems = 'center';
-            bubbleContainer.innerHTML = '<svg id="bubble-chart" width="500" height="500"></svg>';
-            drawBubbleChart(voteData, politicianId);
+      .then(res => {
+        if (!res.ok) {
+          window.location.href = '/404.html';
+          return null;
         }
-        
-        })
-        .catch(err => {
-            console.error('Error loading data:', err);
-        });
-}
-
+        return res.json();
+      })
+      .then(data => {
+        if (!data) return;
+  
+        const { name, position } = data.politician;
+        document.getElementById('politician-name').textContent = name;
+        document.getElementById('politician-position').textContent = position;
+  
+        const voteData = data.votesForPolitician || {};
+        const hasValidVotes = Object.values(voteData).some(count => count > 0);
+        const bubbleContainer = document.getElementById('bubble-chart-container');
+  
+        if (!hasValidVotes) {
+          bubbleContainer.style.display = 'block';
+          bubbleContainer.style.justifyContent = '';
+          bubbleContainer.style.alignItems = '';
+          bubbleContainer.style.height = 'auto';
+  
+          bubbleContainer.innerHTML = `
+            <div style="text-align: center; padding: 2rem; font-size: 1.2rem; color: #555;">
+              Be the first to add a word.
+            </div>
+          `;
+        } else {
+          bubbleContainer.style.display = 'flex';
+          bubbleContainer.style.justifyContent = 'center';
+          bubbleContainer.style.alignItems = 'center';
+          bubbleContainer.innerHTML = '<svg id="bubble-chart" width="500" height="500"></svg>';
+          drawBubbleChart(voteData, politicianId);
+        }
+      })
+      .catch(err => {
+        console.error('Error loading data:', err);
+        window.location.href = '/404.html';
+      });
+  }
+  
 
 function drawBubbleChart(voteData, politicianId) {
   const container = document.getElementById('bubble-chart-container');
@@ -177,7 +195,7 @@ function voteForWord(word, politicianId) {
     fetch('/words', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ word, politician_id: politicianId }),
+        body: JSON.stringify({ word, politician_id: Number(politicianId) }),
     })
     .then(response => {
         if (!response.ok) throw new Error('Failed to vote');
@@ -192,3 +210,13 @@ function voteForWord(word, politicianId) {
         alert('Could not submit vote');
     });
 }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadPoliticianData();
+
+  const form = document.getElementById('add-word-form');
+  if (form) {
+    form.addEventListener('submit', submitNewWord);
+  }
+});

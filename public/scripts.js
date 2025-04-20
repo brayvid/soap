@@ -60,7 +60,7 @@ function renderTable(filteredData = null) {
             row.innerHTML = `
                 <td>
                     <span class="sort-handle" onclick="sortWordColumns(${politician.politician_id})">⇆</span>
-                    <a href="/politician.html?id=${politician.politician_id}">${politician.name}</a>
+                    <a href="/politician/${politician.politician_id}">${politician.name}</a>
                 </td>
                 <td>${politician.position}</td>`;
 
@@ -153,7 +153,7 @@ async function submitNewPolitician(event) {
 
         if (!response.ok) throw new Error(await response.text());
         const newPol = await response.json();
-        console.log('Added:', newPol);
+        // console.log('Added:', newPol);
         loadPoliticians();
     } catch (err) {
         console.error('Error adding politician:', err);
