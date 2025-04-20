@@ -281,16 +281,18 @@ tr:hover {
 
 
 #bubble-chart-container {
-    display: flex; /* not 'none' */
+    width: 100%;
+    max-width: 100vw;
+    aspect-ratio: 1 / 1;
+    max-height: 80vh;
+    margin: 0 auto 20px;
+    display: flex;
     justify-content: center;
     align-items: center;
-    width: 100vw;
-    max-width: 100%;
-    margin: 0 auto;
     padding: 0;
     box-sizing: border-box;
-    overflow-x: hidden;
-}
+  }
+  
 
 
 #bubble-chart {
@@ -318,5 +320,131 @@ tr:hover {
       padding: 0;
       overflow-x: hidden;
     }
+  }
+  
+
+  #politician-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+    padding: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 480px) {
+    #politician-grid {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.5rem;
+      padding: 0.5rem;
+    }
+  
+    .politician-card {
+      font-size: 0.8rem;
+      padding: 0.4rem;
+    }
+  
+    .word-tag {
+      font-size: 0.65rem;
+      padding: 0.1rem 0.3rem;
+    }
+  }
+  
+  
+  .politician-card {
+    background-color: white;
+    border-radius: 12px;
+    padding: 0.5rem; /* was 1rem */
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  
+  
+  .politician-card:hover {
+    transform: scale(1.02);
+  }
+  
+  .politician-bubble {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: steelblue;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border-radius: 999px;
+    padding: 0.3rem 0.6rem;
+    min-width: 1.5rem;
+    height: auto;
+    line-height: 1;
+  }
+  
+  
+  .politician-name {
+    font-weight: bold;
+    margin-top: 0.5rem;
+  }
+  
+  .politician-position {
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+
+  .politician-top-words {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    justify-content: center;
+  }
+  
+  .word-tag {
+    background-color: #eee;
+    padding: 0.15rem 0.4rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    color: #333;
+    line-height: 1;
+  }
+  
+  
+  .word-tag.muted {
+    background-color: transparent;
+    color: #aaa;
+    font-style: italic;
+  }
+  
+  .politician-name,
+.politician-position {
+  margin: 0;
+  line-height: 1.2;
+}
+
+
+  /* Shrinks the bubble chart when there are no votes */
+.bubble-empty {
+    height: 60px !important;
+    max-height: none !important;
+    padding: 0 !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .bubble-active {
+    height: auto;
+    aspect-ratio: 1 / 1;
+    max-height: 80vh;
+    margin: 0 auto 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   

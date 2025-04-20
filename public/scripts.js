@@ -36,8 +36,16 @@ function loadPoliticians() {
 }
 
 function renderTable(filteredData = null) {
+
+
+
     const politicianList = document.getElementById('politician-list');
     const tableHead = document.querySelector('#politicians-table thead tr');
+
+    if (!politicianList || !tableHead) {
+        console.warn('renderTable() skipped — table not present.');
+        return;
+    }
     const dataToRender = filteredData || politiciansData;
 
     politicianList.innerHTML = '';
@@ -159,29 +167,33 @@ async function submitNewPolitician(event) {
         console.error('Error adding politician:', err);
         showMessage(err.message || "Something went wrong");
     }
+
+    loadPoliticiansGrid(); // if you're using the card grid
 }
 
 // Load initial data based on the page
 window.onload = () => {
-    const politicianNameElement = document.getElementById('politician-name');
-    const politicianListElement = document.getElementById('politician-list');
-
-    if (politicianNameElement && window.location.search.includes('id=')) {
-        loadPoliticianData();
-
-        const addWordForm = document.getElementById('add-word-form');
-        if (addWordForm) {
-            addWordForm.addEventListener('submit', submitNewWord);
-        }
-    } else if (politicianListElement) {
-        loadPoliticians();
-
-        const addPoliticianForm = document.getElementById('add-politician-form');
-        if (addPoliticianForm) {
-            addPoliticianForm.addEventListener('submit', submitNewPolitician);
-        }
+    const addPoliticianForm = document.getElementById('add-politician-form');
+    if (addPoliticianForm) {
+      addPoliticianForm.addEventListener('submit', submitNewPolitician);
     }
-};
+  
+    const addWordForm = document.getElementById('add-word-form');
+    if (addWordForm) {
+      addWordForm.addEventListener('submit', submitNewWord);
+    }
+  
+    const politicianNameElement = document.getElementById('politician-name');
+    if (politicianNameElement) {
+      loadPoliticianData(); // you're on a politician/:id page
+    } else if (document.getElementById('politician-grid')) {
+      loadPoliticiansGrid(); // you're on the homepage with bubbles
+    } else {
+      loadPoliticians(); // fallback if you're using a table
+    }
+  };
+  
+  
 
 
 function showMessage(msg) {
@@ -205,3 +217,35 @@ function showMessage(msg) {
       el.remove();
     }, 5000);
   }
+
+  async function loadPoliticiansGrid() {
+    const grid = document.getElementById('politician-grid');
+    if (!grid) return;
+  
+    grid.innerHTML = ''; // ✅ Clear existing cards
+  
+    const res = await fetch('/politicians');
+    const politicians = await res.json();
+  
+    politicians.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'politician-card';
+      card.onclick = () => window.location.href = `/politician/${p.politician_id}`;
+  
+      card.innerHTML = `
+        <div class="politician-bubble">${p.vote_count || 0}</div>
+        <div class="politician-name">${p.name}</div>
+        <div class="politician-position">${p.position}</div>
+        <div class="politician-top-words">
+          ${p.top_words && p.top_words.length
+            ? p.top_words.map(word => `<span class="word-tag">${word}</span>`).join(' ')
+            : '<span class="word-tag muted">No words yet</span>'}
+        </div>
+      `;
+  
+      grid.appendChild(card);
+    });
+  }
+  
+
+  

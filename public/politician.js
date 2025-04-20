@@ -75,20 +75,16 @@ function submitNewWord(event) {
         const bubbleContainer = document.getElementById('bubble-chart-container');
   
         if (!hasValidVotes) {
-          bubbleContainer.style.display = 'block';
-          bubbleContainer.style.justifyContent = '';
-          bubbleContainer.style.alignItems = '';
-          bubbleContainer.style.height = 'auto';
-  
+          bubbleContainer.classList.add('bubble-empty');
+          bubbleContainer.classList.remove('bubble-active');
           bubbleContainer.innerHTML = `
-            <div style="text-align: center; padding: 2rem; font-size: 1.2rem; color: #555;">
+            <div style="text-align: center; padding: 1rem; font-size: 1rem; color: #555;">
               Be the first to add a word.
             </div>
           `;
         } else {
-          bubbleContainer.style.display = 'flex';
-          bubbleContainer.style.justifyContent = 'center';
-          bubbleContainer.style.alignItems = 'center';
+          bubbleContainer.classList.remove('bubble-empty');
+          bubbleContainer.classList.add('bubble-active');
           bubbleContainer.innerHTML = '<svg id="bubble-chart" width="500" height="500"></svg>';
           drawBubbleChart(voteData, politicianId);
         }

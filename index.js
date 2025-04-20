@@ -1,4 +1,5 @@
 // Copyright 2025 Blake Rayvid <https://github.com/brayvid>
+
 const { isUnderLimit, logAction } = require('./middleware/ipRateLimit');
 
 require('dotenv').config();
@@ -48,12 +49,39 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/politicians', async (req, res) => {
   try {
     const politicians = await db('politicians').select('*');
-    res.json(politicians);
+
+    const enriched = await Promise.all(
+      politicians.map(async p => {
+        // Get vote count
+        const [{ count }] = await db('votes')
+          .where('politician_id', p.politician_id)
+          .count('vote_id as count');
+
+        // Get top 3 words by frequency
+        const topWords = await db('votes')
+          .join('words', 'votes.word_id', '=', 'words.word_id')
+          .where('votes.politician_id', p.politician_id)
+          .select('words.word')
+          .groupBy('words.word')
+          .count('* as count')
+          .orderBy('count', 'desc')
+          .limit(3);
+          
+        return {
+          ...p,
+          vote_count: parseInt(count),
+          top_words: topWords.map(w => w.word)
+        };
+      })
+    );
+
+    res.json(enriched);
   } catch (err) {
     console.error('Error fetching politicians:', err);
     res.status(500).send('Error fetching politicians');
   }
 });
+
 
 // --------------------------------
 // Add a new politician (w/ duplicate check)
