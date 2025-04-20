@@ -23,7 +23,7 @@ app.get('/politicians', async (req, res) => {
 });
 
 // --------------------------------
-// Add a new politician
+// Add a new politician (w/ duplicate check)
 // --------------------------------
 app.post('/politicians', async (req, res) => {
   const { name, position } = req.body;
@@ -33,9 +33,17 @@ app.post('/politicians', async (req, res) => {
   }
 
   try {
-    console.log('🆕 Adding politician:', name, position);
-    await db('politicians').insert({ name, position });
-    res.status(201).json({ message: 'Politician added successfully' });
+    // Prevent duplicates by name
+    const existing = await db('politicians').where({ name }).first();
+    if (existing) {
+      return res.status(409).json({ error: 'Politician already exists' });
+    }
+
+    const [newPolitician] = await db('politicians')
+      .insert({ name, position })
+      .returning('*');
+
+    res.status(201).json(newPolitician);
   } catch (err) {
     console.error('❌ Error adding politician:', err.message);
     res.status(500).json({ error: err.message });
