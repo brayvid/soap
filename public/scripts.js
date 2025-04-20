@@ -114,23 +114,39 @@ function sortTable(columnIndex) {
     renderTable();
 }
 
-function sortWordColumns(politicianId) {
-    const politician = politiciansData.find(p => String(p.politician_id) === String(politicianId));
-    if (politician) {
-        const sortedWords = Object.entries(politician.votesForPolitician).sort((a, b) => b[1] - a[1]);
-        currentColumnOrder = sortedWords.map(entry => entry[0]);
-        renderTable();
-    }
-}
-
 function filterTable() {
     const filter = document.getElementById('filter-input').value.toLowerCase();
-    const filteredData = politiciansData.filter(politician =>
-        politician.name.toLowerCase().includes(filter) ||
-        politician.position.toLowerCase().includes(filter)
-    );
-    renderTable(filteredData);
-}
+    const cards = document.querySelectorAll('.politician-card');
+  
+    cards.forEach(card => {
+      const name = card.querySelector('.politician-name')?.textContent.toLowerCase() || '';
+      const position = card.querySelector('.politician-position')?.textContent.toLowerCase() || '';
+      const words = Array.from(card.querySelectorAll('.word-tag')).map(w => w.textContent.toLowerCase()).join(' ');
+  
+      const matches = name.includes(filter) || position.includes(filter) || words.includes(filter);
+  
+      card.style.display = matches ? 'flex' : 'none';
+    });
+  }
+  
+
+  function filterTable() {
+    const filter = document.getElementById('filter-input').value.toLowerCase();
+    const cards = document.querySelectorAll('.politician-card');
+  
+    cards.forEach(card => {
+      const name = card.querySelector('.politician-name')?.textContent.toLowerCase() || '';
+      const position = card.querySelector('.politician-position')?.textContent.toLowerCase() || '';
+      const words = Array.from(card.querySelectorAll('.word-tag')).map(w => w.textContent.toLowerCase()).join(' ');
+  
+      const matches = name.includes(filter) || position.includes(filter) || words.includes(filter);
+      card.style.display = matches ? 'flex' : 'none';
+    });
+  }
+  
+  // 🔥 Make sure it's accessible globally
+  window.filterTable = filterTable;
+  
 
 function submitVoteForWord(word, politicianId) {
     fetch('/words', {
@@ -233,15 +249,15 @@ function showMessage(msg) {
       card.onclick = () => window.location.href = `/politician/${p.politician_id}`;
   
       card.innerHTML = `
-        <div class="politician-bubble">${p.vote_count || 0}</div>
-        <div class="politician-name">${p.name}</div>
-        <div class="politician-position">${p.position}</div>
-        <div class="politician-top-words">
-          ${p.top_words && p.top_words.length
-            ? p.top_words.map(word => `<span class="word-tag">${word}</span>`).join(' ')
-            : '<span class="word-tag muted">No words yet</span>'}
-        </div>
-      `;
+      <div class="politician-bubble">${p.vote_count || 0}</div>
+      <div class="politician-name">${p.name}</div>
+      <div class="politician-position">${p.position}</div>
+      <div class="politician-top-words">
+        ${p.top_words && p.top_words.length
+          ? p.top_words.map(word => `<span class="word-tag">${word}</span>`).join(' ')
+          : '<span class="word-tag muted">No words yet</span>'}
+      </div>
+    `;
   
       grid.appendChild(card);
     });
@@ -249,3 +265,4 @@ function showMessage(msg) {
   
 
   
+  window.filterTable = filterTable;
