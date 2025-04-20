@@ -25,23 +25,24 @@
     <!-- Search and Filter Input -->
     <input type="text" id="filter-input" placeholder="Search for politicians..." onkeyup="filterTable()">
 
-    <div id="bubble-chart-container">
-  <div id="bubble-chart"></div>
 </div>
 
 <!-- Politicians Table -->
+<div class="table-scroll-wrapper">
     <table id="politicians-table" class="sortable">
-        <thead>
-            <tr>
-                <th>Name <span class="sort-arrow" onclick="sortTable(0)">⇅</span></th>
-                <th>Position <span class="sort-arrow" onclick="sortTable(1)">⇅</span></th>
-                <!-- Word columns will be dynamically added here -->
-            </tr>
-        </thead>
-        <tbody id="politician-list">
-            <!-- Rows will be dynamically added here -->
-        </tbody>
+      <thead>
+        <tr>
+          <th>Name <span class="sort-arrow" onclick="sortTable(0)">⇅</span></th>
+          <th>Position <span class="sort-arrow" onclick="sortTable(1)">⇅</span></th>
+        </tr>
+      </thead>
+      <tbody id="politician-list">
+        <!-- Rows dynamically inserted -->
+      </tbody>
     </table>
+  </div>
+  
+
     <section id="add-politician">
         <h2>Add a New Politician</h2>
         <form id="add-politician-form">

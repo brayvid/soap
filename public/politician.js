@@ -225,6 +225,9 @@ function voteForWord(word, politicianId) {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+  const isPoliticianPage = /^\/politician\/\d+$/.test(window.location.pathname);
+  if (!isPoliticianPage) return;
+
   loadPoliticianData();
 
   const form = document.getElementById('add-word-form');
@@ -232,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', submitNewWord);
   }
 });
+
 
 
 
