@@ -23,8 +23,8 @@ Soap is more than just a social platform—it's a movement towards more construc
 - <s>More robust and secure database system</s> (4/18/25)
 - <s>Word cloud</s> (4/19/25)
 - <s>RESTful urls, 404 handling</s> (4/20/25)
-- <s>Prevent repeat voting until some time has passed</s> (4/20/25)
-- Switch from big table to something more mobile friendly
+- <s>Rate limit submissions</s> (4/20/25)
+- Switch from table to something more mobile friendly
 - User registration, login, demographics, location
 - Public vs logged-in views
 - Ability to undo submissions
