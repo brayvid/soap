@@ -134,7 +134,7 @@ function submitVoteForWord(word, politicianId) {
     .then(() => loadPoliticianData())
     .catch(error => {
         console.error('Error submitting vote:', error);
-        alert('Error submitting vote');
+        showMessage(error.message || 'Error submitting vote');
     });
 }
   
@@ -157,7 +157,7 @@ async function submitNewPolitician(event) {
         loadPoliticians();
     } catch (err) {
         console.error('Error adding politician:', err);
-        alert('Failed to add politician: ' + err.message);
+        showMessage(err.message || "Something went wrong");
     }
 }
 
@@ -182,3 +182,26 @@ window.onload = () => {
         }
     }
 };
+
+
+function showMessage(msg) {
+    const el = document.createElement('div');
+    el.innerText = msg;
+    el.style.position = 'fixed';
+    el.style.bottom = '20px';
+    el.style.left = '50%';
+    el.style.transform = 'translateX(-50%)';
+    el.style.background = '#ff3860'; // red-ish
+    el.style.color = 'white';
+    el.style.padding = '10px 20px';
+    el.style.borderRadius = '8px';
+    el.style.zIndex = 1000;
+    el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+    el.style.fontFamily = 'sans-serif';
+    el.style.fontSize = '1rem';
+    document.body.appendChild(el);
+  
+    setTimeout(() => {
+      el.remove();
+    }, 5000);
+  }

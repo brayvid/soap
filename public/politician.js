@@ -20,19 +20,25 @@ function submitNewWord(event) {
       body: JSON.stringify({ word: newWord, politician_id: Number(politicianId) }),
 
     })
-    .then(response => {
-      // Even if response is text, we still proceed on success
-      if (!response.ok) throw new Error('Failed to submit word');
-      return response.text();
-    })
-    .then(() => {
+    .then(async (response) => {
+      if (response.status === 429) {
+        showMessage("Rate limit exceeded for this IP");
+        return;
+      }
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        showMessage(data.error || "Something went wrong submitting your word.");
+        return;
+      }
+    
       document.getElementById('new-word').value = '';
-      loadPoliticianData(); // 💥 Always re-renders the bubble chart
+      loadPoliticianData();
     })
     .catch(error => {
       console.error('Error submitting new word:', error);
-      alert('Error submitting new word');
+      showMessage("Network error. Please try again.");
     });
+    
   }
   
   function loadPoliticianData() {
@@ -197,18 +203,24 @@ function voteForWord(word, politicianId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ word, politician_id: Number(politicianId) }),
     })
-    .then(response => {
-        if (!response.ok) throw new Error('Failed to vote');
-        return response.text();
-    })
-    .then(() => {
-        // alert(`Voted for "${word}"`);
-        location.reload();
+    .then(async (response) => {
+      if (response.status === 429) {
+        showMessage("Rate limit exceeded for this IP");
+        return;
+      }
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        showMessage(data.error || "Error voting for word.");
+        return;
+      }
+    
+      location.reload();
     })
     .catch(err => {
-        console.error('Vote error:', err);
-        alert('Could not submit vote');
+      console.error('Vote error:', err);
+      showMessage("Network error while voting.");
     });
+    
 }
 
 
@@ -220,3 +232,27 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', submitNewWord);
   }
 });
+
+
+
+function showMessage(msg) {
+  const el = document.createElement('div');
+  el.innerText = msg;
+  el.style.position = 'fixed';
+  el.style.bottom = '20px';
+  el.style.left = '50%';
+  el.style.transform = 'translateX(-50%)';
+  el.style.background = '#ff3860'; // red-ish
+  el.style.color = 'white';
+  el.style.padding = '10px 20px';
+  el.style.borderRadius = '8px';
+  el.style.zIndex = 1000;
+  el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+  el.style.fontFamily = 'sans-serif';
+  el.style.fontSize = '1rem';
+  document.body.appendChild(el);
+
+  setTimeout(() => {
+    el.remove();
+  }, 5000);
+}
