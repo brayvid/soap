@@ -1,9 +1,35 @@
 // Copyright 2025 Blake Rayvid <https://github.com/brayvid>
 
+let COOLDOWN_MINUTES
+const { isUnderLimit, logAction } = require('./middleware/ipRateLimit');
+
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const db = require('./db'); // Our knex instance
+
+async function getOrCreateUserIdFromIP(ip) {
+  // Check if a user already exists for this IP
+  const existingUser = await db('users').where({ ip }).first();
+  if (existingUser) return existingUser.id;
+
+  // Generate fallback values
+  const username = `user_${ip.replace(/\./g, '_')}`;
+  const email = `${ip.replace(/\./g, '-') + '@autogen.local'}`;
+  const password_hash = 'ip-only-no-password'; // clearly marked dummy
+
+  // Insert a new user for this IP
+  const [newUser] = await db('users')
+    .insert({
+      ip,
+      username,
+      email,
+      password_hash
+    })
+    .returning('*');
+
+  return newUser.id;
+}
 
 const app = express();
 app.use(express.json());
@@ -29,9 +55,15 @@ app.get('/politicians', async (req, res) => {
 // --------------------------------
 app.post('/politicians', async (req, res) => {
   const { name, position } = req.body;
+  const ip = req.ip;
 
   if (!name || !position) {
     return res.status(400).send('Missing name or position');
+  }
+
+  const underLimit = await isUnderLimit(ip, 'add_politician', 1); // max 1/hour
+  if (!underLimit) {
+    return res.status(429).send('Rate limit exceeded for this IP');
   }
 
   try {
@@ -40,16 +72,21 @@ app.post('/politicians', async (req, res) => {
       return res.status(409).json({ error: 'Politician already exists' });
     }
 
-    const [newPolitician] = await db('politicians')
-      .insert({ name, position })
-      .returning('*');
+    const userId = await getOrCreateUserIdFromIP(ip);
 
+    const [newPolitician] = await db('politicians')
+      .insert({ name, position, user_id: userId })
+      .returning('*');
+    
+
+    await logAction(ip, 'add_politician');
     res.status(201).json(newPolitician);
   } catch (err) {
     console.error('❌ Error adding politician:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // --------------------------------
 // Get data for a specific politician
@@ -91,9 +128,15 @@ app.get('/politician/:id/data', async (req, res) => {
 // --------------------------------
 app.post('/words', async (req, res) => {
   const { word, politician_id } = req.body;
+  const ip = req.ip;
 
   if (!word || !politician_id) {
     return res.status(400).send('Missing word or politician ID');
+  }
+
+  const underLimit = await isUnderLimit(ip, 'submit_vote', 1); // max 1/hour
+  if (!underLimit) {
+    return res.status(429).send('Rate limit exceeded for this IP');
   }
 
   try {
@@ -105,22 +148,26 @@ app.post('/words', async (req, res) => {
       const [row] = await db('words')
         .insert({ word: word.toLowerCase() })
         .returning('word_id');
-
       wordEntry = row;
     }
+
+    const userId = await getOrCreateUserIdFromIP(ip);
 
     await db('votes').insert({
       politician_id,
       word_id: wordEntry.word_id,
-      user_id: '1', // Placeholder user
+      user_id: userId,
     });
+    
 
+    await logAction(ip, 'submit_vote');
     res.status(201).send('Word submitted and vote added');
   } catch (err) {
     console.error('Error submitting word/vote:', err.message, err.stack);
     res.status(500).json({ error: 'Error submitting word/vote' });
   }
 });
+
 
 // --------------------------------
 // Homepage
