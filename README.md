@@ -23,6 +23,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 - <s>More robust and secure database system</s> (4/18/25)
 - <s>Word cloud</s> (4/19/25)
 - <s>RESTful urls, 404 handling</s> (4/20/25)
+- Switch from big table to something more mobile friendly
 - User registration, login, demographics, location
 - Prevent repeat voting until some time has passed
 - Public vs logged-in views
@@ -38,11 +39,12 @@ Soap is more than just a social platform—it's a movement towards more construc
 - Valence of words
 - Definitions of words
 - NLP word selection tool
+- Sentiment analysis
+- Data products
 - Comparison between two or more politicians
 - Users can submit reasons why they selected a particular word
 - Social features
 - Support multiple languages
-- Data products
 - Release
 
 ## Known bugs
