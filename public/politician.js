@@ -94,104 +94,101 @@ function submitNewWord(event) {
         window.location.href = '/404.html';
       });
   }
+
+
+  function drawBubbleChart(voteData, politicianId) {
+    const container = document.getElementById('bubble-chart-container');
+    const svg = d3.select("#bubble-chart");
+    svg.selectAll("*").remove(); // Clear previous chart
   
-
-function drawBubbleChart(voteData, politicianId) {
-  const container = document.getElementById('bubble-chart-container');
-  const svg = d3.select("#bubble-chart");
-
-  // Clear existing SVG elements
-  svg.selectAll("*").remove();
-
-  const data = Object.entries(voteData)
-    .filter(([_, count]) => count > 0)
-    .map(([word, count]) => ({ word, value: count }));
-
-  // 🔥 If no votes, show a clean message and collapse chart space
-  if (data.length === 0) {
-    svg.style("display", "none");
-
-    // Collapse container space
-    container.style.height = "auto";
+    const data = Object.entries(voteData)
+      .filter(([_, count]) => count > 0)
+      .map(([word, count]) => ({ word, value: count }));
+  
+    if (data.length === 0) {
+      svg.style("display", "none");
+      container.style.height = "auto";
+      container.style.padding = "0";
+      container.style.margin = "0";
+  
+      const message = document.createElement("p");
+      message.textContent = "Be the first to add a word!";
+      message.style.textAlign = "center";
+      message.style.padding = "0.75rem 1rem";
+      message.style.margin = "0";
+      message.style.fontSize = "1rem";
+      message.style.color = "#555";
+      message.id = "no-data-message";
+  
+      if (!document.getElementById("no-data-message")) {
+        container.appendChild(message);
+      }
+  
+      return;
+    }
+  
+    const oldMessage = document.getElementById("no-data-message");
+    if (oldMessage) oldMessage.remove();
+    svg.style("display", "block");
+  
+    container.style.height = "100%";
     container.style.padding = "0";
     container.style.margin = "0";
-
-    const message = document.createElement("p");
-    message.textContent = "Be the first to add a word!";
-    message.style.textAlign = "center";
-    message.style.padding = "0.75rem 1rem";
-    message.style.margin = "0";
-    message.style.fontSize = "1rem";
-    message.style.color = "#555";
-    message.id = "no-data-message";
-
-    if (!document.getElementById("no-data-message")) {
-      container.appendChild(message);
-    }
-
-    return;
+  
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+  
+    svg
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .attr("preserveAspectRatio", "xMidYMid meet")
+      .style("width", "100%")
+      .style("height", "100%");
+  
+    const root = d3.hierarchy({ children: data }).sum(d => d.value);
+    const pack = d3.pack().size([width, height]).padding(3);
+    const nodes = pack(root).leaves();
+  
+    // 🔵 Circle layer
+    const bubbleLayer = svg.append("g").attr("id", "bubble-layer");
+    bubbleLayer.selectAll("circle")
+      .data(nodes)
+      .enter()
+      .append("circle")
+      .attr("cx", d => d.x)
+      .attr("cy", d => d.y)
+      .attr("r", d => d.r)
+      .attr("fill", "steelblue")
+      .attr("opacity", 0.8)
+      .style("cursor", "pointer")
+      .on("click", (event, d) => {
+        voteForWord(d.data.word, politicianId);
+      });
+  
+    // 🔠 Label layer (drawn AFTER circle layer)
+    const labelLayer = svg.append("g").attr("id", "label-layer");
+    labelLayer.selectAll("text")
+      .data(nodes)
+      .enter()
+      .append("text")
+      .attr("x", d => d.x)
+      .attr("y", d => d.y)
+      .text(d => `${d.data.word} (${d.data.value})`)
+      .attr("text-anchor", "middle")
+      .attr("alignment-baseline", "middle")
+      .style("fill", "white")
+      .style("stroke", "black")
+      .style("stroke-width", "1px")
+      .style("paint-order", "stroke")
+      .style("stroke-linejoin", "round")
+      .style("font-size", d => {
+        const label = `${d.data.word} (${d.data.value})`;
+        const scaledSize = 4 * d.r / label.length;
+        return `${Math.max(Math.min(scaledSize, 18), 10)}px`;
+      })
+      .style("pointer-events", "none");
   }
 
-  // 🧼 Remove the message and show SVG if there are votes
-  const oldMessage = document.getElementById("no-data-message");
-  if (oldMessage) oldMessage.remove();
-  svg.style("display", "block");
-
-  container.style.height = "100%";
-  container.style.padding = "0";
-  container.style.margin = "0";
-
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-
-  svg
-    .attr("viewBox", `0 0 ${width} ${height}`)
-    .attr("preserveAspectRatio", "xMidYMid meet")
-    .style("width", "100%")
-    .style("height", "100%");
-
-  const root = d3.hierarchy({ children: data }).sum(d => d.value);
-
-  const pack = d3.pack()
-    .size([width, height])
-    .padding(3); // tighter spacing
-
-  const nodes = pack(root).leaves();
-
-  const bubbleGroup = svg.append("g");
-
-  const node = bubbleGroup.selectAll("g")
-    .data(nodes)
-    .enter()
-    .append("g")
-    .attr("transform", d => `translate(${d.x},${d.y})`)
-    .style("cursor", "pointer")
-    .on("click", (event, d) => {
-      voteForWord(d.data.word, politicianId);
-    });
-
-  node.append("circle")
-    .attr("r", d => d.r)
-    .attr("fill", "steelblue")
-    .attr("opacity", 0.8);
-
-  node.append("text")
-    .text(d => `${d.data.word} (${d.data.value})`)
-    .attr("text-anchor", "middle")
-    .attr("alignment-baseline", "middle")
-    .style("fill", "white")
-    .style("stroke", "black")
-    .style("stroke-width", "1.5px")
-    .style("paint-order", "stroke")
-    .style("stroke-linejoin", "round")
-    .style("font-size", d => {
-      const label = `${d.data.word} (${d.data.value})`;
-      const scaledSize = 4 * d.r / label.length;
-      return `${Math.max(Math.min(scaledSize, 18), 10)}px`;
-    })
-    .style("pointer-events", "none");
-}
-
+  
 
 function voteForWord(word, politicianId) {
     fetch('/words', {
