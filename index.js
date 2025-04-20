@@ -1,6 +1,4 @@
 // Copyright 2025 Blake Rayvid <https://github.com/brayvid>
-
-let COOLDOWN_MINUTES
 const { isUnderLimit, logAction } = require('./middleware/ipRateLimit');
 
 require('dotenv').config();
@@ -32,7 +30,14 @@ async function getOrCreateUserIdFromIP(ip) {
 }
 
 const app = express();
+app.set('trust proxy', true);
 app.use(express.json());
+
+
+function getClientIP(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  return (forwarded ? forwarded.split(',')[0] : req.socket.remoteAddress).trim();
+}
 
 // ✅ Serve static files FIRST
 app.use(express.static(path.join(__dirname, 'public')));
@@ -55,7 +60,8 @@ app.get('/politicians', async (req, res) => {
 // --------------------------------
 app.post('/politicians', async (req, res) => {
   const { name, position } = req.body;
-  const ip = req.ip;
+  const ip = getClientIP(req);
+
 
   if (!name || !position) {
     return res.status(400).send('Missing name or position');
@@ -128,7 +134,7 @@ app.get('/politician/:id/data', async (req, res) => {
 // --------------------------------
 app.post('/words', async (req, res) => {
   const { word, politician_id } = req.body;
-  const ip = req.ip;
+  const ip = getClientIP(req);
 
   if (!word || !politician_id) {
     return res.status(400).send('Missing word or politician ID');
