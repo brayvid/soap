@@ -22,7 +22,6 @@ Soap is more than just a social platform—it's a movement towards more construc
 
 - <s>More robust and secure database system</s> (4/18/25)
 - <s>Word cloud</s> (4/19/25)
-- <s>Prevent sql injection</s> (4/20/25)
 - User registration, login, demographics, location
 - Prevent repeat voting until some time has passed
 - Public vs logged-in views

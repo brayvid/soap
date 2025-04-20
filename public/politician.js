@@ -43,7 +43,7 @@ function submitNewWord(event) {
   
     // ✅ Guard: ensure it's a valid number
     if (!politicianId || isNaN(Number(politicianId))) {
-      console.error("❌ Invalid politician ID:", politicianId);
+      // console.error("❌ Invalid politician ID:", politicianId);
       window.location.href = '/404.html';
       return;
     }
