@@ -98,7 +98,7 @@ function drawBubbleChart(voteData, politicianId) {
 
   const pack = d3.pack()
     .size([width, height])
-    .padding(10);
+    .padding(3);
 
   const nodes = pack(root).leaves();
 
@@ -130,7 +130,7 @@ function drawBubbleChart(voteData, politicianId) {
     .style("stroke-linejoin", "round")
     .style("font-size", d => {
       const label = `${d.data.word} (${d.data.value})`;
-      const scaledSize = 3 * d.r / label.length;
+      const scaledSize = 4 * d.r / label.length;
       return `${Math.max(Math.min(scaledSize, 18), 10)}px`;
     })
     .style("pointer-events", "none");
