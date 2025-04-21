@@ -1,4 +1,4 @@
-# <strong>SOAP</strong>: A new kind of polling platform
+# SOAP
 
 <h3>Revolutionizing How We Talk About Politicians</h3>
 
