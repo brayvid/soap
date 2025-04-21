@@ -48,6 +48,21 @@ function submitVoteForWord(word, politicianId) {
         showMessage(error.message || 'Error submitting vote');
     });
 }
+ 
+function filterTable() {
+    const filter = document.getElementById('filter-input').value.toLowerCase();
+    const cards = document.querySelectorAll('.politician-card');
+  
+    cards.forEach(card => {
+      const name = card.querySelector('.politician-name')?.textContent.toLowerCase() || '';
+      const position = card.querySelector('.politician-position')?.textContent.toLowerCase() || '';
+      const words = Array.from(card.querySelectorAll('.word-tag')).map(w => w.textContent.toLowerCase()).join(' ');
+  
+      const matches = name.includes(filter) || position.includes(filter) || words.includes(filter);
+  
+      card.style.display = matches ? 'flex' : 'none';
+    });
+  }
   
 async function submitNewPolitician(event) {
     event.preventDefault();

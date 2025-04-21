@@ -1,6 +1,5 @@
 /* Copyright 2025 Blake Rayvid <https://github.com/brayvid> */
 
- 
 body, html {
   margin: 0;
   padding: 0;
@@ -8,18 +7,16 @@ body, html {
   width: 100%;
   overflow-x: hidden;
 }
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-  margin: 0;
-  padding: 0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background-color: #fefefe;
+  color: #2e2e2e;
   display: flex;
   flex-direction: column;
   padding-top: 65px;
 }
 
-
-/* Make the table horizontally scrollable on small screens */
 .table-scroll-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -28,7 +25,6 @@ body {
   padding: 0 1rem;
 }
 
-/* Ensure table stretches within the scroll area */
 table {
   min-width: 600px;
   width: 100%;
@@ -36,100 +32,226 @@ table {
   border-collapse: collapse;
 }
 
-/* Prevent mega-wide cells from stretching the table */
 th, td {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 200px;
+  border: 1px solid #e0e0e0;
+  padding: 8px;
+  text-align: left;
+  background-color: #fff;
 }
-  
+
+th {
+  cursor: pointer;
+  background-color: #eaf5f2;
+  color: #2e2e2e;
+}
+
+tr:hover {
+  background-color: #f8fbf9;
+}
+
 nav, #instructions, #filter-input, #politicians-table, #add-politician {
-    margin-bottom: 20px; /* Add some space between content sections and the footer */
+  margin-bottom: 20px;
 }
 
 .container {
-    width: 80%;
-    margin: 0 auto;
+  width: 80%;
+  margin: 0 auto;
+  padding: 1rem;
+  background-color: #ffffffa3; /* optional: gives a clean contrast */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); /* subtle soft shadow */
 }
+
 
 @media (max-width: 768px) {
-    .container {
-        width: 100%;
-        padding: 0 1rem; /* optional breathing room */
-        box-sizing: border-box;
-    }
+  .container {
+    width: 100%;
+    padding: 0 1rem;
+    box-sizing: border-box;
+  }
 }
 
-
 header {
-    background-color: #007bff;
-    color: white;
-    padding: 1rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
+  background-color: #76B0DF;
+  color: #2e2e2e;
+  padding: 1rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
 h1, h2 {
-    margin: 0.5rem 0;
+  margin: 0.5rem 0;
 }
 
 section {
-    background-color: white;
-    padding: 1rem;
-    border-radius: 5px;
-    margin-bottom: 1.5rem;
+  background-color: #f8f8f8;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 #politician-list, #vote-list {
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 li {
-    padding: 0.5rem;
-    border-bottom: 1px solid #ddd;
+  padding: 0.5rem;
+  border-bottom: 1px solid #eaeaea;
 }
 
 button {
-    padding: 0.5rem 1rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    margin-top: 10px;
+  padding: 0.5rem 1rem;
+  background-color: #bce0f0;
+  color: #2e2e2e;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s ease;
 }
 
 button:hover {
-    background-color: #0056b3;
+  background-color: #d7f0fa;
+  color: #2e2e2e;
 }
 
 .vote-buttons-container {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 10px;
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
 }
 
 .vote-buttons-container button {
-    margin-top: 5px;
+  margin-top: 5px;
 }
 
 .message-container {
-    margin-top: 10px;
-    font-size: 16px;
-    color: #333;
+  margin-top: 10px;
+  font-size: 16px;
+  color: #555;
 }
 
 #filter-input {
-    margin-bottom: 10px;
-    padding: 8px;
-    width: 100%;
-    font-size: 16px;
+  margin-bottom: 10px;
+  padding: 8px;
+  width: 100%;
+  font-size: 16px;
+  background-color: #f4f4f4;
+  color: #2e2e2e;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.navbar {
+  background-color: #bce0f0; /* soft soap blue */
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
 }
 
 
+.navbar a {
+  float: left;
+  display: block;
+  color: #2e2e2e;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+}
 
+
+.navbar a:hover {
+  background-color: #d7f0fa;
+  color: #2e2e2e;
+}
+
+.navbar-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #2e2e2e;
+  font-size: 20px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.footer {
+  margin-top: auto;
+  padding: 10px 20px;
+  background-color: #f8f8f8;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  color: #666;
+}
+
+.footer-link {
+  color: #70c1b3;
+}
+
+.spacer {
+  width: 80px;
+}
+
+.sort-handle {
+  cursor: pointer;
+  margin-right: 5px;
+  font-size: 14px;
+  color: #999;
+}
+
+.sort-handle:hover {
+  color: #70c1b3;
+}
+
+.sort-arrow {
+  cursor: pointer;
+  margin-left: 5px;
+  font-size: 14px;
+  color: #999;
+}
+
+#bubble-chart-container {
+  width: 100%;
+  max-width: 100vw;
+  aspect-ratio: 1 / 1;
+  max-height: 80vh;
+  margin: 0 auto 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#bubble-chart {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  #bubble-chart-container {
+    height: 90vw;
+  }
+
+  .container {
+    width: 100%;
+    padding: 0 1rem;
+    box-sizing: border-box;
+  }
+}
 
 @media (max-width: 600px) {
   #bubble-chart-container {
@@ -144,180 +266,6 @@ button:hover {
     height: auto;
   }
 }
-
-  
-
-#bubble-chart {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  display: block;
-}
-
-#vote-summary {
-  margin: 0;
-  padding: 0.5rem;
-}
-
-
-/* Navbar styling */
-.navbar {
-    background-color: #333;
-    overflow: hidden;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px;
-}
-
-
-.navbar a {
-    float: left;
-    display: block;
-    color: #f2f2f2;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-    font-size: 17px;
-}
-
-.navbar a:hover {
-    background-color: #ddd;
-    color: black;
-}
-
-/* Footer styling */
-.footer {
-    margin-top: auto; /* Push the footer to the bottom of the page */
-    padding: 10px 20px;
-    background-color: #f1f1f1;
-    text-align: center;
-    width: 100%;
-    box-sizing: border-box;
-    position: relative;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-
-th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-}
-
-th {
-    cursor: pointer;
-    background-color: #f2f2f2;
-}
-
-tr:hover {
-    background-color: #f1f1f1;
-}
-
-.message-container {
-    margin-top: 10px;
-    font-size: 16px;
-    color: #333;
-}
-
-.vote-buttons-container {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 10px;
-}
-
-.vote-buttons-container button {
-    margin-top: 5px;
-}
-
-.navbar-title {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #f2f2f2;
-    font-size: 20px;
-    font-weight: bold;
-    white-space: nowrap;
-  }
-  
-
-.footer-link{
-    color: #000000;
-}
-
-/* Spacer to balance the title */
-.spacer {
-    width: 80px;
-}
-
-/* Style for the sort handle/button */
-.sort-handle {
-    cursor: pointer;
-    margin-right: 5px;
-    font-size: 14px;
-}
-
-.sort-handle:hover {
-    color: #007BFF; /* Change color on hover */
-}
-
-.sort-arrow {
-    cursor: pointer;
-    margin-left: 5px;
-    font-size: 14px;
-}
-
-
-
-
-#bubble-chart-container {
-  width: 100%;
-  max-width: 100vw;
-  aspect-ratio: 1 / 1;
-  max-height: 80vh;
-  margin: 0 auto 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0;
-  box-sizing: border-box;
-}
-  
-
-
-#bubble-chart {
-    width: 100%;
-    height: 100%;
-}
-@media (max-width: 768px) {
-    #bubble-chart-container {
-        height: 90vw;
-    }
-}
-
-
-@media (max-width: 768px) {
-    .container {
-      width: 100%;
-      padding: 0 1rem;
-      box-sizing: border-box;
-    }
-  
-    #bubble-chart-container {
-      width: 100vw;
-      max-width: 100%;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-    }
-  }
-  
 
 #politician-grid {
   display: grid;
@@ -341,37 +289,34 @@ tr:hover {
   }
 
   .word-tag {
+    background-color: #bce0f0;
     font-size: 0.65rem;
     padding: 0.1rem 0.3rem;
   }
 }
-  
-  
+
 .politician-card {
-  background-color: white;
+  background-color: #fefefe;
   border-radius: 12px;
-  padding: 0.5rem; /* was 1rem */
+  padding: 0.5rem;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: transform 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.3rem;
+  color: #2e2e2e;
 }
-
 
 .politician-card:hover {
   transform: scale(1.02);
 }
 
 .politician-bubble {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: steelblue;
-  color: white;
+  background-color: #bce0f0;
+  color: #2e2e2e;
   font-weight: bold;
   font-size: 0.9rem;
   border-radius: 999px;
@@ -380,6 +325,7 @@ tr:hover {
   height: auto;
   line-height: 1;
 }
+
 
 
 .politician-name {
@@ -392,7 +338,6 @@ tr:hover {
   color: #666;
 }
 
-
 .politician-top-words {
   margin-top: 0.5rem;
   display: flex;
@@ -402,13 +347,14 @@ tr:hover {
 }
 
 .word-tag {
-  background-color: #eee;
+  background-color: #bce0f0; /* soap blue */
   padding: 0.15rem 0.4rem;
   border-radius: 999px;
   font-size: 0.7rem;
-  color: #333;
+  color: #2e2e2e;
   line-height: 1;
 }
+
 
 
 .word-tag.muted {
@@ -417,14 +363,6 @@ tr:hover {
   font-style: italic;
 }
 
-.politician-name,
-.politician-position {
-  margin: 0;
-  line-height: 1.2;
-}
-
-
-  /* Shrinks the bubble chart when there are no votes */
 .bubble-empty {
   height: 60px !important;
   max-height: none !important;
