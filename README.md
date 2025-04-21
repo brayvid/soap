@@ -45,8 +45,15 @@ Soap is more than just a social platform—it's a movement towards more construc
 - Users can submit reasons why they selected a particular word
 - Social features
 - Support multiple languages
+
+---
+
 <br>
 <div align="center"><img src="images/example.png"></div>
-<br><br>
+<br>
+
+---
+
+<br>
 <p align="center">&copy; Copyright 2024-2025 Blake Rayvid. All rights reserved.</p>
 
