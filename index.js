@@ -168,7 +168,7 @@ app.post('/words', async (req, res) => {
     return res.status(400).send('Missing word or politician ID');
   }
 
-  const underLimit = await isUnderLimit(ip, 'submit_vote', 1); // max 1/hour
+  const underLimit = await isUnderLimit(ip, 'submit_vote', 5); // max 1/hour
   if (!underLimit) {
     return res.status(429).send('Rate limit exceeded for this IP');
   }
@@ -241,8 +241,6 @@ app.get('/politician/:id', async (req, res) => {
     res.status(500).send('Error loading politician');
   }
 });
-
-
 
 // --------------------------------
 // Catch-all 404 page

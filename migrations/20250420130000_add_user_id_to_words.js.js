@@ -1,3 +1,5 @@
+// Copyright 2025 Blake Rayvid <https://github.com/brayvid>
+
 exports.up = function(knex) {
   return knex.schema.table('words', function(table) {
     table.integer('user_id').references('id').inTable('users');

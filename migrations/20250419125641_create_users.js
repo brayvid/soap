@@ -1,3 +1,5 @@
+// Copyright 2025 Blake Rayvid <https://github.com/brayvid>
+
 exports.up = function(knex) {
   return knex.schema.createTable('users', function(table) {
     table.increments('id').primary();

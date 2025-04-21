@@ -1,5 +1,9 @@
+// Copyright 2025 Blake Rayvid <https://github.com/brayvid>
+
 async function getOrCreateUserIdFromIP(ip) {
-    // Check if a user already exists for this IP
+  // 
+  
+  // Check if a user already exists for this IP
     const existingUser = await db('users').where({ ip }).first();
     if (existingUser) return existingUser.id;
   

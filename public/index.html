@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social Polling</title>
     <link rel="stylesheet" href="/styles.css">
-    <!-- <link rel="icon" href="/favicon.ico" type="image/x-icon"> -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <!-- Navbar -->
@@ -25,15 +25,12 @@
     <!-- Search and Filter Input -->
     <input type="text" id="filter-input" placeholder="Search for politicians..." onkeyup="filterTable()"/>
 
-</div>
+    <!-- Politicians Table -->
+    <section id="politician-grid-container">
+    <div id="politician-grid"></div>
+    </section>
 
-<!-- Politicians Table -->
-<section id="politician-grid-container">
-  <div id="politician-grid"></div>
-</section>
-
-  
-
+    <!-- Add Politician Form -->
     <section id="add-politician">
         <h2>Add a New Politician</h2>
         <form id="add-politician-form">
@@ -42,10 +39,12 @@
             <button type="submit">Add Politician</button>
           </form>          
     </section>
+
     <!-- Footer -->
     <footer class="footer">
         <p>&copy; Copyright 2024-2025 <a class="footer-link" href="https://soap.fyi">soap.fyi</a>. All rights reserved.</p>
     </footer>
+
     <script src="/scripts.js" defer></script>
 </body>
 </html>
