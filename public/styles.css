@@ -10,7 +10,7 @@ body, html {
 
 body {
   font-family: "Inter", "Segoe UI", sans-serif;
-  background-color: #fefefe;
+  background-color: #f8f8f8;
   color: #2e2e2e;
   display: flex;
   flex-direction: column;
@@ -62,7 +62,7 @@ nav, #instructions, #filter-input, #politicians-table, #add-politician {
   margin: 0 auto;
   padding: 1rem;
   background-color: #ffffffa3; /* optional: gives a clean contrast */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); /* subtle soft shadow */
+  /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); subtle soft shadow */
 }
 
 
@@ -91,7 +91,7 @@ section {
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04); */
 }
 
 #politician-list, #vote-list {
@@ -141,7 +141,7 @@ button:hover {
   padding: 8px;
   width: 100%;
   font-size: 16px;
-  background-color: #f4f4f4;
+  background-color: #ffffff;
   color: #2e2e2e;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -300,7 +300,7 @@ button:hover {
   border-radius: 12px;
   padding: 0.5rem;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); */
   cursor: pointer;
   transition: transform 0.2s ease;
   display: flex;
