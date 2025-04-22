@@ -265,3 +265,12 @@ function handleResize() {
 }
 
 window.addEventListener('resize', handleResize);
+
+
+document.querySelectorAll('input, textarea').forEach(el => {
+  el.addEventListener('input', () => {
+    if (el.value.length > 20) {
+      el.value = el.value.slice(0, 20);
+    }
+  });
+});

@@ -15,7 +15,7 @@ async function getOrCreateUserIdFromIP(ip) {
   // Generate fallback values
   const username = `user_${ip.replace(/\./g, '_')}`;
   const email = `${ip.replace(/\./g, '-') + '@autogen.local'}`;
-  const password_hash = 'ip-only-no-password'; // clearly marked dummy
+  const password_hash = 'ip-only-no-password';
 
   // Insert a new user for this IP
   const [newUser] = await db('users')
@@ -168,7 +168,7 @@ app.post('/words', async (req, res) => {
     return res.status(400).send('Missing word or politician ID');
   }
 
-  const underLimit = await isUnderLimit(ip, 'submit_vote', 5); // max 1/hour
+  const underLimit = await isUnderLimit(ip, 'submit_vote', 5); // max 5/hour
   if (!underLimit) {
     return res.status(429).send('Rate limit exceeded for this IP');
   }
@@ -179,12 +179,16 @@ app.post('/words', async (req, res) => {
       .first();
 
     if (!wordEntry) {
+      const userId = await getOrCreateUserIdFromIP(ip);
       const [row] = await db('words')
-        .insert({ word: word.toLowerCase() })
-        .returning('word_id');
+        .insert({
+          word: word.toLowerCase(),
+          user_id: userId
+        })
+        .returning('*');
       wordEntry = row;
     }
-
+      
     const userId = await getOrCreateUserIdFromIP(ip);
 
     await db('votes').insert({
