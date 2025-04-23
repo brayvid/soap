@@ -18,24 +18,28 @@ Soap is more than just a social platform—it's a movement towards more construc
 
 ## To do
 
-<h3>Phase 1</h3>
+<h3><s>Phase 1</s></h3>
 
 - <s>More robust and secure database system</s> (4/18/25)
 - <s>Word cloud</s> (4/19/25)
 - <s>RESTful urls, 404 handling</s> (4/20/25)
 - <s>Rate limit submissions</s> (4/20/25)
 - <s>Switch from table to something more mobile friendly</s> (4/20/25)
-- User registration, login, demographics, location
+
+<h3>Phase 2</h3>
+
+- User login, demographics, location
 - Public vs logged-in views
 - Ability to undo submissions
 - Ranked choice voting system
 - Locality aware - federal, state, local
-- Form a business entity
-
-<h3>Phase 2</h3>
-
 - Universe of politicians
 - Universe of words
+- Form a business entity
+- Release alpha
+
+<h3>Phase 3</h3>
+
 - Valence of words
 - Definitions of words
 - NLP word selection tool
