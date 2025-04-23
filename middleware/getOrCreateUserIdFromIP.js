@@ -1,7 +1,6 @@
-// Copyright 2025 Blake Rayvid <https://github.com/brayvid>
+// Copyright 2024-2025 soap.fyi <https://soap.fyi>
 
 async function getOrCreateUserIdFromIP(ip) {
-  // 
   
   // Check if a user already exists for this IP
     const existingUser = await db('users').where({ ip }).first();
