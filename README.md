@@ -55,5 +55,5 @@ Soap is more than just a social platform—it's a movement towards more construc
 ---
 
 <br>
-<p align="center">&copy; Copyright 2024-2025 Blake Rayvid. All rights reserved.</p>
+<p align="center">&copy; Copyright 2024-2025 soap.fyi. All rights reserved.</p>
 
