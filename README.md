@@ -10,7 +10,7 @@ Soap allows users to submit a few words for each official, which are then interp
 
 Users can update their choices at any time, allowing for a dynamic and evolving reflection of public opinion. By limiting the number of words each user can contribute, Soap encourages careful consideration and promotes a more civil discussion environment.
 
-Soap is more than just a social platform—it's a movement towards more constructive discourse about our leadership. Join us in shaping a new way to discuss politics, where every word counts and every voice is heard. Together, we can create a more thoughtful, reasonable, and effective conversation.
+Soap is more than just a social platform—it's a movement towards more constructive discourse about our leaders. Join us in shaping a new way to discuss politics, where every word counts and every voice is heard. Together, we can create a more thoughtful, reasonable, and effective conversation.
 
 <h3><a href="https://use.soap.fyi">Try now 🫧</a></h3>
 
