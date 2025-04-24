@@ -1,8 +1,8 @@
 # SOAP
 
-<h3>Revolutionizing How We Talk About Our Leaders</h3>
+<h3>Revolutionizing How We Talk About Leaders</h3>
 
-Constructive political criticism online is hard to find. Discussions quickly turn mean, and even minor disagreements can escalate into major arguments. Messages often get lost if the audience is too small, and misunderstood words can lead to undeserved backlash.
+Constructive political criticism online is hard to find. Discussions quickly turn mean, and even minor disagreements can escalate into major arguments. Messages will get lost if your audience is too small, and misunderstood words can lead to undeserved backlash.
 
 That's where Soap comes in—it's a new social platform designed to change the way we talk about our leaders. Soap is a public utility disguised as a social network where users can describe leaders one word at a time. This straightforward approach aims to foster thoughtful, concise, and reasonable discourse about our leaders.
 
