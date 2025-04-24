@@ -1,6 +1,6 @@
 # SOAP
 
-<h3>Revolutionizing How We Talk About Leaders</h3>
+<h3>Revolutionizing How We Talk About Politicians</h3>
 
 Constructive political criticism online is hard to find. Discussions quickly turn mean, and even minor disagreements can escalate into major arguments. Messages will get lost if one's audience is too small, and misunderstood words can lead to backlash.
 
