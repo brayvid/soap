@@ -6,7 +6,7 @@ Constructive political criticism online is hard to find. Discussions quickly tur
 
 That's where Soap comes in—a new platform designed to change the way we talk about officials. Soap is a public utility disguised as a social network where users can describe leaders one word at a time. This straightforward approach aims to foster thoughtful, concise, and reasonable discourse.
 
-Soap allows users to submit a few words for each, which are then interpreted as ranked choice votes. This method ensures that the most popular words rise to the top, providing a clear and collective voice of the people.
+Soap allows users to submit a few words for each official, which are then interpreted as ranked choice votes. This method ensures that the most popular words rise to the top, providing a clear and collective voice of the people.
 
 Users can update their choices at any time, allowing for a dynamic and evolving reflection of public opinion. By limiting the number of words each user can contribute, Soap encourages careful consideration and promotes a more civil discussion environment.
 
