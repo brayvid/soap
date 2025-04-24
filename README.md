@@ -59,5 +59,5 @@ Soap is more than just a social platform—it's a movement towards more construc
 ---
 
 <br>
-<p align="center">&copy; Copyright 2024-2025 soap.fyi. All rights reserved.</p>
+<p align="center">&copy; Copyright 2024-2025 <a href="mailto:info@soap.fyi">soap.fyi</a>. All rights reserved.</p>
 
