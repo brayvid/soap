@@ -4,7 +4,7 @@
 
 Constructive political criticism online is hard to find. Discussions quickly turn mean, and even minor disagreements can escalate into major arguments. Messages will get lost if one's audience is too small, and misunderstood words can lead to backlash.
 
-That's where Soap comes in—a new platform designed to change the way we talk about officials. Soap is a public utility disguised as a social network where users can describe leaders one word at a time. This straightforward approach aims to foster thoughtful, concise, and reasonable discourse.
+That's where Soap comes in—a new platform designed to change the way we talk about politicians. Soap is a public utility disguised as a social network where users can describe officials one word at a time. This straightforward approach aims to foster a thoughtful, concise, and reasonable discourse.
 
 Soap allows users to submit a few words for each official, which are then interpreted as ranked choice votes. This method ensures that the most popular words rise to the top, providing a clear and collective voice of the people.
 
@@ -54,10 +54,15 @@ Soap is more than just a social platform—it's a movement towards more construc
 
 <br>
 <div align="center"><img src="images/example.png"></div>
+<p align="center">Current state of politician page.</p>
 <br>
 
----
+<br>
+<div align="center"><img src="images/home2.png"></div>
+<p align="center">Future home page AI illustration.</p>
+<br>
 
+--- 
 <br>
 <p align="center">&copy; Copyright 2024-2025 <a href="mailto:info@soap.fyi">soap.fyi</a>. All rights reserved.</p>
 
