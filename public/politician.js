@@ -3,45 +3,44 @@
 document.addEventListener('DOMContentLoaded', loadPoliticianData);
 
 function submitNewWord(event) {
-    event.preventDefault();
-  
-    const newWord = document.getElementById('new-word').value.trim();
-    const pathParts = window.location.pathname.split('/').filter(Boolean);
-    const politicianId = pathParts[pathParts.length - 1];
-    
-    // console.log("🧠 politicianId =", politicianId);  
-  
-    if (!newWord || !politicianId) {
-      alert('Please enter a valid word.');
+  event.preventDefault();
+
+  const newWordInput = document.getElementById('new-word');
+  const newWord = newWordInput.value.trim();
+  const pathParts = window.location.pathname.split('/').filter(Boolean);
+  const politicianId = pathParts[pathParts.length - 1];
+
+  if (!newWord || !politicianId) {
+    alert('Please enter a valid word.');
+    return;
+  }
+
+  fetch('/words', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ word: newWord, politician_id: Number(politicianId) }),
+  })
+  .then(async (response) => {
+    if (response.status === 429) {
+      showMessage("Rate limit exceeded for this IP");
       return;
     }
-  
-    fetch('/words', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ word: newWord, politician_id: Number(politicianId) }),
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      showMessage(data.error || "Something went wrong submitting your word.");
+      return;
+    }
 
-    })
-    .then(async (response) => {
-      if (response.status === 429) {
-        showMessage("Rate limit exceeded for this IP");
-        return;
-      }
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        showMessage(data.error || "Something went wrong submitting your word.");
-        return;
-      }
-    
-      document.getElementById('new-word').value = '';
-      loadPoliticianData();
-    })
-    .catch(error => {
-      console.error('Error submitting new word:', error);
-      showMessage("Network error. Please try again.");
-    });
-    
-  }
+    // ✅ Clear input after successful submission
+    newWordInput.value = '';
+    loadPoliticianData();
+  })
+  .catch(error => {
+    console.error('Error submitting new word:', error);
+    showMessage("Network error. Please try again.");
+  });
+}
+
   
 function loadPoliticianData() {
   // ✅ Extract ID from path (e.g., /politician/1)

@@ -1,5 +1,6 @@
 # SOAP
 
+July 30th, 2024
 <h3>Revolutionizing How We Talk About Politicians</h3>
 
 Constructive political criticism online is hard to find. Discussions quickly turn mean, and even minor disagreements can escalate into major arguments. Messages will get lost if one's audience is too small, and misunderstood words can lead to backlash.
@@ -26,6 +27,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 - <s>Rate limit submissions</s> (4/20/25)
 - <s>Switch from table to something more mobile friendly</s> (4/20/25)
 
+ <i>Phase 1 complete 4/25/25</i>
 <h3>Phase 2</h3>
 
 - User login, demographics, location
@@ -54,7 +56,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 
 <br>
 <div align="center"><img src="images/example.png"></div>
-<p align="center">Current state of politician page.</p>
+<p align="center">Current example of politician page.</p>
 <br>
 
 <br>

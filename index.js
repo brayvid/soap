@@ -75,7 +75,10 @@ app.get('/politicians', async (req, res) => {
       })
     );
 
-    res.json(enriched);
+    // Sort by descending total votes
+    res.json(
+      enriched.sort((a, b) => b.vote_count - a.vote_count)
+    );
   } catch (err) {
     console.error('Error fetching politicians:', err);
     res.status(500).send('Error fetching politicians');

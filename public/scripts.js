@@ -66,8 +66,10 @@ function filterTable() {
   
 async function submitNewPolitician(event) {
     event.preventDefault();
-    const name = document.getElementById('name').value;
-    const position = document.getElementById('position').value;
+    const nameInput = document.getElementById('name');
+    const positionInput = document.getElementById('position');
+    const name = nameInput.value;
+    const position = positionInput.value;
 
     try {
         const response = await fetch('/politicians', {
@@ -79,14 +81,19 @@ async function submitNewPolitician(event) {
         if (!response.ok) throw new Error(await response.text());
         const newPol = await response.json();
         // console.log('Added:', newPol);
+
+        // ✅ Clear the form fields after successful submit
+        nameInput.value = '';
+        positionInput.value = '';
+
         loadPoliticians();
+        loadPoliticiansGrid(); // if you're using the card grid
     } catch (err) {
         console.error('Error adding politician:', err);
         showMessage(err.message || "Something went wrong");
     }
-
-    loadPoliticiansGrid(); // if you're using the card grid
 }
+
 
 async function loadPoliticiansGrid() {
     const grid = document.getElementById('politician-grid');
