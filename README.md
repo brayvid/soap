@@ -20,6 +20,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 ## To do
 
 <h3><s>Phase 1</s></h3>
+<i>Phase 1 started 9/1/24</i>
 
 - <s>More robust and secure database system</s> (4/18/25)
 - <s>Word cloud</s> (4/19/25)
@@ -53,15 +54,19 @@ Soap is more than just a social platform—it's a movement towards more construc
 - Support multiple languages
 
 ---
+<br>
+<div align="center"><img src="images/example1.png"></div>
+<p align="center">Home page</p>
+<br>
 
 <br>
-<div align="center"><img src="images/example.png"></div>
-<p align="center">Current politician page.</p>
+<div align="center"><img src="images/example2.png"></div>
+<p align="center">Politician page</p>
 <br>
 
 <br>
 <div align="center"><img src="images/home2.png"></div>
-<p align="center">Future home page AI illustration.</p>
+<p align="center">Future home page illustration</p>
 <br>
 
 --- 
