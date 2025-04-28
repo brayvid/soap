@@ -65,7 +65,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 <br>
 
 <br>
-<div align="center"><img src="images/home2.png"></div>
+<div align="center"><img src="images/home1.png"></div>
 <p align="center">Future home page illustration</p>
 <br>
 
