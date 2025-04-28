@@ -56,7 +56,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 
 <br>
 <div align="center"><img src="images/example.png"></div>
-<p align="center">Current example of politician page.</p>
+<p align="center">Current politician page.</p>
 <br>
 
 <br>
