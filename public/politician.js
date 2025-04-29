@@ -31,7 +31,7 @@ function submitNewWord(event) {
       return;
     }
 
-    // ✅ Clear input after successful submission
+    // Clear input after successful submission
     newWordInput.value = '';
     loadPoliticianData();
   })
@@ -43,19 +43,19 @@ function submitNewWord(event) {
 
   
 function loadPoliticianData() {
-  // ✅ Extract ID from path (e.g., /politician/1)
+  // Extract ID from path (e.g., /politician/1)
   const pathParts = window.location.pathname.split('/').filter(Boolean);
   const politicianId = pathParts[pathParts.length - 1];
-  // console.log("🧠 politicianId =", politicianId);
+  // console.log("politicianId =", politicianId);
 
-  // ✅ Guard: ensure it's a valid number
+  // uard: ensure it's a valid number
   if (!politicianId || isNaN(Number(politicianId))) {
-    // console.error("❌ Invalid politician ID:", politicianId);
+    // console.error("Invalid politician ID:", politicianId);
     window.location.href = '/404.html';
     return;
   }
 
-  // ✅ Fetch data from backend
+  // Fetch data from backend
   fetch(`/politician/${politicianId}/data`)
     .then(res => {
       if (!res.ok) {
@@ -72,8 +72,8 @@ function loadPoliticianData() {
       document.getElementById('politician-position').textContent = position;
 
       const voteData = data.votesForPolitician || {};
-      currentVoteData = voteData;         // 🔐 Store globally
-      currentPoliticianId = politicianId; // 🔐 Store globally
+      currentVoteData = voteData;         // Store globally
+      currentPoliticianId = politicianId; // Store globally
       const hasValidVotes = Object.values(voteData).some(count => count > 0);
       const bubbleContainer = document.getElementById('bubble-chart-container');
 
@@ -166,7 +166,7 @@ function drawBubbleChart(voteData, politicianId) {
       voteForWord(d.data.word, politicianId);
     });
 
-  // 🔠 Label layer (drawn AFTER circle layer)
+  // Label layer (drawn AFTER circle layer)
   const labelLayer = svg.append("g").attr("id", "label-layer");
   labelLayer.selectAll("text")
     .data(nodes)
