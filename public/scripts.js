@@ -87,7 +87,7 @@ async function submitNewPolitician(event) {
         positionInput.value = '';
 
         loadPoliticians();
-        loadPoliticiansGrid(); // if you're using the card grid
+        loadPoliticiansGrid();
     } catch (err) {
         console.error('Error adding politician:', err);
         showMessage(err.message || "Something went wrong");
@@ -99,7 +99,7 @@ async function loadPoliticiansGrid() {
     const grid = document.getElementById('politician-grid');
     if (!grid) return;
     
-    grid.innerHTML = ''; // ✅ Clear existing cards
+    grid.innerHTML = ''; // Clear existing cards
     
     const res = await fetch('/politicians');
     const politicians = await res.json();
