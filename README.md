@@ -11,6 +11,12 @@ Soap allows users to submit a few words for each official, which are then interp
 
 Users can update their choices at any time, allowing for a dynamic and evolving reflection of public opinion. By limiting the number of words each user can contribute, Soap encourages careful consideration and promotes a more civil discussion environment.
 
+The platform will be regularly audited by information security experts to maintain high standards of privacy and security. This commitment to safety and user experience sets Soap apart as a reliable and trustworthy platform for engaging with public sentiment about politicians.
+
+By focusing on single words, it simplifies complex views into digestible and relatable terms. This unique format not only makes it easier for users to express their opinions but also provides a valuable resource for politicians who want to understand public sentiment.
+
+In addition to being a platform for public engagement, Soap will offer an array of political sentiment data products. These products will be invaluable to news agencies, academic institutions, political campaigns, and anyone else interested in understanding public opinion. By compiling and analyzing the words submitted by users, Soap can provide insights into the collective mood and perceptions of elected officials and candidates.
+
 Soap is more than just a social platform—it's a movement towards more constructive discourse about our leaders. Join us in shaping a new way to discuss politics, where every word counts and every voice is heard. Together, we can create a more thoughtful, reasonable, and effective conversation.
 
 <h3><a href="https://use.soap.fyi">Try now 🫧</a></h3>
