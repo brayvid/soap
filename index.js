@@ -40,7 +40,7 @@ function getClientIP(req) {
   return (forwarded ? forwarded.split(',')[0] : req.socket.remoteAddress).trim();
 }
 
-// ✅ Serve static files FIRST
+// Serve static files FIRST
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --------------------------------
@@ -119,7 +119,7 @@ app.post('/politicians', async (req, res) => {
     await logAction(ip, 'add_politician');
     res.status(201).json(newPolitician);
   } catch (err) {
-    console.error('❌ Error adding politician:', err.message);
+    console.error('Error adding politician:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -127,7 +127,7 @@ app.post('/politicians', async (req, res) => {
 
 // --------------------------------
 // Get data for a specific politician
-// ✅ MUST come before the /politician/:id route
+// MUST come before the /politician/:id route
 // --------------------------------
 app.get('/politician/:id/data', async (req, res) => {
   const { id } = req.params;
@@ -219,26 +219,26 @@ app.get('/', (req, res) => {
 
 // --------------------------------
 // Serve the dynamic politician page
-// ✅ This must come AFTER /politician/:id/data
+// This must come AFTER /politician/:id/data
 // --------------------------------
 app.get('/politician/:id', async (req, res) => {
   const { id } = req.params;
-  // console.log("🚨 HIT /politician/:id with", id);
+  // console.log("HIT /politician/:id with", id);
 
-  // ✅ Validate that id is numeric before querying
+  // Validate that id is numeric before querying
   if (!/^\d+$/.test(id)) {
-    // console.warn("❌ Invalid ID, not a number:", id);
+    // console.warn("Invalid ID, not a number:", id);
     return res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
   }
 
   try {
-    // ✅ Cast to number before querying
+    // Cast to number before querying
     const politician = await db('politicians')
       .where({ politician_id: Number(id) })
       .first();
 
     if (!politician) {
-      // console.warn("❌ No politician found for ID:", id);
+      // console.warn("No politician found for ID:", id);
       return res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
     }
 

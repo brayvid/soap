@@ -17,7 +17,7 @@ function loadPoliticians() {
                     const data = await response.json();
                     politician.votesForPolitician = data?.votesForPolitician || {};
                 } catch (err) {
-                    console.error(`❌ Error fetching data for politician ID ${politician.politician_id}:`, err);
+                    console.error(`Error fetching data for politician ID ${politician.politician_id}:`, err);
                     politician.votesForPolitician = {};
                 }                
             }
@@ -82,7 +82,7 @@ async function submitNewPolitician(event) {
         const newPol = await response.json();
         // console.log('Added:', newPol);
 
-        // ✅ Clear the form fields after successful submit
+        // Clear the form fields after successful submit
         nameInput.value = '';
         positionInput.value = '';
 
