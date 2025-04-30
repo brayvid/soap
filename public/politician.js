@@ -137,20 +137,35 @@ function drawBubbleChart(voteData, politicianId) {
   container.style.padding = "0";
   container.style.margin = "0";
 
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-
+  let width = container.clientWidth;
+  let height = container.clientHeight;
+  
+  // If in widescreen mode (very short but wide), force square
+  if (height < width * 0.75) {
+    height = width;
+  }
+  
   svg
     .attr("viewBox", `0 0 ${width} ${height}`)
-    .attr("preserveAspectRatio", "xMidYMid meet")
-    .style("width", "100%")
-    .style("height", "100%");
+    .attr("preserveAspectRatio", "xMidYMid meet");
 
-  const root = d3.hierarchy({ children: data }).sum(d => d.value);
-  const pack = d3.pack().size([width, height]).padding(3);
+  // Area-proportional radius scale
+  const isMobile = width < 600;
+  
+  const radiusScale = d3.scaleSqrt()
+    .domain([d3.min(data, d => d.value), d3.max(data, d => d.value)])
+    .range(isMobile ? [8, 40] : [16, 60]); // smaller on mobile, clearer on desktop
+  
+  const root = d3.hierarchy({ children: data })
+    .sum(d => d.value);
+
+  const pack = d3.pack()
+    .size([width, height])
+    .padding(2); // slight padding, not too repulsive
+
   const nodes = pack(root).leaves();
 
-  // 🔵 Circle layer
+  // Circle layer
   const bubbleLayer = svg.append("g").attr("id", "bubble-layer");
   bubbleLayer.selectAll("circle")
     .data(nodes)
@@ -166,7 +181,7 @@ function drawBubbleChart(voteData, politicianId) {
       voteForWord(d.data.word, politicianId);
     });
 
-  // Label layer (drawn AFTER circle layer)
+  // Label layer
   const labelLayer = svg.append("g").attr("id", "label-layer");
   labelLayer.selectAll("text")
     .data(nodes)
@@ -183,12 +198,14 @@ function drawBubbleChart(voteData, politicianId) {
     .style("paint-order", "stroke")
     .style("stroke-linejoin", "round")
     .style("font-size", d => {
-      const label = `${d.data.word} (${d.data.value})`;
-      const scaledSize = 4 * d.r / label.length;
-      return `${Math.max(Math.min(scaledSize, 18), 10)}px`;
+      const size = d.r * 0.4; // d.r scales with viewBox, so label matches bubble
+      return `${Math.max(Math.min(size, 24), 10)}px`;
     })
+    
+    
     .style("pointer-events", "none");
 }
+
 
 function voteForWord(word, politicianId) {
     fetch('/words', {
@@ -251,19 +268,15 @@ function showMessage(msg) {
 }
 
 // Re-render on window resize
-let currentVoteData = null;
-let currentPoliticianId = null;
-
-function handleResize() {
-  if (!currentVoteData || !currentPoliticianId) return;
-  const svg = document.getElementById('bubble-chart');
-  if (svg) {
-    svg.innerHTML = ''; // Clear old chart
-    drawBubbleChart(currentVoteData, currentPoliticianId);
-  }
-}
-
-window.addEventListener('resize', handleResize);
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    if (currentVoteData && currentPoliticianId) {
+      drawBubbleChart(currentVoteData, currentPoliticianId);
+    }
+  }, 150);
+});
 
 
 document.querySelectorAll('input, textarea').forEach(el => {
