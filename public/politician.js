@@ -189,7 +189,18 @@ function drawBubbleChart(voteData, politicianId) {
     .append("text")
     .attr("x", d => d.x)
     .attr("y", d => d.y)
-    .text(d => `${d.data.word} (${d.data.value})`)
+    .each(function (d) {
+      const text = d3.select(this);
+      text.append("tspan")
+        .text(d.data.word)
+        .attr("x", d.x)
+        .attr("dy", "-0.3em");
+    
+      text.append("tspan")
+        .text(`${d.data.value}`)
+        .attr("x", d.x)
+        .attr("dy", "1em");
+    })    
     .attr("text-anchor", "middle")
     .attr("alignment-baseline", "middle")
     .style("fill", "white")
@@ -199,7 +210,7 @@ function drawBubbleChart(voteData, politicianId) {
     .style("stroke-linejoin", "round")
     .style("font-size", d => {
       const size = d.r * 0.4; // d.r scales with viewBox, so label matches bubble
-      return `${Math.max(Math.min(size, 24), 10)}px`;
+      return `${Math.max(Math.min(size, 36), 10)}px`; // or even 40–48px
     })
     
     
