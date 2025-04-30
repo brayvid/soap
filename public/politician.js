@@ -48,7 +48,7 @@ function loadPoliticianData() {
   const politicianId = pathParts[pathParts.length - 1];
   // console.log("politicianId =", politicianId);
 
-  // uard: ensure it's a valid number
+  // Guard: ensure it's a valid number
   if (!politicianId || isNaN(Number(politicianId))) {
     // console.error("Invalid politician ID:", politicianId);
     window.location.href = '/404.html';
