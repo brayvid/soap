@@ -212,11 +212,8 @@ function drawBubbleChart(voteData, politicianId) {
       const size = d.r * 0.4; // d.r scales with viewBox, so label matches bubble
       return `${Math.max(Math.min(size, 36), 10)}px`; // or even 40–48px
     })
-    
-    
     .style("pointer-events", "none");
 }
-
 
 function voteForWord(word, politicianId) {
     fetch('/words', {
@@ -241,7 +238,6 @@ function voteForWord(word, politicianId) {
       console.error('Vote error:', err);
       showMessage("Network error while voting.");
     });
-    
 }
 
 document.addEventListener('DOMContentLoaded', () => {
