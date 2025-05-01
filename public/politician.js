@@ -205,7 +205,7 @@ function drawBubbleChart(voteData, politicianId) {
     .attr("alignment-baseline", "middle")
     .style("fill", "white")
     .style("stroke", "black")
-    .style("stroke-width", "1px")
+    .style("stroke-width", "3px")
     .style("paint-order", "stroke")
     .style("stroke-linejoin", "round")
     .style("font-size", d => {
