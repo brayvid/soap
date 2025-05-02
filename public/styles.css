@@ -62,7 +62,7 @@ nav, #instructions, #filter-input, #politicians-table, #add-politician {
   margin: 0 auto;
   padding: 1rem;
   background-color: #ffffffa3; /* optional: gives a clean contrast */
-  /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); subtle soft shadow */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); /* subtle soft shadow */
 }
 
 
@@ -301,7 +301,7 @@ button:hover {
   border-radius: 12px;
   padding: 0.5rem;
   text-align: center;
-  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: transform 0.2s ease;
   display: flex;
