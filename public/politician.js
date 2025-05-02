@@ -1,7 +1,7 @@
 // Copyright 2024-2025 soap.fyi <https://soap.fyi>
 
-document.addEventListener('DOMContentLoaded', loadPoliticianData);
-
+// Handles form submission to add a new word for the current politician
+// Validates input, posts to the server, and reloads data on success
 function submitNewWord(event) {
   event.preventDefault();
 
@@ -41,7 +41,8 @@ function submitNewWord(event) {
   });
 }
 
-  
+// Loads politician data (name, position, votes) based on the ID in the URL
+// If no votes exist, shows a message; otherwise draws the bubble chart
 function loadPoliticianData() {
   // Extract ID from path (e.g., /politician/1)
   const pathParts = window.location.pathname.split('/').filter(Boolean);
@@ -98,6 +99,10 @@ function loadPoliticianData() {
     });
 }
 
+
+// Renders a D3 bubble chart using the politician's vote data
+// Each bubble size corresponds to the word frequency
+// Handles empty states, layout, and responsive sizing
 function drawBubbleChart(voteData, politicianId) {
   const container = document.getElementById('bubble-chart-container');
   const svg = d3.select("#bubble-chart");
@@ -215,6 +220,7 @@ function drawBubbleChart(voteData, politicianId) {
     .style("pointer-events", "none");
 }
 
+// Submits a vote for an existing word bubble (on click), then reloads the page
 function voteForWord(word, politicianId) {
     fetch('/words', {
         method: 'POST',
@@ -240,6 +246,8 @@ function voteForWord(word, politicianId) {
     });
 }
 
+// Runs on DOM ready for politician pages
+// Loads data and attaches word submission handler if present
 document.addEventListener('DOMContentLoaded', () => {
   const isPoliticianPage = /^\/politician\/\d+$/.test(window.location.pathname);
   if (!isPoliticianPage) return;
@@ -252,29 +260,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-function showMessage(msg) {
-  const el = document.createElement('div');
-  el.innerText = msg;
-  el.style.position = 'fixed';
-  el.style.bottom = '20px';
-  el.style.left = '50%';
-  el.style.transform = 'translateX(-50%)';
-  el.style.background = '#ff3860'; // red-ish
-  el.style.color = 'white';
-  el.style.padding = '10px 20px';
-  el.style.borderRadius = '8px';
-  el.style.zIndex = 1000;
-  el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-  el.style.fontFamily = 'sans-serif';
-  el.style.fontSize = '1rem';
-  document.body.appendChild(el);
-
-  setTimeout(() => {
-    el.remove();
-  }, 5000);
-}
-
-// Re-render on window resize
+// Re-renders the bubble chart when the window resizes
+// Uses a debounce timeout to avoid rapid redraws
 let resizeTimeout;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimeout);
@@ -285,7 +272,7 @@ window.addEventListener('resize', () => {
   }, 150);
 });
 
-
+// Limits all text input fields to 20 characters max on input
 document.querySelectorAll('input, textarea').forEach(el => {
   el.addEventListener('input', () => {
     if (el.value.length > 20) {

@@ -1,5 +1,6 @@
 // Copyright 2024-2025 soap.fyi <https://soap.fyi>
 
+// Imports rate limit utilities and logging middleware
 const { isUnderLimit, logAction } = require('./middleware/ipRateLimit');
 
 require('dotenv').config();
@@ -7,6 +8,7 @@ const express = require('express');
 const path = require('path');
 const db = require('./db'); // Our knex instance
 
+// Looks up a user by IP address or creates a new user if not found
 async function getOrCreateUserIdFromIP(ip) {
   // Check if a user already exists for this IP
   const existingUser = await db('users').where({ ip }).first();
@@ -31,21 +33,20 @@ async function getOrCreateUserIdFromIP(ip) {
 }
 
 const app = express();
-app.set('trust proxy', true);
-app.use(express.json());
+app.set('trust proxy', true); // Support reverse proxies
+app.use(express.json());  // Parse JSON request bodies
 
-
+// Extracts the client's IP address, respecting proxies
 function getClientIP(req) {
   const forwarded = req.headers['x-forwarded-for'];
   return (forwarded ? forwarded.split(',')[0] : req.socket.remoteAddress).trim();
 }
 
-// Serve static files FIRST
+// Serves all files from the public directory (e.g., index.html, JS, CSS)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --------------------------------
-// Get all politicians
-// --------------------------------
+// GET /politicians
+// Returns all politicians, including vote count, top 3 words, and top 50 words for searching
 app.get('/politicians', async (req, res) => {
   try {
     const politicians = await db('politicians').select('*');
@@ -83,11 +84,8 @@ app.get('/politicians', async (req, res) => {
   }
 });
 
-
-
-// --------------------------------
-// Add a new politician (w/ duplicate check)
-// --------------------------------
+// POST /politicians
+// Adds a new politician if not a duplicate, with IP rate limiting
 app.post('/politicians', async (req, res) => {
   const { name, position } = req.body;
   const ip = getClientIP(req);
@@ -123,11 +121,9 @@ app.post('/politicians', async (req, res) => {
   }
 });
 
-
-// --------------------------------
-// Get data for a specific politician
+// GET /politician/:id/data
+// Returns detailed word voting data for a specific politician
 // MUST come before the /politician/:id route
-// --------------------------------
 app.get('/politician/:id/data', async (req, res) => {
   const { id } = req.params;
 
@@ -159,9 +155,8 @@ app.get('/politician/:id/data', async (req, res) => {
   }
 });
 
-// --------------------------------
-// Submit a word and cast a vote
-// --------------------------------
+// POST /words
+// Submits a new word (or reuses existing) and casts a vote for a politician, with IP-based rate limiting
 app.post('/words', async (req, res) => {
   const { word, politician_id } = req.body;
   const ip = getClientIP(req);
@@ -208,16 +203,14 @@ app.post('/words', async (req, res) => {
   }
 });
 
-
-// --------------------------------
-// Homepage
-// --------------------------------
+// GET /
+// Serves the homepage (index.html)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// --------------------------------
-// Serve the dynamic politician page
+// GET /politician/:id
+// Validates politician ID and serves their profile page (politician.html)
 // This must come AFTER /politician/:id/data
 // --------------------------------
 app.get('/politician/:id', async (req, res) => {
@@ -248,16 +241,12 @@ app.get('/politician/:id', async (req, res) => {
   }
 });
 
-// --------------------------------
-// Catch-all 404 page
-// --------------------------------
+// Catch-all route: serves the 404 page for unknown URLs
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
-// --------------------------------
-// Start the server
-// --------------------------------
+// Starts the server on the specified port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);

@@ -2,10 +2,8 @@
 
 let politiciansData = [];
 let currentColumnOrder = null;
-let sortDirection = 'desc';
-let currentSortColumn = 0;
 
-// Load all politicians for the homepage table
+// Fetches all politicians and their individual word data (votes), then stores them globally
 function loadPoliticians() {
     fetch('/politicians')
         .then(response => response.json())
@@ -35,6 +33,7 @@ function loadPoliticians() {
         });
 }
 
+// Submits a new word vote for a specific politician, then reloads their word data
 function submitVoteForWord(word, politicianId) {
     fetch('/words', {
         method: 'POST',
@@ -48,7 +47,8 @@ function submitVoteForWord(word, politicianId) {
         showMessage(error.message || 'Error submitting vote');
     });
 }
- 
+
+// Filters visible politician cards based on search input (name, position, and top words)
 function filterTable() {
     const filter = document.getElementById('filter-input').value.toLowerCase();
     const cards = document.querySelectorAll('.politician-card');
@@ -67,7 +67,8 @@ function filterTable() {
     });
   }
   
-  
+
+// Handles form submission for creating a new politician, resets the form, and reloads UI
 async function submitNewPolitician(event) {
     event.preventDefault();
     const nameInput = document.getElementById('name');
@@ -98,7 +99,7 @@ async function submitNewPolitician(event) {
     }
 }
 
-
+// Renders politician cards on the homepage using data from /politicians
 async function loadPoliticiansGrid() {
     const grid = document.getElementById('politician-grid');
     if (!grid) return;
@@ -131,8 +132,30 @@ async function loadPoliticiansGrid() {
     });
 }
 
+// Displays a temporary floating error message at the bottom of the screen
+function showMessage(msg) {
+    const el = document.createElement('div');
+    el.innerText = msg;
+    el.style.position = 'fixed';
+    el.style.bottom = '20px';
+    el.style.left = '50%';
+    el.style.transform = 'translateX(-50%)';
+    el.style.background = '#ff3860'; // red-ish
+    el.style.color = 'white';
+    el.style.padding = '10px 20px';
+    el.style.borderRadius = '8px';
+    el.style.zIndex = 1000;
+    el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+    el.style.fontFamily = 'sans-serif';
+    el.style.fontSize = '1rem';
+    document.body.appendChild(el);
+  
+    setTimeout(() => {
+      el.remove();
+    }, 5000);
+  }
     
-// Load initial data based on the page
+// Determines which page you're on and sets up appropriate event handlers and data loading
 window.onload = () => {
     const addPoliticianForm = document.getElementById('add-politician-form');
     if (addPoliticianForm) {
@@ -162,26 +185,3 @@ window.onload = () => {
       loadPoliticians(); // fallback if you're using a table
     }
   };
-
-function showMessage(msg) {
-    const el = document.createElement('div');
-    el.innerText = msg;
-    el.style.position = 'fixed';
-    el.style.bottom = '20px';
-    el.style.left = '50%';
-    el.style.transform = 'translateX(-50%)';
-    el.style.background = '#ff3860'; // red-ish
-    el.style.color = 'white';
-    el.style.padding = '10px 20px';
-    el.style.borderRadius = '8px';
-    el.style.zIndex = 1000;
-    el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-    el.style.fontFamily = 'sans-serif';
-    el.style.fontSize = '1rem';
-    document.body.appendChild(el);
-  
-    setTimeout(() => {
-      el.remove();
-    }, 5000);
-  }
-
