@@ -57,33 +57,32 @@ app.get('/politicians', async (req, res) => {
           .where('politician_id', p.politician_id)
           .count('vote_id as count');
 
-        // Get top 3 words by frequency
-        const topWords = await db('votes')
+        // Get top 50 words by frequency
+        const wordRows = await db('votes')
           .join('words', 'votes.word_id', '=', 'words.word_id')
           .where('votes.politician_id', p.politician_id)
           .select('words.word')
           .groupBy('words.word')
           .count('* as count')
           .orderBy('count', 'desc')
-          .limit(3);
-          
+          .limit(50);
+
         return {
           ...p,
           vote_count: parseInt(count),
-          top_words: topWords.map(w => w.word)
+          top_words: wordRows.slice(0, 3).map(w => w.word),
+          search_words: wordRows.map(w => w.word), // for frontend filtering
         };
       })
     );
 
-    // Sort by descending total votes
-    res.json(
-      enriched.sort((a, b) => b.vote_count - a.vote_count)
-    );
+    res.json(enriched.sort((a, b) => b.vote_count - a.vote_count));
   } catch (err) {
     console.error('Error fetching politicians:', err);
     res.status(500).send('Error fetching politicians');
   }
 });
+
 
 
 // --------------------------------

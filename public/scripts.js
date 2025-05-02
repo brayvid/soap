@@ -54,15 +54,19 @@ function filterTable() {
     const cards = document.querySelectorAll('.politician-card');
   
     cards.forEach(card => {
-      const name = card.querySelector('.politician-name')?.textContent.toLowerCase() || '';
-      const position = card.querySelector('.politician-position')?.textContent.toLowerCase() || '';
-      const words = Array.from(card.querySelectorAll('.word-tag')).map(w => w.textContent.toLowerCase()).join(' ');
+      const name = card.querySelector('.politician-name')?.textContent?.toLowerCase() || '';
+      const position = card.querySelector('.politician-position')?.textContent?.toLowerCase() || '';
+      const id = card.dataset.politicianId;
+      const pol = politiciansData.find(p => p.politician_id == id);
   
-      const matches = name.includes(filter) || position.includes(filter) || words.includes(filter);
+      const searchWords = (pol?.search_words || []).join(' ').toLowerCase();
+      const fullText = `${name} ${position} ${searchWords}`;
   
-      card.style.display = matches ? 'flex' : 'none';
+      const matches = fullText.includes(filter);
+      card.style.display = matches ? '' : 'none';
     });
   }
+  
   
 async function submitNewPolitician(event) {
     event.preventDefault();
@@ -103,10 +107,13 @@ async function loadPoliticiansGrid() {
     
     const res = await fetch('/politicians');
     const politicians = await res.json();
+    politiciansData = politicians;
+
     
     politicians.forEach(p => {
         const card = document.createElement('div');
         card.className = 'politician-card';
+        card.dataset.politicianId = p.politician_id; // ✅ Add this line
         card.onclick = () => window.location.href = `/politician/${p.politician_id}`;
     
         card.innerHTML = `
@@ -122,7 +129,8 @@ async function loadPoliticiansGrid() {
     
         grid.appendChild(card);
     });
-    }
+}
+
     
 // Load initial data based on the page
 window.onload = () => {
@@ -140,7 +148,16 @@ window.onload = () => {
     if (politicianNameElement) {
       loadPoliticianData(); // you're on a politician/:id page
     } else if (document.getElementById('politician-grid')) {
-      loadPoliticiansGrid(); // you're on the homepage with bubbles
+        loadPoliticiansGrid();
+
+        // Attach filter listener
+        const filterInput = document.getElementById('filter-input');
+        if (filterInput) {
+            filterInput.addEventListener('input', () => {
+            clearTimeout(window._filterDebounce);
+            window._filterDebounce = setTimeout(filterTable, 200); // debounce
+            });
+        }  
     } else {
       loadPoliticians(); // fallback if you're using a table
     }
