@@ -20,7 +20,6 @@ Soap is more than just a social platform—it's a movement towards more construc
 ## To do
 
 <h3><s>Phase 1</s></h3>
-<i>Started 9/1/24</i>
 
 - <s>More robust and secure database system</s> (4/18/25)
 - <s>Word cloud</s> (4/19/25)
