@@ -36,6 +36,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 - Ability to undo submissions
 - Ranked choice voting system
 - Locality aware - federal, state, local
+- Bubbles shrink over time (optional view)
 - Universe of politicians
 - Universe of words
 - Form a business entity
