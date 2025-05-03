@@ -20,15 +20,16 @@ Soap is more than just a social platform—it's a movement towards more construc
 ## To do
 
 <h3><s>Phase 1</s></h3>
-<i>Phase 1 started 9/1/24</i>
+<i>Started 9/1/24</i>
 
 - <s>More robust and secure database system</s> (4/18/25)
 - <s>Word cloud</s> (4/19/25)
 - <s>RESTful urls, 404 handling</s> (4/20/25)
 - <s>Rate limit submissions</s> (4/20/25)
 - <s>Switch from table to something more mobile friendly</s> (4/20/25)
+- <s>Valence of words</s> (5/3/25)
 
- <i>Phase 1 complete 4/25/25</i>
+ <i>Phase 1 complete</i>
 <h3>Phase 2</h3>
 
 - User login, demographics, location
@@ -43,10 +44,9 @@ Soap is more than just a social platform—it's a movement towards more construc
 
 <h3>Phase 3</h3>
 
-- Valence of words
 - Definitions of words
 - NLP word selection tool
-- Sentiment analysis
+- Cohort sentiment analysis
 - Data products
 - Comparison between two or more politicians
 - Users can submit reasons why they selected a particular word
