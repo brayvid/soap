@@ -59,11 +59,13 @@ nav, #instructions, #filter-input, #politicians-table, #add-politician {
 
 .container {
   width: 80%;
+  max-width: 700px; /* ✅ LIMIT on large screens */
   margin: 0 auto;
   padding: 1rem;
-  background-color: #ffffffa3; /* optional: gives a clean contrast */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); /* subtle soft shadow */
+  background-color: #ffffffa3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
+
 
 
 @media (max-width: 768px) {
