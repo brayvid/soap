@@ -259,11 +259,11 @@ window.addEventListener('resize', () => {
   }, 150);
 });
 
-// Limits all text input fields to 20 characters max on input
+// Limits all text input fields to 30 characters max on input
 document.querySelectorAll('input, textarea').forEach(el => {
   el.addEventListener('input', () => {
-    if (el.value.length > 20) {
-      el.value = el.value.slice(0, 20);
+    if (el.value.length > 30) {
+      el.value = el.value.slice(0, 30);
     }
   });
 });
