@@ -89,7 +89,7 @@ function loadPoliticianData() {
       } else {
         bubbleContainer.classList.remove('bubble-empty');
         bubbleContainer.classList.add('bubble-active');
-        bubbleContainer.innerHTML = '<svg id="bubble-chart" width="500" height="500"></svg>';
+        bubbleContainer.innerHTML = '<svg id="bubble-chart" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet"></svg>';
         await drawBubbleChart(voteData, politicianId);
       }
     })
@@ -110,7 +110,6 @@ async function drawBubbleChart(voteData, politicianId) {
 
   const entries = Object.entries(voteData).filter(([_, count]) => count > 0);
 
-  // Fetch sentiment for each word from the backend
   const data = await Promise.all(
     entries.map(async ([word, count]) => {
       let sentiment = 'grey';
@@ -132,23 +131,11 @@ async function drawBubbleChart(voteData, politicianId) {
 
   if (data.length === 0) {
     svg.style("display", "none");
-    container.style.height = "auto";
-    container.style.padding = "0";
-    container.style.margin = "0";
-
-    const message = document.createElement("p");
-    message.textContent = "Be the first to add a word!";
-    message.style.textAlign = "center";
-    message.style.padding = "0.75rem 1rem";
-    message.style.margin = "0";
-    message.style.fontSize = "1rem";
-    message.style.color = "#555";
-    message.id = "no-data-message";
-
-    if (!document.getElementById("no-data-message")) {
-      container.appendChild(message);
-    }
-
+    container.innerHTML = `
+      <div id="no-data-message" style="text-align: center; padding: 1rem; font-size: 1rem; color: #555;">
+        Be the first to add a word!
+      </div>
+    `;
     return;
   }
 
@@ -156,30 +143,23 @@ async function drawBubbleChart(voteData, politicianId) {
   if (oldMessage) oldMessage.remove();
   svg.style("display", "block");
 
-  container.style.height = "100%";
-  container.style.padding = "0";
-  container.style.margin = "0";
+  const containerWidth = container.clientWidth;
+  const containerHeight = container.clientHeight || containerWidth;
 
-  let width = container.clientWidth;
-  let height = container.clientHeight;
-
-  if (height < width * 0.75) height = width;
+  const PACK_SIZE = 500;
 
   svg
-    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("viewBox", `0 0 ${PACK_SIZE} ${PACK_SIZE}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
-
-  const isMobile = width < 600;
-  const radiusScale = d3.scaleSqrt()
-    .domain([d3.min(data, d => d.value), d3.max(data, d => d.value)])
-    .range(isMobile ? [8, 40] : [16, 60]);
-
+  
   const root = d3.hierarchy({ children: data }).sum(d => d.value);
-  const pack = d3.pack().size([width, height]).padding(2);
+  const pack = d3.pack().size([PACK_SIZE, PACK_SIZE]).padding(2);
   const nodes = pack(root).leaves();
+  
+  const chartGroup = svg.append("g"); // ← no transform or scale here
 
   // Bubbles
-  const bubbleLayer = svg.append("g").attr("id", "bubble-layer");
+  const bubbleLayer = chartGroup.append("g").attr("id", "bubble-layer");
   bubbleLayer.selectAll("circle")
     .data(nodes)
     .enter()
@@ -190,16 +170,16 @@ async function drawBubbleChart(voteData, politicianId) {
     .attr("fill", d => {
       if (d.data.sentiment === 'green') return '#0080004d';
       if (d.data.sentiment === 'red') return '#f8d3d7';
-      return '#eeeeee'; // gray
+      return '#eeeeee';
     })
-    .attr("opacity", 1)  
+    .attr("opacity", 1)
     .style("cursor", "pointer")
     .on("click", (event, d) => {
       voteForWord(d.data.word, politicianId);
     });
 
   // Labels
-  const labelLayer = svg.append("g").attr("id", "label-layer");
+  const labelLayer = chartGroup.append("g").attr("id", "label-layer");
   labelLayer.selectAll("text")
     .data(nodes)
     .enter()
@@ -220,10 +200,10 @@ async function drawBubbleChart(voteData, politicianId) {
     })
     .attr("text-anchor", "middle")
     .attr("alignment-baseline", "middle")
+    .attr("font-size", d => Math.max(Math.min(d.r * 0.4, 36), 10))
     .style("fill", "#2e2e2e")
     .style("paint-order", "stroke")
     .style("stroke-linejoin", "round")
-    .style("font-size", d => `${Math.max(Math.min(d.r * 0.4, 36), 10)}px`)
     .style("pointer-events", "none");
 }
 
