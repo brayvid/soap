@@ -65,7 +65,7 @@ function loadPoliticianData() {
       }
       return res.json();
     })
-    .then(data => {
+    .then(async data => {
       if (!data) return;
 
       const { name, position } = data.politician;
@@ -90,7 +90,7 @@ function loadPoliticianData() {
         bubbleContainer.classList.remove('bubble-empty');
         bubbleContainer.classList.add('bubble-active');
         bubbleContainer.innerHTML = '<svg id="bubble-chart" width="500" height="500"></svg>';
-        drawBubbleChart(voteData, politicianId);
+        await drawBubbleChart(voteData, politicianId);
       }
     })
     .catch(err => {
@@ -103,14 +103,32 @@ function loadPoliticianData() {
 // Renders a D3 bubble chart using the politician's vote data
 // Each bubble size corresponds to the word frequency
 // Handles empty states, layout, and responsive sizing
-function drawBubbleChart(voteData, politicianId) {
+async function drawBubbleChart(voteData, politicianId) {
   const container = document.getElementById('bubble-chart-container');
   const svg = d3.select("#bubble-chart");
   svg.selectAll("*").remove(); // Clear previous chart
 
-  const data = Object.entries(voteData)
-    .filter(([_, count]) => count > 0)
-    .map(([word, count]) => ({ word, value: count }));
+  const entries = Object.entries(voteData).filter(([_, count]) => count > 0);
+
+  // Fetch sentiment for each word from the backend
+  const data = await Promise.all(
+    entries.map(async ([word, count]) => {
+      let sentiment = 'grey';
+      try {
+        const res = await fetch('/sentiment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ word })
+        });
+        const { compound } = await res.json();
+        if (compound >= 0.1) sentiment = 'green';
+        else if (compound <= -0.1) sentiment = 'red';
+      } catch (err) {
+        console.warn('Sentiment fetch failed for:', word, err);
+      }
+      return { word, value: count, sentiment };
+    })
+  );
 
   if (data.length === 0) {
     svg.style("display", "none");
@@ -144,33 +162,23 @@ function drawBubbleChart(voteData, politicianId) {
 
   let width = container.clientWidth;
   let height = container.clientHeight;
-  
-  // If in widescreen mode (very short but wide), force square
-  if (height < width * 0.75) {
-    height = width;
-  }
-  
+
+  if (height < width * 0.75) height = width;
+
   svg
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
 
-  // Area-proportional radius scale
   const isMobile = width < 600;
-  
   const radiusScale = d3.scaleSqrt()
     .domain([d3.min(data, d => d.value), d3.max(data, d => d.value)])
-    .range(isMobile ? [8, 40] : [16, 60]); // smaller on mobile, clearer on desktop
-  
-  const root = d3.hierarchy({ children: data })
-    .sum(d => d.value);
+    .range(isMobile ? [8, 40] : [16, 60]);
 
-  const pack = d3.pack()
-    .size([width, height])
-    .padding(2); // slight padding, not too repulsive
-
+  const root = d3.hierarchy({ children: data }).sum(d => d.value);
+  const pack = d3.pack().size([width, height]).padding(2);
   const nodes = pack(root).leaves();
 
-  // Circle layer
+  // Bubbles
   const bubbleLayer = svg.append("g").attr("id", "bubble-layer");
   bubbleLayer.selectAll("circle")
     .data(nodes)
@@ -179,14 +187,18 @@ function drawBubbleChart(voteData, politicianId) {
     .attr("cx", d => d.x)
     .attr("cy", d => d.y)
     .attr("r", d => d.r)
-    .attr("fill", "steelblue")
-    .attr("opacity", 0.8)
+    .attr("fill", d => {
+      if (d.data.sentiment === 'green') return '#0080004d';
+      if (d.data.sentiment === 'red') return '#f8d3d7';
+      return '#eeeeee'; // gray
+    })
+    .attr("opacity", 1)  
     .style("cursor", "pointer")
     .on("click", (event, d) => {
       voteForWord(d.data.word, politicianId);
     });
 
-  // Label layer
+  // Labels
   const labelLayer = svg.append("g").attr("id", "label-layer");
   labelLayer.selectAll("text")
     .data(nodes)
@@ -200,23 +212,18 @@ function drawBubbleChart(voteData, politicianId) {
         .text(d.data.word)
         .attr("x", d.x)
         .attr("dy", "-0.3em");
-    
+
       text.append("tspan")
         .text(`${d.data.value}`)
         .attr("x", d.x)
         .attr("dy", "1em");
-    })    
+    })
     .attr("text-anchor", "middle")
     .attr("alignment-baseline", "middle")
-    .style("fill", "white")
-    .style("stroke", "black")
-    .style("stroke-width", "3px")
+    .style("fill", "#2e2e2e")
     .style("paint-order", "stroke")
     .style("stroke-linejoin", "round")
-    .style("font-size", d => {
-      const size = d.r * 0.4; // d.r scales with viewBox, so label matches bubble
-      return `${Math.max(Math.min(size, 36), 10)}px`; // or even 40–48px
-    })
+    .style("font-size", d => `${Math.max(Math.min(d.r * 0.4, 36), 10)}px`)
     .style("pointer-events", "none");
 }
 

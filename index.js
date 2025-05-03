@@ -5,6 +5,7 @@ const { isUnderLimit, logAction } = require('./middleware/ipRateLimit');
 
 require('dotenv').config();
 const express = require('express');
+const vader = require('vader-sentiment');
 const path = require('path');
 const db = require('./db'); // Our knex instance
 
@@ -71,7 +72,13 @@ app.get('/politicians', async (req, res) => {
         return {
           ...p,
           vote_count: parseInt(count),
-          top_words: wordRows.slice(0, 3).map(w => w.word),
+          top_words: wordRows.slice(0, 3).map(w => {
+            const score = vader.SentimentIntensityAnalyzer.polarity_scores(w.word).compound;
+            let sentiment = 'gray';
+            if (score >= 0.1) sentiment = 'green';
+            else if (score <= -0.1) sentiment = 'red';
+            return { word: w.word, sentiment };
+          }),          
           search_words: wordRows.map(w => w.word), // for frontend filtering
         };
       })
@@ -238,6 +245,24 @@ app.get('/politician/:id', async (req, res) => {
   } catch (err) {
     console.error('Error checking politician:', err);
     res.status(500).send('Error loading politician');
+  }
+});
+
+// POST /sentiment
+// Accepts a word and returns its sentiment analysis
+app.post('/sentiment', (req, res) => {
+  const { word } = req.body;
+
+  if (!word || typeof word !== 'string') {
+    return res.status(400).json({ error: 'Missing or invalid word' });
+  }
+
+  try {
+    const result = vader.SentimentIntensityAnalyzer.polarity_scores(word);
+    res.json(result);
+  } catch (err) {
+    console.error('Sentiment analysis failed:', err);
+    res.status(500).json({ error: 'Sentiment analysis failed' });
   }
 });
 

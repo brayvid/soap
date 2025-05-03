@@ -316,8 +316,8 @@ button:hover {
 }
 
 .politician-bubble {
-  background-color: #bce0f0;
-  color: #2e2e2e;
+  background-color: transparent;       /* remove fill */
+  color: #2e2e2e;                       /* text color */
   font-weight: bold;
   font-size: 0.9rem;
   border-radius: 999px;
@@ -325,9 +325,8 @@ button:hover {
   min-width: 1.5rem;
   height: auto;
   line-height: 1;
+  border: 1.2px solid #000;            /* outline matches old fill color */
 }
-
-
 
 .politician-name {
   font-weight: bold;
@@ -380,5 +379,30 @@ button:hover {
   justify-content: center;
   align-items: center;
 }
+
+.word-tag {
+  display: inline-block;
+  padding: 0.3em 0.6em;
+  margin: 0.2em;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #000;
+  background-color: rgba(128, 128, 128, 0.5); /* fallback gray */
+}
+
+/* Sentiment-specific background colors */
+.word-green {
+  background-color: #0080004d; /* semi-transparent green */
+}
+
+.word-red {
+  background-color: rgba(220, 20, 60, 0.3); /* match crimson red from politician.html */
+}
+
+.word-gray {
+  background-color: rgba(128, 128, 128, 0.11); /* gray with 50% alpha */
+}
+
 
  

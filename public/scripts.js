@@ -114,22 +114,28 @@ async function loadPoliticiansGrid() {
     politicians.forEach(p => {
         const card = document.createElement('div');
         card.className = 'politician-card';
-        card.dataset.politicianId = p.politician_id; // ✅ Add this line
+        card.dataset.politicianId = p.politician_id;
         card.onclick = () => window.location.href = `/politician/${p.politician_id}`;
     
+        const topWord = p.top_words?.[0];
+        const sentiment = topWord?.sentiment || 'gray';
+    
         card.innerHTML = `
-        <div class="politician-bubble">${p.vote_count || 0}</div>
-        <div class="politician-name">${p.name}</div>
-        <div class="politician-position">${p.position}</div>
-        <div class="politician-top-words">
-        ${p.top_words && p.top_words.length
-            ? p.top_words.map(word => `<span class="word-tag">${word}</span>`).join(' ')
-            : '<span class="word-tag muted">No words yet</span>'}
-        </div>
-    `;
+          <div class="politician-bubble bubble-${sentiment}">${p.vote_count || 0}</div>
+          <div class="politician-name">${p.name}</div>
+          <div class="politician-position">${p.position}</div>
+          <div class="politician-top-words bg-${sentiment}">
+            ${p.top_words && p.top_words.length
+              ? p.top_words.map(w =>
+                  `<span class="word-tag word-${w.sentiment}">${w.word}</span>`
+                ).join(' ')
+              : '<span class="word-tag muted">No words yet</span>'}
+          </div>
+        `;
     
         grid.appendChild(card);
     });
+    
 }
 
 // Displays a temporary floating error message at the bottom of the screen
