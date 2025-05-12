@@ -9,6 +9,29 @@ const vader = require('vader-sentiment');
 const path = require('path');
 const db = require('./db'); // Our knex instance
 
+// Simple in-memory mutex to prevent concurrent rate limit bypass
+const locks = new Map();
+
+async function rateLimitedAction(ip, action, politicianId, callback) {
+  const key = `${ip}-${politicianId}`;
+
+  while (locks.get(key)) {
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+
+  locks.set(key, true);
+  try {
+    const allowed = await isUnderLimit(ip, action, politicianId);
+    if (!allowed) return { allowed: false };
+
+    await callback(); // vote logic
+    await logAction(ip, action, politicianId);
+    return { allowed: true };
+  } finally {
+    locks.delete(key);
+  }
+}
+
 // Looks up a user by IP address or creates a new user if not found
 async function getOrCreateUserIdFromIP(ip) {
   // Check if a user already exists for this IP
@@ -97,12 +120,12 @@ app.post('/politicians', async (req, res) => {
   const { name, position } = req.body;
   const ip = getClientIP(req);
 
-
   if (!name || !position) {
     return res.status(400).send('Missing name or position');
   }
 
-  const underLimit = await isUnderLimit(ip, 'add_politician', 1); // max 1/hour
+  // Correct usage of rate limit: 1 new politician per IP per hour
+  const underLimit = await isUnderLimit(ip, 'add_politician', null, 1);
   if (!underLimit) {
     return res.status(429).send('Rate limit exceeded for this IP');
   }
@@ -118,15 +141,16 @@ app.post('/politicians', async (req, res) => {
     const [newPolitician] = await db('politicians')
       .insert({ name, position, user_id: userId })
       .returning('*');
-    
 
-    await logAction(ip, 'add_politician');
+    // Log with null politicianId
+    await logAction(ip, 'add_politician', null);
     res.status(201).json(newPolitician);
   } catch (err) {
     console.error('Error adding politician:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // GET /politician/:id/data
 // Returns detailed word voting data for a specific politician
@@ -172,12 +196,7 @@ app.post('/words', async (req, res) => {
     return res.status(400).send('Missing word or politician ID');
   }
 
-  const underLimit = await isUnderLimit(ip, 'submit_vote', 5); // max 5/hour
-  if (!underLimit) {
-    return res.status(429).send('Rate limit exceeded for this IP');
-  }
-
-  try {
+  const result = await rateLimitedAction(ip, 'submit_vote', politician_id, async () => {
     let wordEntry = await db('words')
       .whereRaw('LOWER(word) = ?', word.toLowerCase())
       .first();
@@ -192,7 +211,7 @@ app.post('/words', async (req, res) => {
         .returning('*');
       wordEntry = row;
     }
-      
+
     const userId = await getOrCreateUserIdFromIP(ip);
 
     await db('votes').insert({
@@ -200,15 +219,15 @@ app.post('/words', async (req, res) => {
       word_id: wordEntry.word_id,
       user_id: userId,
     });
-    
+  });
 
-    await logAction(ip, 'submit_vote');
-    res.status(201).send('Word submitted and vote added');
-  } catch (err) {
-    console.error('Error submitting word/vote:', err.message, err.stack);
-    res.status(500).json({ error: 'Error submitting word/vote' });
+  if (!result.allowed) {
+    return res.status(429).send('Rate limit exceeded for this politician');
   }
+
+  res.status(201).send('Word submitted and vote added');
 });
+
 
 // GET /
 // Serves the homepage (index.html)

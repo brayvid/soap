@@ -2,19 +2,22 @@
 
 const db = require('../db');
 
-async function isUnderLimit(ip, action, maxPerHour = 5) {
-    const { count } = await db('ip_logs')
-      .where({ ip, action })
-      .andWhere('created_at', '>=', db.raw("now() - interval '1 hour'"))
-      .count('id as count')
-      .first();
-  
-    return parseInt(count) < maxPerHour;
-  }
-  
+async function isUnderLimit(ip, action, politicianId = null, maxPerHour = 5) {
+  const query = db('ip_logs')
+    .where({ ip, action })
+    .andWhere('created_at', '>=', db.raw("now() - interval '1 hour'"));
 
-async function logAction(ip, action) {
-  await db('ip_logs').insert({ ip, action });
+  if (politicianId !== null) {
+    query.andWhere({ politician_id: politicianId });
+  }
+
+  const { count } = await query.count('id as count').first();
+
+  return parseInt(count) < maxPerHour;
+}
+
+async function logAction(ip, action, politicianId = null) {
+  await db('ip_logs').insert({ ip, action, politician_id: politicianId });
 }
 
 module.exports = { isUnderLimit, logAction };
