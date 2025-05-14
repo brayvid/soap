@@ -8,6 +8,7 @@ const express = require('express');
 const vader = require('vader-sentiment');
 const path = require('path');
 const db = require('./db'); // Our knex instance
+const authRoutes = require('./routes/auth');
 
 // Simple in-memory mutex to prevent concurrent rate limit bypass
 const locks = new Map();
@@ -59,6 +60,7 @@ async function getOrCreateUserIdFromIP(ip) {
 const app = express();
 app.set('trust proxy', true); // Support reverse proxies
 app.use(express.json());  // Parse JSON request bodies
+app.use(authRoutes);
 
 // Extracts the client's IP address, respecting proxies
 function getClientIP(req) {
