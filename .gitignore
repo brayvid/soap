@@ -7,5 +7,3 @@ site.db
 .DS_Store
 node_modules/
 *.log
-soap_backup.dump
-
