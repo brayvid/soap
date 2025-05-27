@@ -109,6 +109,7 @@ li {
 button {
   padding: 0.5rem 1rem;
   background-color: #bce0f0;
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
   color: #2e2e2e;
   border: none;
   border-radius: 5px;
@@ -156,6 +157,8 @@ button:hover {
   top: 0;
   width: 100%;
   z-index: 2000;
+  -webkit-transform: translateZ(0); /* Promote to own layer for smoother fixed positioning */
+  transform: translateZ(0); /* Promote to own layer for smoother fixed positioning */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -171,6 +174,8 @@ button:hover {
   padding: 14px 16px;
   text-decoration: none;
   font-size: 17px;
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+  transition: background-color 0.2s ease; /* Add transition for smoother hover */
 }
 
 
@@ -312,6 +317,8 @@ button:hover {
   align-items: center;
   gap: 0.3rem;
   color: #2e2e2e;
+  will-change: transform; /* Hint for transform animation */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 .politician-card:hover {
@@ -406,6 +413,3 @@ button:hover {
 .word-gray {
   background-color: rgba(128, 128, 128, 0.11); /* gray with 50% alpha */
 }
-
-
- 
