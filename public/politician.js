@@ -1,7 +1,6 @@
 // Copyright 2024-2025 soap.fyi <https://soap.fyi>
 
 // Handles form submission to add a new word for the current politician
-// Validates input, posts to the server, and reloads data on success
 function submitNewWord(event) {
   event.preventDefault();
 
@@ -31,7 +30,6 @@ function submitNewWord(event) {
       return;
     }
 
-    // Clear input after successful submission
     newWordInput.value = '';
     loadPoliticianData();
   })
@@ -75,7 +73,7 @@ function loadPoliticianData() {
       const voteData = data.votesForPolitician || {};
       currentVoteData = voteData;         // Store globally
       currentPoliticianId = politicianId; // Store globally
-      const hasValidVotes = Object.values(voteData).some(count => count > 0);
+      const hasValidVotes = Object.values(voteData).some(v => v.count > 0);
       const bubbleContainer = document.getElementById('bubble-chart-container');
 
       if (!hasValidVotes) {
@@ -99,7 +97,6 @@ function loadPoliticianData() {
     });
 }
 
-
 // Renders a D3 bubble chart using the politician's vote data
 // Each bubble size corresponds to the word frequency
 // Handles empty states, layout, and responsive sizing
@@ -108,26 +105,12 @@ async function drawBubbleChart(voteData, politicianId) {
   const svg = d3.select("#bubble-chart");
   svg.selectAll("*").remove(); // Clear previous chart
 
-  const entries = Object.entries(voteData).filter(([_, count]) => count > 0);
-
-  const data = await Promise.all(
-    entries.map(async ([word, count]) => {
-      let sentiment = 'grey';
-      try {
-        const res = await fetch('/sentiment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ word })
-        });
-        const { compound } = await res.json();
-        if (compound >= 0.1) sentiment = 'green';
-        else if (compound <= -0.1) sentiment = 'red';
-      } catch (err) {
-        console.warn('Sentiment fetch failed for:', word, err);
-      }
-      return { word, value: count, sentiment };
-    })
-  );
+  // Filter only votes with count > 0
+  const data = voteData.filter(entry => entry.count > 0).map(entry => ({
+    word: entry.word,
+    value: entry.count,
+    sentiment: entry.sentiment,
+  }));
 
   if (data.length === 0) {
     svg.style("display", "none");
@@ -143,20 +126,16 @@ async function drawBubbleChart(voteData, politicianId) {
   if (oldMessage) oldMessage.remove();
   svg.style("display", "block");
 
-  const containerWidth = container.clientWidth;
-  const containerHeight = container.clientHeight || containerWidth;
-
   const PACK_SIZE = 500;
-
   svg
     .attr("viewBox", `0 0 ${PACK_SIZE} ${PACK_SIZE}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
-  
+
   const root = d3.hierarchy({ children: data }).sum(d => d.value);
   const pack = d3.pack().size([PACK_SIZE, PACK_SIZE]).padding(2);
   const nodes = pack(root).leaves();
-  
-  const chartGroup = svg.append("g"); // ← no transform or scale here
+
+  const chartGroup = svg.append("g");
 
   // Bubbles
   const bubbleLayer = chartGroup.append("g").attr("id", "bubble-layer");
@@ -168,9 +147,9 @@ async function drawBubbleChart(voteData, politicianId) {
     .attr("cy", d => d.y)
     .attr("r", d => d.r)
     .attr("fill", d => {
-      if (d.data.sentiment === 'green') return '#0080004d';
-      if (d.data.sentiment === 'red') return '#f8d3d7';
-      return '#eeeeee';
+      if (d.data.sentiment === 'green') return '#0080004d'; // positive
+      if (d.data.sentiment === 'red') return '#f8d3d7';     // negative
+      return '#eeeeee';                                     // neutral/gray
     })
     .attr("opacity", 1)
     .style("cursor", "pointer")
@@ -207,34 +186,34 @@ async function drawBubbleChart(voteData, politicianId) {
     .style("pointer-events", "none");
 }
 
-// Submits a vote for an existing word bubble (on click), then reloads the page
+
+// Handles clicking on a bubble to cast a vote
 function voteForWord(word, politicianId) {
-    fetch('/words', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ word, politician_id: Number(politicianId) }),
-    })
-    .then(async (response) => {
-      if (response.status === 429) {
-        showMessage("Rate limit exceeded for this IP");
-        return;
-      }
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        showMessage(data.error || "Error voting for word.");
-        return;
-      }
-    
-      location.reload();
-    })
-    .catch(err => {
-      console.error('Vote error:', err);
-      showMessage("Network error while voting.");
-    });
+  fetch('/words', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ word, politician_id: Number(politicianId) }),
+  })
+  .then(async (response) => {
+    if (response.status === 429) {
+      showMessage("Rate limit exceeded for this IP");
+      return;
+    }
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      showMessage(data.error || "Error voting for word.");
+      return;
+    }
+
+    location.reload();
+  })
+  .catch(err => {
+    console.error('Vote error:', err);
+    showMessage("Network error while voting.");
+  });
 }
 
-// Runs on DOM ready for politician pages
-// Loads data and attaches word submission handler if present
+// Initialization
 document.addEventListener('DOMContentLoaded', () => {
   const isPoliticianPage = /^\/politician\/\d+$/.test(window.location.pathname);
   if (!isPoliticianPage) return;
@@ -247,8 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Re-renders the bubble chart when the window resizes
-// Uses a debounce timeout to avoid rapid redraws
+// Resize handler for responsiveness
 let resizeTimeout;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimeout);
@@ -259,7 +237,7 @@ window.addEventListener('resize', () => {
   }, 150);
 });
 
-// Limits all text input fields to 30 characters max on input
+// Limit input field length
 document.querySelectorAll('input, textarea').forEach(el => {
   el.addEventListener('input', () => {
     if (el.value.length > 30) {

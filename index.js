@@ -176,15 +176,30 @@ app.get('/politician/:id/data', async (req, res) => {
       if (wordObj) wordCounts[wordObj.word]++;
     });
 
+    const detailedWords = Object.entries(wordCounts).map(([word, count]) => {
+      const score = vader.SentimentIntensityAnalyzer.polarity_scores(word).compound;
+      let sentiment = 'gray';
+      if (score >= 0.1) sentiment = 'green';
+      else if (score <= -0.1) sentiment = 'red';
+
+      return {
+        word,
+        count,
+        sentiment,
+        sentiment_score: score,
+      };
+    });
+
     res.json({
       politician,
-      votesForPolitician: wordCounts,
+      votesForPolitician: detailedWords,
     });
   } catch (err) {
     console.error('Error loading politician data:', err);
     res.status(500).send('Error loading politician data');
   }
 });
+
 
 // POST /words
 // Submits a new word (or reuses existing) and casts a vote for a politician, with IP-based rate limiting
@@ -201,18 +216,22 @@ app.post('/words', async (req, res) => {
       .whereRaw('LOWER(word) = ?', word.toLowerCase())
       .first();
 
+    const userId = await getOrCreateUserIdFromIP(ip);
+
     if (!wordEntry) {
-      const userId = await getOrCreateUserIdFromIP(ip);
+      // Perform sentiment analysis
+      const vaderResult = vader.SentimentIntensityAnalyzer.polarity_scores(word);
+      const sentimentScore = vaderResult.compound;
+
       const [row] = await db('words')
         .insert({
           word: word.toLowerCase(),
-          user_id: userId
+          user_id: userId,
+          sentiment_score: sentimentScore,
         })
         .returning('*');
       wordEntry = row;
     }
-
-    const userId = await getOrCreateUserIdFromIP(ip);
 
     await db('votes').insert({
       politician_id,
@@ -227,7 +246,6 @@ app.post('/words', async (req, res) => {
 
   res.status(201).send('Word submitted and vote added');
 });
-
 
 // GET /
 // Serves the homepage (index.html)
