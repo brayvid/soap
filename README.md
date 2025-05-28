@@ -13,7 +13,7 @@ Users can update their choices at any time, allowing for a dynamic and evolving 
 
 Soap is more than just a social platform—it's a movement towards more constructive discourse about our leaders. Join us in shaping a new way to discuss politics, where every word counts and every voice is heard. Together, we can create a more thoughtful, reasonable, and effective conversation.
 
-<h3><a href="https://use.soap.fyi">Try now 🫧</a></h3>
+<h3><a href="https://use.soap.fyi">Try Soap Now 🫧</a></h3>
 
 ---
 
@@ -31,7 +31,7 @@ Soap is more than just a social platform—it's a movement towards more construc
  <i>Phase 1 complete</i>
 <h3>Phase 2</h3>
 
-- User login, demographics, location
+- User accounts, demographics, location
 - Public vs logged-in views
 - Ability to undo submissions
 - Ranked choice voting system
@@ -46,11 +46,11 @@ Soap is more than just a social platform—it's a movement towards more construc
 
 - Definitions of words
 - NLP word selection tool
-- Autocomplete/autocorrect
+- Autocomplete & autocorrect
 - Cohort sentiment analysis
 - Data products
 - Comparison between two or more politicians
-- Users can submit reasons why they selected a particular word
+- Users can also submit reasons for their selections
 - Social features
 - Support multiple languages
 
