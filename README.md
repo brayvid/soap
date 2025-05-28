@@ -46,6 +46,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 
 - Definitions of words
 - NLP word selection tool
+- Autocomplete/autocorrect
 - Cohort sentiment analysis
 - Data products
 - Comparison between two or more politicians
