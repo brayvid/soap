@@ -114,11 +114,13 @@ async function drawBubbleChart(voteData, politicianId) {
 
   if (data.length === 0) {
     svg.style("display", "none");
-    container.innerHTML = `
-      <div id="no-data-message" style="text-align: center; padding: 1rem; font-size: 1rem; color: #555;">
-        Be the first to add a word!
-      </div>
-    `;
+    if (container) { // Ensure container exists before modifying its innerHTML
+        container.innerHTML = `
+        <div id="no-data-message" style="text-align: center; padding: 1rem; font-size: 1rem; color: #555;">
+            Be the first to add a word!
+        </div>
+        `;
+    }
     return;
   }
 
@@ -126,14 +128,66 @@ async function drawBubbleChart(voteData, politicianId) {
   if (oldMessage) oldMessage.remove();
   svg.style("display", "block");
 
-  const PACK_SIZE = 500;
-  svg
-    .attr("viewBox", `0 0 ${PACK_SIZE} ${PACK_SIZE}`)
-    .attr("preserveAspectRatio", "xMidYMid meet");
+  // This dimension is for the D3 pack layout algorithm's internal coordinate system.
+  const PACK_LAYOUT_DIMENSION = 500;
+  // Percentage of the viewBox side to use as padding around the bubble cluster.
+  // 0.0 means no padding (bubbles can touch the edge).
+  // 0.05 means 5% padding on each side (top, bottom, left, right).
+  const PADDING_PERCENT = 0.01;
 
   const root = d3.hierarchy({ children: data }).sum(d => d.value);
-  const pack = d3.pack().size([PACK_SIZE, PACK_SIZE]).padding(2);
+  const pack = d3.pack()
+    .size([PACK_LAYOUT_DIMENSION, PACK_LAYOUT_DIMENSION])
+    .padding(2);
+
   const nodes = pack(root).leaves();
+
+  if (nodes.length === 0) {
+    svg.style("display", "none");
+    if (container) {
+        container.innerHTML = `
+        <div id="no-data-message" style="text-align: center; padding: 1rem; font-size: 1rem; color: #555;">
+            No data to display in bubbles.
+        </div>
+        `;
+    }
+    return;
+  }
+
+  // Calculate the actual bounding box of all packed bubbles
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  nodes.forEach(d => {
+    minX = Math.min(minX, d.x - d.r);
+    maxX = Math.max(maxX, d.x + d.r);
+    minY = Math.min(minY, d.y - d.r);
+    maxY = Math.max(maxY, d.y + d.r);
+  });
+
+  const contentWidth = maxX - minX;
+  const contentHeight = maxY - minY;
+
+  // Determine the side length of the content's bounding box if it were square
+  const baseViewBoxSide = Math.max(contentWidth, contentHeight);
+
+  // Calculate the final viewBox side, including padding
+  // The content (baseViewBoxSide) should occupy (1 - 2 * PADDING_PERCENT) of the finalViewBoxSide
+  let finalViewBoxSide;
+  if (PADDING_PERCENT < 0.5 && PADDING_PERCENT >= 0) { // Ensure PADDING_PERCENT is valid
+    finalViewBoxSide = baseViewBoxSide / (1 - (2 * PADDING_PERCENT));
+  } else {
+    finalViewBoxSide = baseViewBoxSide; // Fallback if PADDING_PERCENT is out of sensible range
+  }
+  
+  const paddingAmount = (finalViewBoxSide - baseViewBoxSide) / 2;
+
+  // Calculate the top-left corner (x, y) of the viewBox.
+  // This centers the content within the square viewBox and adds padding.
+  const viewBoxX = minX - (baseViewBoxSide - contentWidth) / 2 - paddingAmount;
+  const viewBoxY = minY - (baseViewBoxSide - contentHeight) / 2 - paddingAmount;
+
+  svg
+    .attr("viewBox", `${viewBoxX} ${viewBoxY} ${finalViewBoxSide} ${finalViewBoxSide}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
 
   const chartGroup = svg.append("g");
 
@@ -154,7 +208,12 @@ async function drawBubbleChart(voteData, politicianId) {
     .attr("opacity", 1)
     .style("cursor", "pointer")
     .on("click", (event, d) => {
-      voteForWord(d.data.word, politicianId);
+      // Ensure voteForWord is defined and accessible in this scope
+      if (typeof voteForWord === 'function') {
+        voteForWord(d.data.word, politicianId);
+      } else {
+        console.error("voteForWord function is not defined.");
+      }
     });
 
   // Labels
@@ -167,25 +226,32 @@ async function drawBubbleChart(voteData, politicianId) {
     .attr("y", d => d.y)
     .each(function (d) {
       const text = d3.select(this);
+      // Word tspan
       text.append("tspan")
         .text(d.data.word)
         .attr("x", d.x)
-        .attr("dy", "-0.3em");
+        .attr("dy", "-0.3em"); // Adjust vertical position for the first line
 
+      // Value tspan
       text.append("tspan")
         .text(`${d.data.value}`)
         .attr("x", d.x)
-        .attr("dy", "1em");
+        .attr("dy", "1em");  // Adjust vertical position for the second line, relative to the first
     })
     .attr("text-anchor", "middle")
     .attr("alignment-baseline", "middle")
-    .attr("font-size", d => Math.max(Math.min(d.r * 0.4, 36), 10))
+    .attr("font-size", d => {
+        // Ensure radius is positive to avoid issues with Math.log or Math.sqrt if r can be 0
+        const baseSize = d.r > 0 ? Math.max(Math.min(d.r * 0.4, 24), 8) : 8;
+        return `${baseSize}px`;
+    })
     .style("fill", "#2e2e2e")
-    .style("paint-order", "stroke")
+    .style("paint-order", "stroke") // Improves readability of text over varied backgrounds
+    // .style("stroke", "#ffffffaa")    // Light stroke for better contrast (optional)
+    .style("stroke-width", "0.08em")    // Stroke width relative to font size (optional)
     .style("stroke-linejoin", "round")
     .style("pointer-events", "none");
 }
-
 
 // Handles clicking on a bubble to cast a vote
 function voteForWord(word, politicianId) {
