@@ -29,7 +29,7 @@ def get_engine():
 
     try:
         if DEPLOY_ENV == 'PRODUCTION':
-            status_message_area.info("Attempting to connect to PRODUCTION Read-Only Database (via st.secrets)...")
+            # status_message_area.info("Attempting to connect to PRODUCTION Read-Only Database (via st.secrets)...")
             # Check if prod_db secrets are defined
             if "prod_db" in st.secrets and all(k in st.secrets.prod_db for k in ["username", "password", "host", "database"]):
                 db_config = st.secrets.prod_db
@@ -39,7 +39,7 @@ def get_engine():
                 status_message_area.error("Production database secrets (prod_db section) not fully configured in st.secrets.")
                 return None
         else: # Default to local development settings from st.secrets
-            status_message_area.info("Attempting to connect to LOCAL Database (via st.secrets)...")
+            # status_message_area.info("Attempting to connect to LOCAL Database (via st.secrets)...")
             if "local_db" in st.secrets and all(k in st.secrets.local_db for k in ["username", "password", "host", "database"]):
                 db_config = st.secrets.local_db
                 db_port = db_config.get("port", 5432)
