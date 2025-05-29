@@ -11,8 +11,8 @@ import numpy as np
 # --- Page Configuration ---
 st.set_page_config(
     layout="wide",
-    page_title="Weekly Politician Approval Trends (st.secrets)",
-    page_icon="📅"
+    page_title="SOAP Dashboard",
+    page_icon="🫧"
 )
 
 # --- Database Connection using st.secrets ---
@@ -175,15 +175,15 @@ def plot_multiline_chart_to_image(df, x_col, y_col, group_col, title, xlabel, yl
     return img_buf
 
 # --- Main Dashboard UI (Mostly identical, uses the 'engine' from st.secrets) ---
-st.title("📅 Politician Approval Ratings")
+st.title("Soap Politician Approval Ratings")
 # st.markdown("Approval Rating is calculated as `ROUND((((Average Original Sentiment Score / 2) + 0.5) * 100))`%.")
 
 if not engine:
-    st.error("🔴 CRITICAL: Database connection failed. Dashboard cannot operate.")
+    st.error("CRITICAL: Database connection failed. Dashboard cannot operate.")
     st.stop()
 
 st.markdown("---") 
-st.subheader("⚙️ Select Politicians for Trend Analysis")
+st.subheader("Select Politicians for Trend Analysis")
 politicians_df_list = fetch_politicians_list(engine)
 default_politician_ids_weekly = [1] 
 
@@ -260,7 +260,7 @@ if selected_politician_ids_for_query:
     else:
         st.info(f"No weekly approval rating data with valid scores found for the selected politician(s).")
 elif not politicians_df_list.empty: 
-    st.info("ℹ️ Select politician(s) above to see their weekly approval rating trends.")
+    st.info("Select politician(s) above to see their weekly approval rating trends.")
 else:
     st.info("Waiting for politician list to load or database connection...")
 
