@@ -6,12 +6,11 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 from io import BytesIO
-import numpy as np
 
 # --- Page Configuration ---
 st.set_page_config(
     layout="wide", 
-    page_title="SOAP: Approval Ratings",
+    page_title="SOAP Dashboard",
     page_icon="🫧"
 )
 
@@ -293,19 +292,19 @@ def plot_multiline_chart_to_image(df, x_col, y_col, group_col, title, xlabel, yl
     return img_buf
 
 # --- Main Dashboard UI ---
-st.title("SOAP: Approval Ratings")
-st.markdown("Add your voice here: [use.soap.fyi](https://use.soap.fyi)")
+st.title("SOAP Dashboard")
+st.markdown("Contribute to the project here: [use.soap.fyi](https://use.soap.fyi)")
 if not engine:
     st.error("🔴 CRITICAL: Database connection failed. Dashboard cannot operate.")
     st.stop()
 
 # --- Section 1: Sentiment Distribution Overview ---
-st.header("Average Approval by Politician (%)")
-st.markdown("Shows the percentage of 'Approve', 'Neutral', and 'Disapprove' votes based on word sentiment. "
-            "Politicians with fewer than the selected minimum scorable votes are excluded.")
+st.header("Approval Ratings")
+st.markdown("Shows the percentage of 'Approve', 'Neutral', and 'Disapprove' votes based on word sentiment for each listed politician. Approval Rating = `(((Avg Sentiment Score / 2) + 0.5) * 100)`")
+
 # Add a slider for min_total_votes_threshold
 min_votes_for_dist = st.slider(
-    "Minimum total scorable votes for Sentiment Distribution chart:", 
+    "Filter chart by minimum number of submissions:", 
     min_value=1, max_value=100, value=10, step=1, key="dist_min_votes_slider"
 )
 df_sentiment_dist = fetch_sentiment_distribution_per_politician(engine, min_total_votes_threshold=min_votes_for_dist)
@@ -322,7 +321,7 @@ if not df_sentiment_dist.empty:
             df_sentiment_dist,
             categories=plotted_categories, 
             category_colors=category_colors,
-            title='Vote Sentiment Distribution by Politician',
+            title='Approval Rating Distribution by Politician',
             xlabel='Percentage of Votes (%)',
             ylabel='', 
             top_n=len(df_sentiment_dist), 
@@ -351,8 +350,7 @@ st.markdown("---")
 
 
 # --- Section 2: Weekly Approval Rating Trend ---
-st.header("Weekly Approval Rating Trend")
-st.markdown("Approval Rating = `(((Avg Original Sentiment Score / 2) + 0.5) * 100)` (values may not sum to 100% due to independent rounding). Select politicians to compare.")
+st.header("Approval Weekly Trends")
 
 politicians_df_list = fetch_politicians_list(engine)
 default_politician_ids_weekly = [1] 
@@ -441,4 +439,4 @@ else:
     st.info("Waiting for politician list to load or database connection...")
 
 st.markdown("---")
-st.caption(f"Sentiment thresholds for Approve/Neutral/Disapprove: Word Sentiment > {0.1} (Approve), < {-0.1} (Disapprove), else Neutral. Weekly Approval Rating = `ROUND((((Avg Original Sentiment / 2) + 0.5) * 100))`%. Environment: {DEPLOY_ENV}")
+st.caption("© Copyright 2024-2025 [soap.fyi](https://soap.fyi). All rights reserved.")
