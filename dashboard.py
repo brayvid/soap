@@ -175,8 +175,8 @@ def plot_multiline_chart_to_image(df, x_col, y_col, group_col, title, xlabel, yl
     return img_buf
 
 # --- Main Dashboard UI (Mostly identical, uses the 'engine' from st.secrets) ---
-st.title("📅 Weekly Politician Approval Rating Trends (%)")
-st.markdown("Approval Rating is calculated as `ROUND((((Average Original Sentiment Score / 2) + 0.5) * 100))`%.")
+st.title("📅 Politician Approval Ratings")
+# st.markdown("Approval Rating is calculated as `ROUND((((Average Original Sentiment Score / 2) + 0.5) * 100))`%.")
 
 if not engine:
     st.error("🔴 CRITICAL: Database connection failed. Dashboard cannot operate.")
@@ -265,4 +265,4 @@ else:
     st.info("Waiting for politician list to load or database connection...")
 
 st.markdown("---")
-st.caption(f"Approval Rating = `ROUND((((Avg Original Sentiment / 2) + 0.5) * 100))`%. Using: {'Production Secrets' if DEPLOY_ENV == 'PRODUCTION' else 'Local Secrets'}")
+st.caption(f"Approval Rating = `ROUND((((Avg Original Sentiment / 2) + 0.5) * 100))`%.")
