@@ -294,7 +294,7 @@ def plot_multiline_chart_to_image(df, x_col, y_col, group_col, title, xlabel, yl
 
 # --- Main Dashboard UI ---
 st.title("SOAP: Approval Ratings")
-
+st.markdown("Add your voice here: [use.soap.fyi](https://use.soap.fyi)")
 if not engine:
     st.error("🔴 CRITICAL: Database connection failed. Dashboard cannot operate.")
     st.stop()
