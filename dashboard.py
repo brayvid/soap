@@ -53,7 +53,7 @@ def get_engine():
             engine = create_engine(db_connection_str)
             with engine.connect() as connection:
                 connection.execute(text("SELECT 1")) # Test connection
-            status_message_area.success(f"DB Connection Successful! ({'Prod (Secrets)' if DEPLOY_ENV == 'PRODUCTION' else 'Local (Secrets)'})")
+            # status_message_area.success(f"DB Connection Successful! ({'Prod (Secrets)' if DEPLOY_ENV == 'PRODUCTION' else 'Local (Secrets)'})")
             return engine
         else: # Should not be reached if logic above is correct, but as a safeguard
             status_message_area.error("Database connection string could not be constructed.")
