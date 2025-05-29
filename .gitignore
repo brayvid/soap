@@ -7,3 +7,5 @@ site.db
 .DS_Store
 node_modules/
 *.log
+.streamlit/
+.streamlit/secrets.toml
