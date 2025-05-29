@@ -138,10 +138,17 @@ async function loadPoliticiansGrid() {
     
 }
 
-// Displays a temporary floating error message at the bottom of the screen
-function showMessage(msg) {
+// --- MODIFICATIONS START HERE ---
+
+// Global variables to track the rate limit message specifically
+let rateLimitMessageElement = null;
+let rateLimitMessageTimeoutId = null;
+const RATE_LIMIT_MESSAGE_TEXT = "Rate limit exceeded for this IP";
+
+// Helper function to create and style a message element
+function createMessageElement(msgText) {
     const el = document.createElement('div');
-    el.innerText = msg;
+    el.innerText = msgText;
     el.style.position = 'fixed';
     el.style.bottom = '20px';
     el.style.left = '50%';
@@ -155,11 +162,56 @@ function showMessage(msg) {
     el.style.fontFamily = 'sans-serif';
     el.style.fontSize = '1rem';
     document.body.appendChild(el);
-  
+    return el;
+}
+
+// Displays a temporary floating error message at the bottom of the screen
+function showMessage(msg) {
+    if (msg === RATE_LIMIT_MESSAGE_TEXT) {
+        if (rateLimitMessageElement && document.body.contains(rateLimitMessageElement)) {
+            // Rate limit message is already visible, reset its timer
+            clearTimeout(rateLimitMessageTimeoutId);
+            rateLimitMessageTimeoutId = setTimeout(() => {
+                if (rateLimitMessageElement) {
+                    rateLimitMessageElement.remove();
+                }
+                // Clear references
+                rateLimitMessageElement = null;
+                rateLimitMessageTimeoutId = null;
+            }, 5000);
+            return; // Do not create a new element
+        } else {
+            // Rate limit message is not visible or was removed by other means.
+            // Clear any potentially stale timer or element reference.
+            if (rateLimitMessageTimeoutId) {
+                clearTimeout(rateLimitMessageTimeoutId);
+            }
+            if (rateLimitMessageElement && rateLimitMessageElement.parentElement) {
+                 // If it exists but wasn't caught by document.body.contains (unlikely but safe)
+                rateLimitMessageElement.remove();
+            }
+            
+            // Create and show the new rate limit message
+            rateLimitMessageElement = createMessageElement(msg);
+            rateLimitMessageTimeoutId = setTimeout(() => {
+                if (rateLimitMessageElement) {
+                    rateLimitMessageElement.remove();
+                }
+                // Clear references
+                rateLimitMessageElement = null;
+                rateLimitMessageTimeoutId = null;
+            }, 5000);
+            return; // Rate limit message handled
+        }
+    }
+
+    // For all other messages, create them normally
+    const el = createMessageElement(msg);
     setTimeout(() => {
       el.remove();
     }, 5000);
-  }
+}
+// --- MODIFICATIONS END HERE ---
     
 // Determines which page you're on and sets up appropriate event handlers and data loading
 window.onload = () => {
