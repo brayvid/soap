@@ -175,7 +175,7 @@ def plot_multiline_chart_to_image(df, x_col, y_col, group_col, title, xlabel, yl
     return img_buf
 
 # --- Main Dashboard UI (Mostly identical, uses the 'engine' from st.secrets) ---
-st.title("Soap Politician Approval Ratings")
+st.title("SOAP: Approval Ratings 🫧")
 # st.markdown("Approval Rating is calculated as `ROUND((((Average Original Sentiment Score / 2) + 0.5) * 100))`%.")
 
 if not engine:
