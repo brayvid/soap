@@ -1,4 +1,4 @@
-# dashboard.py
+# Copyright 2024-2025 soap.fyi <https://soap.fyi>
 import streamlit as st
 import pandas as pd
 from sqlalchemy import create_engine, text
