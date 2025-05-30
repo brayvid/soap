@@ -18,8 +18,6 @@ st.set_page_config(
 )
 
 # --- Database Connection (Same as before) ---
-DB_USER_LOCAL = 'local_ds_user'; DB_PASSWORD_LOCAL = 'a_secure_local_password'; DB_HOST_LOCAL = 'localhost'; DB_PORT_LOCAL = '5432'; DB_NAME_LOCAL = 'my_local_copy_db'
-DB_USER_PROD = os.environ.get('PROD_DB_USER'); DB_PASSWORD_PROD = os.environ.get('PROD_DB_PASSWORD'); DB_HOST_PROD = os.environ.get('PROD_DB_HOST'); DB_PORT_PROD = os.environ.get('PROD_DB_PORT', '5432'); DB_NAME_PROD = os.environ.get('PROD_DB_NAME')
 DEPLOY_ENV = os.environ.get('DEPLOY_ENV', 'DEVELOPMENT').upper()
 @st.cache_resource
 def get_engine():
@@ -441,5 +439,4 @@ elif st.session_state.active_tab == "tab3_valence_similarity":
 
 
 st.markdown("---")
-st.caption(f"""
-    © Copyright 2024-2025 [soap.fyi](https://soap.fyi). All rights reserved.""")
+st.caption(f"""© Copyright 2024-2025 [soap.fyi](https://soap.fyi). All rights reserved.""")
