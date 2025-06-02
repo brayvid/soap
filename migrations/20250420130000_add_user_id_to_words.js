@@ -1,3 +1,5 @@
+// Copyright 2024-2025 soap.fyi <https://soap.fyi>
+
 exports.up = async function(knex) {
   const hasColumn = await knex.schema.hasColumn('words', 'user_id');
   if (!hasColumn) {
