@@ -243,3 +243,33 @@ window.onload = () => {
       loadPoliticians(); // fallback if you're using a table
     }
   };
+
+document.addEventListener('DOMContentLoaded', function() {
+    const banner = document.getElementById('banner-message');
+    const closeBannerBtn = document.getElementById('close-banner-btn');
+
+    if (banner && closeBannerBtn) {
+        try {
+            // Check if banner was closed previously in this session
+            if (sessionStorage.getItem('bannerClosed') === 'true') {
+                banner.style.display = 'none';
+            } else {
+                banner.style.display = 'flex'; // Ensure it's visible if not closed
+            }
+        } catch (e) {
+            console.warn('SessionStorage is not available for banner state:', e);
+            banner.style.display = 'flex'; // Show banner if sessionStorage fails
+        }
+
+        closeBannerBtn.addEventListener('click', function() {
+            banner.style.display = 'none';
+            try {
+                // Remember for this session that the banner was closed
+                sessionStorage.setItem('bannerClosed', 'true');
+            } catch (e) {
+                console.warn('SessionStorage is not available for banner state:', e);
+                // Banner is hidden for this view, but state won't be remembered for next
+            }
+        });
+    }
+});

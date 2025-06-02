@@ -53,9 +53,13 @@ tr:hover {
   background-color: #f8fbf9;
 }
 
-nav, #instructions, #filter-input, #politicians-table, #add-politician {
+nav, #filter-input, #politicians-table, #add-politician {
   margin-bottom: 20px;
 }
+
+#instructions {
+  margin-bottom: 0px;
+ }
 
 .container {
   width: 80%;
@@ -412,4 +416,50 @@ button:hover {
 
 .word-gray {
   background-color: rgba(128, 128, 128, 0.11); /* gray with 50% alpha */
+}
+
+/* Banner Message Styles */
+/* Added for dismissible dashboard announcement */
+.banner-message {
+  background-color: #ff3860; /* Electric Dark Pink for good contrast */
+  color: #FFFFFF; /* White text */
+  padding: 12px 20px;
+  display: flex; /* Initially hidden by JS if sessionClosed, otherwise flex */
+  align-items: center; /* Vertically center items */
+  /* font-size: 1rem; */
+  line-height: 1.4;
+  /* display: none; /* JS will control this based on session state */
+}
+
+.banner-text-wrapper {
+  flex-grow: 1; /* Takes up available space, pushing button to the end */
+  text-align: center; /* Centers the text within this wrapper */
+  margin-right: 10px; /* Ensure some space before the close button */
+}
+
+.banner-message a {
+  color: #FFFFFF; /* Light Yellow for link */
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.banner-message a:hover {
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.close-banner-btn {
+  background: transparent;
+  border: none;
+  color: #FFFFFF;
+  font-size: 1.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 8px;
+  line-height: 1; /* Aids in vertical alignment of '×' character */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+}
+
+.close-banner-btn:hover {
+  color: #EEEEEE; /* Slightly off-white on hover */
 }
