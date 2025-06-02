@@ -421,7 +421,7 @@ button:hover {
 /* Banner Message Styles */
 /* Added for dismissible dashboard announcement */
 .banner-message {
-  background-color: #ff3860; /* Electric Dark Pink for good contrast */
+  background-color: rgba(255,56,96,0.7); /* Electric Dark Pink for good contrast */
   color: #FFFFFF; /* White text */
   padding: 12px 20px;
   display: flex; /* Initially hidden by JS if sessionClosed, otherwise flex */
