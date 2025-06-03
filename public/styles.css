@@ -463,3 +463,10 @@ button:hover {
 .close-banner-btn:hover {
   color: #EEEEEE; /* Slightly off-white on hover */
 }
+
+.navbar-right-menu {
+    width: 110px; /* Matches original spacer width */
+    display: flex;
+    justify-content: center; /* Center the link horizontally */
+    align-items: center; /* Center the link vertically */
+}
