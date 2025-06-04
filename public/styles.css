@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 soap.fyi <https://soap.fyi> */
+/* Companion App's CSS (App B) - with modifications for mobile navbar height/font */
 
 body, html {
   margin: 0;
@@ -14,459 +14,162 @@ body {
   color: #2e2e2e;
   display: flex;
   flex-direction: column;
-  padding-top: 65px;
+  /* Desktop padding-top based on .navbar padding (10*2) + .navbar a padding (14*2) + font (~18) = ~66-68px */
+  padding-top: 68px; 
 }
 
-.table-scroll-wrapper {
+.table-scroll-wrapper { /* Styles from your App B CSS */
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
   padding: 0 1rem;
 }
+table { min-width: 600px; width: 100%; table-layout: auto; border-collapse: collapse; }
+th, td { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 200px; border: 1px solid #e0e0e0; padding: 8px; text-align: left; background-color: #fff; }
+th { cursor: pointer; background-color: #eaf5f2; color: #2e2e2e; }
+tr:hover { background-color: #f8fbf9; }
+nav, #filter-input, #politicians-table, #add-politician { margin-bottom: 20px; }
+#instructions { margin-bottom: 0px; }
+.container { width: 80%; max-width: 700px; margin: 0 auto; padding: 1rem; background-color: #ffffffa3; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); }
+header { background-color: #76B0DF; color: #2e2e2e; padding: 1rem; text-align: center; margin-bottom: 1.5rem; }
+h1, h2 { margin: 0.5rem 0; }
+section { background-color: #f8f8f8; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+#politician-list, #vote-list { list-style-type: none; padding: 0; }
+li { padding: 0.5rem; border-bottom: 1px solid #eaeaea; }
+button { padding: 0.5rem 1rem; background-color: #bce0f0; -webkit-tap-highlight-color: transparent; color: #2e2e2e; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; transition: background-color 0.2s ease; }
+button:hover { background-color: #d7f0fa; color: #2e2e2e; }
+.vote-buttons-container { display: flex; justify-content: space-around; margin-top: 10px; }
+.vote-buttons-container button { margin-top: 5px; }
+.message-container { margin-top: 10px; font-size: 16px; color: #555; }
+#filter-input { margin-bottom: 10px; padding: 8px; width: 100%; font-size: 16px; background-color: #ffffff; color: #2e2e2e; border: 1px solid #ccc; border-radius: 4px; }
 
-table {
-  min-width: 600px;
-  width: 100%;
-  table-layout: auto;
-  border-collapse: collapse;
-}
-
-th, td {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  max-width: 200px;
-  border: 1px solid #e0e0e0;
-  padding: 8px;
-  text-align: left;
-  background-color: #fff;
-}
-
-th {
-  cursor: pointer;
-  background-color: #eaf5f2;
-  color: #2e2e2e;
-}
-
-tr:hover {
-  background-color: #f8fbf9;
-}
-
-nav, #filter-input, #politicians-table, #add-politician {
-  margin-bottom: 20px;
-}
-
-#instructions {
-  margin-bottom: 0px;
- }
-
-.container {
-  width: 80%;
-  max-width: 700px; /* ✅ LIMIT on large screens */
-  margin: 0 auto;
-  padding: 1rem;
-  background-color: #ffffffa3;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-}
-
-
-
-@media (max-width: 768px) {
-  .container {
-    width: 100%;
-    padding: 0 1rem;
-    box-sizing: border-box;
-  }
-}
-
-header {
-  background-color: #76B0DF;
-  color: #2e2e2e;
-  padding: 1rem;
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-h1, h2 {
-  margin: 0.5rem 0;
-}
-
-section {
-  background-color: #f8f8f8;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04); */
-}
-
-#politician-list, #vote-list {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  padding: 0.5rem;
-  border-bottom: 1px solid #eaeaea;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  background-color: #bce0f0;
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
-  color: #2e2e2e;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: background-color 0.2s ease;
-}
-
-button:hover {
-  background-color: #d7f0fa;
-  color: #2e2e2e;
-}
-
-.vote-buttons-container {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 10px;
-}
-
-.vote-buttons-container button {
-  margin-top: 5px;
-}
-
-.message-container {
-  margin-top: 10px;
-  font-size: 16px;
-  color: #555;
-}
-
-#filter-input {
-  margin-bottom: 10px;
-  padding: 8px;
-  width: 100%;
-  font-size: 16px;
-  background-color: #ffffff;
-  color: #2e2e2e;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
+/* --- Navbar (FROM YOUR APP B CSS) --- */
 .navbar {
-  background-color: #bce0f0; /* soft soap blue */
+  background-color: #bce0f0; 
   overflow: hidden;
   position: fixed;
   top: 0;
+  left: 0; /* Added for explicit positioning */
   width: 100%;
   z-index: 2000;
-  -webkit-transform: translateZ(0); /* Promote to own layer for smoother fixed positioning */
-  transform: translateZ(0); /* Promote to own layer for smoother fixed positioning */
+  -webkit-transform: translateZ(0); 
+  transform: translateZ(0); 
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px;
+  justify-content: space-between; /* Pushes left link and right .spacer apart */
+  padding: 10px 15px; /* Desktop padding. Vertical padding contributes to height. */
+  box-sizing: border-box; /* Added for consistent padding behavior */
 }
 
-
-.navbar a {
-  float: left;
+.navbar a { /* This applies to the left link primarily in App B's structure */
+  /* float: left; /* Not ideal with flex */
   display: block;
   color: #2e2e2e;
   text-align: center;
-  padding: 14px 16px;
+  padding: 14px 16px; /* Desktop: This + font-size gives the link its height */
   text-decoration: none;
-  font-size: 17px;
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
-  transition: background-color 0.2s ease; /* Add transition for smoother hover */
+  font-size: 17px;    /* Desktop: Link font size */
+  -webkit-tap-highlight-color: transparent; 
+  transition: background-color 0.2s ease; 
+  white-space: nowrap; /* Added */
 }
-
-
 .navbar a:hover {
   background-color: #d7f0fa;
   color: #2e2e2e;
 }
 
 .navbar-title {
-  position: absolute;
+  position: absolute; /* Key for centering */
   left: 50%;
   transform: translateX(-50%);
   color: #2e2e2e;
-  font-size: 20px;
+  font-size: 20px; /* Desktop: Title font size */
   font-weight: bold;
   white-space: nowrap;
+  /* To vertically center with absolute positioning if navbar has fixed height: */
+  /* top: 50%; transform: translate(-50%, -50%); */
+  /* Or rely on align-items of parent if not using fixed height on navbar */
+  /* For now, let's assume align-items on .navbar handles its vertical position within navbar's flow height */
 }
 
-.footer {
-  margin-top: auto;
-  padding: 10px 20px;
-  background-color: #f8f8f8;
-  text-align: center;
-  width: 100%;
-  box-sizing: border-box;
-  color: #666;
+.footer { margin-top: auto; padding: 10px 20px; background-color: #f8f8f8; text-align: center; width: 100%; box-sizing: border-box; color: #666; }
+.footer-link { color: #70c1b3; }
+
+.spacer { /* This is from App B, used to balance the left link for absolute title */
+  width: 80px; /* Adjust if App B's left link has a different typical width */
+  flex-shrink: 0; /* Prevent spacer from shrinking */
 }
 
-.footer-link {
-  color: #70c1b3;
-}
-
-.spacer {
-  width: 80px;
-}
-
-.sort-handle {
-  cursor: pointer;
-  margin-right: 5px;
-  font-size: 14px;
-  color: #999;
-}
-
-.sort-handle:hover {
-  color: #70c1b3;
-}
-
-.sort-arrow {
-  cursor: pointer;
-  margin-left: 5px;
-  font-size: 14px;
-  color: #999;
-}
-
-#bubble-chart-container {
-  position: relative;
-  width: 100%;
-  padding-top: 100%; /* 1:1 aspect ratio */
-  margin: 0 auto 20px;
-  box-sizing: border-box;
-}
+/* Other App B styles (sort-handle, bubble-chart, politician-grid, etc. - condensed) */
+.sort-handle { cursor: pointer; margin-right: 5px; font-size: 14px; color: #999; } .sort-handle:hover { color: #70c1b3; } .sort-arrow { cursor: pointer; margin-left: 5px; font-size: 14px; color: #999; }
+#bubble-chart-container { position: relative; width: 100%; padding-top: 100%; margin: 0 auto 20px; box-sizing: border-box; } #bubble-chart { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+#politician-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; padding: 0.75rem; width: 100%; box-sizing: border-box; }
+.politician-card { background-color: #fefefe; border-radius: 12px; padding: 0.5rem; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); cursor: pointer; transition: transform 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; color: #2e2e2e; will-change: transform; -webkit-tap-highlight-color: transparent; } .politician-card:hover { transform: scale(1.02); } .politician-bubble { background-color: transparent; color: #2e2e2e; font-weight: bold; font-size: 0.9rem; border-radius: 999px; padding: 0.3rem 0.6rem; min-width: 1.5rem; height: auto; line-height: 1; border: 1.2px solid #000; } .politician-name { font-weight: bold; margin-top: 0.5rem; } .politician-position { font-size: 0.9rem; color: #666; } .politician-top-words { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.3rem; justify-content: center; }
+.word-tag { background-color: #bce0f0; padding: 0.15rem 0.4rem; border-radius: 999px; font-size: 0.7rem; color: #2e2e2e; line-height: 1; } .word-tag.muted { background-color: transparent; color: #aaa; font-style: italic; }
+.bubble-empty { height: 60px !important; max-height: none !important; padding: 0 !important; display: flex !important; justify-content: center; align-items: center; } .bubble-active { height: auto; aspect-ratio: 1 / 1; max-height: 80vh; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; }
+.word-tag { display: inline-block; padding: 0.3em 0.6em; margin: 0.2em; border-radius: 999px; font-size: 0.85rem; font-weight: 500; color: #000; background-color: rgba(128, 128, 128, 0.5); }
+.word-green { background-color: #0080004d; } .word-red { background-color: rgba(220, 20, 60, 0.3); } .word-gray { background-color: rgba(128, 128, 128, 0.11); }
+.banner-message { background-color: rgba(255,56,96,0.7); color: #FFFFFF; padding: 12px 20px; display: flex; align-items: center; line-height: 1.4; } .banner-text-wrapper { flex-grow: 1; text-align: center; margin-right: 10px; } .banner-message a { color: #FFFFFF; font-weight: bold; text-decoration: underline; } .banner-message a:hover { color: #FFFFFF; text-decoration: none; } .close-banner-btn { background: transparent; border: none; color: #FFFFFF; font-size: 1.8rem; font-weight: bold; cursor: pointer; padding: 0 8px; line-height: 1; -webkit-tap-highlight-color: transparent; } .close-banner-btn:hover { color: #EEEEEE; }
+.navbar-right-menu { /* This class seems specific to App A's previous structure, remove or adapt if App B uses .spacer */ /* width: 110px; display: flex; justify-content: center; align-items: center; */ }
 
 
-
-#bubble-chart {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-
+/* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
-  /* #bubble-chart-container {
-    height: 90vw;
-  } */
+  .container { width: 100%; padding: 0 1rem; box-sizing: border-box; }
+  /* Add any general table font reduction for App B if needed */
+  /* table th, table td { font-size: 0.9em; padding: 7px; } */
+}
 
-  .container {
-    width: 100%;
-    padding: 0 1rem;
-    box-sizing: border-box;
+@media (max-width: 680px) { /* Mobile/small tablets */
+  /* Navbar adjustments for App B to match target height and font */
+  .navbar {
+      /* Reduce overall navbar padding, let link content primarily define height */
+      padding: 0 10px; /* Only horizontal padding on navbar itself */
+      height: 49px; /* << EXPLICIT TARGET HEIGHT */
   }
-}
-
-@media (max-width: 600px) {
-  /* #bubble-chart-container {
-    height: auto;
-    max-height: none;
-    padding: 0;
-    margin: 0;
-  } */
-
-  /* #bubble-chart {
-    width: 100%;
-    height: auto;
-  } */
-}
-
-#politician-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.75rem;
-  padding: 0.75rem;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-@media (max-width: 480px) {
-  #politician-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 0.5rem;
-    padding: 0.5rem;
+  .navbar a { /* Affects left link primarily, assuming one link on left */
+    font-size: 16px;   /* << TARGET FONT SIZE FOR LINKS */
+    padding: 0 12px;   /* << HORIZONTAL PADDING for links */
+                       /* Vertical centering handled by align-items on .navbar */
   }
-
-  .politician-card {
-    font-size: 0.8rem;
-    padding: 0.4rem;
+  .navbar-title {
+    font-size: 17px; /* << TARGET FONT SIZE FOR TITLE */
+    /* For absolute positioning, vertical centering needs top:50% and transform:translateY(-50%) */
+    top: 50%;
+    transform: translate(-50%, -50%); /* Ensures both X and Y centering */
   }
-
-  .word-tag {
-    background-color: #bce0f0;
-    font-size: 0.65rem;
-    padding: 0.1rem 0.3rem;
+  .spacer {
+      width: 60px; /* May need to reduce spacer width on mobile if left link is narrower */
   }
+  /* -------- IMPORTANT: SET THIS FOR APP B -------- */
+  body { padding-top: 49px; /* << MATCHES NAVBAR HEIGHT */ }
+
+  /* Other App B specific mobile styles if needed */
+  #politician-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 }
 
-.politician-card {
-  background-color: #fefefe;
-  border-radius: 12px;
-  padding: 0.5rem;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
-  color: #2e2e2e;
-  will-change: transform; /* Hint for transform animation */
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
-}
+@media (max-width: 480px) { /* Very small screens */
+  #politician-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; padding: 0.5rem; }
+  .politician-card { font-size: 0.8rem; padding: 0.4rem; }
+  /* .word-tag { font-size: 0.65rem; padding: 0.1rem 0.3rem; } /* Already defined, ensure consistency */
 
-.politician-card:hover {
-  transform: scale(1.02);
-}
-
-.politician-bubble {
-  background-color: transparent;       /* remove fill */
-  color: #2e2e2e;                       /* text color */
-  font-weight: bold;
-  font-size: 0.9rem;
-  border-radius: 999px;
-  padding: 0.3rem 0.6rem;
-  min-width: 1.5rem;
-  height: auto;
-  line-height: 1;
-  border: 1.2px solid #000;            /* outline matches old fill color */
-}
-
-.politician-name {
-  font-weight: bold;
-  margin-top: 0.5rem;
-}
-
-.politician-position {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.politician-top-words {
-  margin-top: 0.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  justify-content: center;
-}
-
-.word-tag {
-  background-color: #bce0f0; /* soap blue */
-  padding: 0.15rem 0.4rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  color: #2e2e2e;
-  line-height: 1;
-}
-
-.word-tag.muted {
-  background-color: transparent;
-  color: #aaa;
-  font-style: italic;
-}
-
-.bubble-empty {
-  height: 60px !important;
-  max-height: none !important;
-  padding: 0 !important;
-  display: flex !important;
-  justify-content: center;
-  align-items: center;
-}
-
-.bubble-active {
-  height: auto;
-  aspect-ratio: 1 / 1;
-  max-height: 80vh;
-  margin: 0 auto 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.word-tag {
-  display: inline-block;
-  padding: 0.3em 0.6em;
-  margin: 0.2em;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #000;
-  background-color: rgba(128, 128, 128, 0.5); /* fallback gray */
-}
-
-/* Sentiment-specific background colors */
-.word-green {
-  background-color: #0080004d; /* semi-transparent green */
-}
-
-.word-red {
-  background-color: rgba(220, 20, 60, 0.3); /* match crimson red from politician.html */
-}
-
-.word-gray {
-  background-color: rgba(128, 128, 128, 0.11); /* gray with 50% alpha */
-}
-
-/* Banner Message Styles */
-/* Added for dismissible dashboard announcement */
-.banner-message {
-  background-color: rgba(255,56,96,0.7); /* Electric Dark Pink for good contrast */
-  color: #FFFFFF; /* White text */
-  padding: 12px 20px;
-  display: flex; /* Initially hidden by JS if sessionClosed, otherwise flex */
-  align-items: center; /* Vertically center items */
-  /* font-size: 1rem; */
-  line-height: 1.4;
-  /* display: none; /* JS will control this based on session state */
-}
-
-.banner-text-wrapper {
-  flex-grow: 1; /* Takes up available space, pushing button to the end */
-  text-align: center; /* Centers the text within this wrapper */
-  margin-right: 10px; /* Ensure some space before the close button */
-}
-
-.banner-message a {
-  color: #FFFFFF; /* Light Yellow for link */
-  font-weight: bold;
-  text-decoration: underline;
-}
-
-.banner-message a:hover {
-  color: #FFFFFF;
-  text-decoration: none;
-}
-
-.close-banner-btn {
-  background: transparent;
-  border: none;
-  color: #FFFFFF;
-  font-size: 1.8rem;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 0 8px;
-  line-height: 1; /* Aids in vertical alignment of '×' character */
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
-}
-
-.close-banner-btn:hover {
-  color: #EEEEEE; /* Slightly off-white on hover */
-}
-
-.navbar-right-menu {
-    width: 110px; /* Matches original spacer width */
-    display: flex;
-    justify-content: center; /* Center the link horizontally */
-    align-items: center; /* Center the link vertically */
+  /* Navbar adjustments for App B */
+  .navbar {
+      height: 46px; /* Slightly smaller if preferred */
+      padding: 0 8px; 
+  }
+  .navbar a {
+    font-size: 15px; 
+    padding: 0 10px; 
+  }
+  .navbar-title {
+    font-size: 16px;
+    /* top: 50%; transform: translate(-50%, -50%); /* Already set */
+  }
+  .spacer {
+      width: 50px; /* Further reduce spacer if needed */
+  }
+  /* -------- IMPORTANT: SET THIS FOR APP B -------- */
+  body { padding-top: 46px; /* << MATCHES NAVBAR HEIGHT */ }
 }
