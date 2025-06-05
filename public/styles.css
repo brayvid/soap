@@ -1,5 +1,16 @@
 /* Companion App's CSS (App B) - with modifications for mobile navbar height/font */
 
+html { /* CHANGED/ADDED */
+  box-sizing: border-box;
+  min-height: 100vh; /* Ensures HTML element can fill viewport height */
+  margin: 0; /* Reset default browser margin */
+  padding: 0; /* Reset default browser padding */
+}
+
+*, *::before, *::after { /* ADDED for universal box-sizing */
+  box-sizing: inherit;
+}
+
 body, html {
   margin: 0;
   padding: 0;
@@ -12,10 +23,15 @@ body {
   font-family: "Inter", "Segoe UI", sans-serif;
   background-color: #f8f8f8;
   color: #2e2e2e;
-  display: flex;
-  flex-direction: column;
+
+  display: flex;             /* MUST HAVE */
+  flex-direction: column;    /* MUST HAVE */
+  min-height: 100vh;         /* MUST HAVE: Body must also be able to fill viewport height */
+  margin: 0;                 /* Ensure no body margin */
+
   /* Desktop padding-top based on .navbar padding (10*2) + .navbar a padding (14*2) + font (~18) = ~66-68px */
-  padding-top: 68px; 
+  padding-top: 68px;
+  padding-bottom: 20px;      /* ADDED: This creates the 20px space below where the footer will sit */
 }
 
 .table-scroll-wrapper { /* Styles from your App B CSS */
@@ -93,7 +109,17 @@ button:hover { background-color: #d7f0fa; color: #2e2e2e; }
   /* For now, let's assume align-items on .navbar handles its vertical position within navbar's flow height */
 }
 
-.footer { margin-top: auto; padding: 10px 20px; background-color: #f8f8f8; text-align: center; width: 100%; box-sizing: border-box; color: #666; }
+.footer {
+  /* REMOVE position:absolute; and bottom: styles if they were present */
+  margin-top: auto;         /* KEY: Pushes footer to the bottom of available space in body */
+  flex-shrink: 0;           /* ADDED: Prevents footer from shrinking */
+  padding: 10px 20px;
+  background-color: #f8f8f8;
+  text-align: center;
+  width: 100%;
+  /* box-sizing: border-box; /* Already inherited */
+  color: #666;
+}
 .footer-link { color: #70c1b3; }
 
 .spacer { /* This is from App B, used to balance the left link for absolute title */
