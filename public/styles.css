@@ -111,8 +111,6 @@ button:hover { background-color: #d7f0fa; color: #2e2e2e; }
 .word-tag { display: inline-block; padding: 0.3em 0.6em; margin: 0.2em; border-radius: 999px; font-size: 0.85rem; font-weight: 500; color: #000; background-color: rgba(128, 128, 128, 0.5); }
 .word-green { background-color: #0080004d; } .word-red { background-color: rgba(220, 20, 60, 0.3); } .word-gray { background-color: rgba(128, 128, 128, 0.11); }
 .banner-message { background-color: rgba(255,56,96,0.7); color: #FFFFFF; padding: 12px 20px; display: flex; align-items: center; line-height: 1.4; } .banner-text-wrapper { flex-grow: 1; text-align: center; margin-right: 10px; } .banner-message a { color: #FFFFFF; font-weight: bold; text-decoration: underline; } .banner-message a:hover { color: #FFFFFF; text-decoration: none; } .close-banner-btn { background: transparent; border: none; color: #FFFFFF; font-size: 1.8rem; font-weight: bold; cursor: pointer; padding: 0 8px; line-height: 1; -webkit-tap-highlight-color: transparent; } .close-banner-btn:hover { color: #EEEEEE; }
-.navbar-right-menu { /* This class seems specific to App A's previous structure, remove or adapt if App B uses .spacer */ /* width: 110px; display: flex; justify-content: center; align-items: center; */ }
-
 
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
@@ -173,3 +171,31 @@ button:hover { background-color: #d7f0fa; color: #2e2e2e; }
   /* -------- IMPORTANT: SET THIS FOR APP B -------- */
   body { padding-top: 46px; /* << MATCHES NAVBAR HEIGHT */ }
 }
+
+  /* ---- START: Added rule for the "Click a word to agree" h2 ---- */
+  #votes-summary h2 {
+    font-size: 1.2em; /* Default h2 is often 1.5em (e.g., 24px). This makes it ~20px. */
+    /* You can adjust 1.25rem to 1.2rem or 1.15rem if you want it even smaller */
+  }
+  /* ---- END: Added rule ---- */
+
+  /* ---- START: Added rule for the "Click a word to agree" h2 ---- */
+  #add-word h2 {
+    font-size: 1.2rem; /* Default h2 is often 1.5em (e.g., 24px). This makes it ~20px. */
+    /* You can adjust 1.25rem to 1.2rem or 1.15rem if you want it even smaller */
+  }
+  /* ---- END: Added rule ---- */
+
+  /* ---- START: Added rule for the "Click a word to agree" h2 ---- */
+  .footer p {
+    font-size: 0.8rem; /* Default h2 is often 1.5em (e.g., 24px). This makes it ~20px. */
+    /* You can adjust 1.25rem to 1.2rem or 1.15rem if you want it even smaller */
+  }
+  /* ---- END: Added rule ---- */
+
+    /* ---- START: Added rule for the "Click a word to agree" h2 ---- */
+  #instructions p {
+    font-size: 0.9rem; /* Default h2 is often 1.5em (e.g., 24px). This makes it ~20px. */
+    /* You can adjust 1.25rem to 1.2rem or 1.15rem if you want it even smaller */
+  }
+  /* ---- END: Added rule ---- */
