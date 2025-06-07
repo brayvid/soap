@@ -39,6 +39,58 @@ function submitNewWord(event) {
   });
 }
 
+// Helper function to get style based on sentiment score
+// score is expected to be between -1.0 and 1.0
+function getSentimentStyle(score) {
+    let backgroundColor = '#eeeeee'; // Neutral/Gray base
+    let textColor = '#2e2e2e';
+    let opacity = 1.0;
+
+    if (score >= 0.05) { // Positive
+        backgroundColor = 'rgba(0, 128, 0, 1)'; // Green base (rgb for opacity)
+        textColor = 'white';
+        // Scale opacity: 0.05 -> ~0.3, 1.0 -> 1.0
+        opacity = 0.3 + (0.7 * (score - 0.05) / (1.0 - 0.05));
+        opacity = Math.min(1.0, Math.max(0.3, opacity)); // Clamp
+    } else if (score <= -0.05) { // Negative
+        backgroundColor = 'rgba(220, 20, 60, 1)'; // Crimson/Red base (rgb for opacity)
+        textColor = 'white';
+        // Scale opacity: -0.05 -> ~0.3, -1.0 -> 1.0
+        opacity = 0.3 + (0.7 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
+        opacity = Math.min(1.0, Math.max(0.3, opacity)); // Clamp
+    } else { // Neutral
+        backgroundColor = 'rgba(204, 204, 204, 1)'; // Gray base for neutral
+        opacity = 0.6; // Slightly less prominent neutral
+    }
+    
+    // Apply opacity to the background color
+    // Assumes backgroundColor is in 'rgba(r,g,b,1)' format
+    const colorParts = backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d(?:\.\d+)?))?\)/);
+    if (colorParts) {
+        backgroundColor = `rgba(${colorParts[1]}, ${colorParts[2]}, ${colorParts[3]}, ${opacity.toFixed(2)})`;
+    }
+
+
+    return { backgroundColor, color: textColor }; // Return an object for inline styling
+                                                  // For bubble chart, we'll need fill and fill-opacity
+}
+
+function getBubbleFillStyle(score) {
+    let fill = '#eeeeee'; // Neutral gray
+    let fillOpacity = 0.6;
+
+    if (score >= 0.05) { // Positive
+        fill = '#008000'; // Green
+        fillOpacity = 0.3 + (0.7 * (score - 0.05) / (1.0 - 0.05));
+        fillOpacity = Math.min(1.0, Math.max(0.3, fillOpacity));
+    } else if (score <= -0.05) { // Negative
+        fill = '#DC143C'; // Crimson Red
+        fillOpacity = 0.3 + (0.7 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
+        fillOpacity = Math.min(1.0, Math.max(0.3, fillOpacity));
+    }
+    return { fill, fillOpacity: fillOpacity.toFixed(2) };
+}
+
 // Loads politician data (name, position, votes) based on the ID in the URL
 // If no votes exist, shows a message; otherwise draws the bubble chart
 function loadPoliticianData() {
@@ -109,7 +161,8 @@ async function drawBubbleChart(voteData, politicianId) {
   const data = voteData.filter(entry => entry.count > 0).map(entry => ({
     word: entry.word,
     value: entry.count,
-    sentiment: entry.sentiment,
+    // sentiment: entry.sentiment, // We'll use entry.sentiment_score directly
+    score: entry.sentiment_score // Assumes this is the numeric score from backend
   }));
 
   if (data.length === 0) {
@@ -200,12 +253,15 @@ async function drawBubbleChart(voteData, politicianId) {
     .attr("cx", d => d.x)
     .attr("cy", d => d.y)
     .attr("r", d => d.r)
-    .attr("fill", d => {
-      if (d.data.sentiment === 'green') return '#0080004d'; // positive
-      if (d.data.sentiment === 'red') return '#f8d3d7';     // negative
-      return '#eeeeee';                                     // neutral/gray
+    .attr("fill", d => { // --- NEW ---
+        const style = getBubbleFillStyle(d.data.score); // d.data.score is the numeric score
+        return style.fill;
     })
-    .attr("opacity", 1)
+    .attr("fill-opacity", d => { // --- NEW ---
+        const style = getBubbleFillStyle(d.data.score);
+        return style.fillOpacity;
+    })
+    // .attr("opacity", 1) // fill-opacity will handle this now
     .style("cursor", "pointer")
     .on("click", (event, d) => {
       // Ensure voteForWord is defined and accessible in this scope

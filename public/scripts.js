@@ -107,35 +107,62 @@ async function loadPoliticiansGrid() {
     grid.innerHTML = ''; // Clear existing cards
     
     const res = await fetch('/politicians');
-    const politicians = await res.json();
-    politiciansData = politicians;
+    const politicians = await res.json(); // politiciansData will be updated by this call too if you assign it
+    politiciansData = politicians; // Keep this for filtering or other uses
 
-    
     politicians.forEach(p => {
         const card = document.createElement('div');
         card.className = 'politician-card';
         card.dataset.politicianId = p.politician_id;
-        card.onclick = () => window.location.href = `/politician/${p.politician_id}`;
-    
-        const topWord = p.top_words?.[0];
-        const sentiment = topWord?.sentiment || 'gray';
-    
+        
+        // --- ATTACH ONCLICK HANDLER ---
+        card.addEventListener('click', () => { // Using addEventListener is slightly more robust
+            window.location.href = `/politician/${p.politician_id}`;
+        });
+        // --- END ONCLICK HANDLER ---
+
+        let mainBubbleScore = 0.0;
+        let averageSentimentScoreForCard = p.average_sentiment_score; // We'll add this from backend
+
+        // For the main vote count bubble, let's use the average sentiment of the politician
+        const mainBubbleStyle = getBubbleFillStyle(averageSentimentScoreForCard); 
+
         card.innerHTML = `
-          <div class="politician-bubble bubble-${sentiment}">${p.vote_count || 0}</div>
+          <div class="politician-bubble" style="background-color: ${mainBubbleStyle.fill}; opacity: ${mainBubbleStyle.fillOpacity};">${p.vote_count || 0}</div>
           <div class="politician-name">${p.name}</div>
           <div class="politician-position">${p.position}</div>
-          <div class="politician-top-words bg-${sentiment}">
+          <div class="politician-top-words"> 
             ${p.top_words && p.top_words.length
-              ? p.top_words.map(w =>
-                  `<span class="word-tag word-${w.sentiment}">${w.word}</span>`
-                ).join(' ')
+              ? p.top_words.map(w => {
+                  const wordStyle = getSentimentStyle(w.score);
+                  return `<span class="word-tag" style="background-color: ${wordStyle.backgroundColor}; color: ${wordStyle.color};">${w.word}</span>`;
+                }).join(' ')
               : '<span class="word-tag muted">No words yet</span>'}
           </div>
         `;
-    
+        
+        // --- APPLY AVERAGE SENTIMENT TO CARD BACKGROUND ---
+        // We'll calculate average_sentiment_score on backend and pass it.
+        // Let's assume p.average_sentiment_score exists now.
+        if (typeof p.average_sentiment_score === 'number') {
+            const cardBgStyle = getSentimentStyle(p.average_sentiment_score);
+            // Apply a more subtle version for the card background, e.g., using lower opacity always
+            // Or define a separate helper function for card background intensity
+            const cardOpacity = 0.15 + (0.3 * Math.abs(p.average_sentiment_score)); // Example: subtle scaling
+            
+            const colorParts = cardBgStyle.backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d(?:\.\d+)?))?\)/);
+            if (colorParts) {
+                card.style.backgroundColor = `rgba(${colorParts[1]}, ${colorParts[2]}, ${colorParts[3]}, ${Math.min(0.45, cardOpacity).toFixed(2)})`;
+            } else { // Fallback if regex fails (e.g. hex color)
+                card.style.backgroundColor = cardBgStyle.backgroundColor; // Might be too strong
+            }
+            // Ensure text on card remains readable
+            // card.style.color = cardBgStyle.color; // This might make text white on light bg, be careful
+        }
+        // --- END CARD BACKGROUND ---
+
         grid.appendChild(card);
     });
-    
 }
 
 // --- MODIFICATIONS START HERE ---
@@ -164,6 +191,60 @@ function createMessageElement(msgText) {
     document.body.appendChild(el);
     return el;
 }
+
+
+// Helper function to get style based on sentiment score
+// score is expected to be between -1.0 and 1.0
+function getSentimentStyle(score) {
+    let backgroundColor = '#eeeeee'; // Neutral/Gray base
+    let textColor = '#2e2e2e';
+    let opacity = 1.0;
+
+    if (score >= 0.05) { // Positive
+        backgroundColor = 'rgba(0, 128, 0, 1)'; // Green base (rgb for opacity)
+        textColor = 'white';
+        // Scale opacity: 0.05 -> ~0.3, 1.0 -> 1.0
+        opacity = 0.3 + (0.7 * (score - 0.05) / (1.0 - 0.05));
+        opacity = Math.min(1.0, Math.max(0.3, opacity)); // Clamp
+    } else if (score <= -0.05) { // Negative
+        backgroundColor = 'rgba(220, 20, 60, 1)'; // Crimson/Red base (rgb for opacity)
+        textColor = 'white';
+        // Scale opacity: -0.05 -> ~0.3, -1.0 -> 1.0
+        opacity = 0.3 + (0.7 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
+        opacity = Math.min(1.0, Math.max(0.3, opacity)); // Clamp
+    } else { // Neutral
+        backgroundColor = 'rgba(204, 204, 204, 1)'; // Gray base for neutral
+        opacity = 0.6; // Slightly less prominent neutral
+    }
+    
+    // Apply opacity to the background color
+    // Assumes backgroundColor is in 'rgba(r,g,b,1)' format
+    const colorParts = backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d(?:\.\d+)?))?\)/);
+    if (colorParts) {
+        backgroundColor = `rgba(${colorParts[1]}, ${colorParts[2]}, ${colorParts[3]}, ${opacity.toFixed(2)})`;
+    }
+
+
+    return { backgroundColor, color: textColor }; // Return an object for inline styling
+                                                  // For bubble chart, we'll need fill and fill-opacity
+}
+
+function getBubbleFillStyle(score) {
+    let fill = '#eeeeee'; // Neutral gray
+    let fillOpacity = 0.6;
+
+    if (score >= 0.05) { // Positive
+        fill = '#008000'; // Green
+        fillOpacity = 0.3 + (0.7 * (score - 0.05) / (1.0 - 0.05));
+        fillOpacity = Math.min(1.0, Math.max(0.3, fillOpacity));
+    } else if (score <= -0.05) { // Negative
+        fill = '#DC143C'; // Crimson Red
+        fillOpacity = 0.3 + (0.7 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
+        fillOpacity = Math.min(1.0, Math.max(0.3, fillOpacity));
+    }
+    return { fill, fillOpacity: fillOpacity.toFixed(2) };
+}
+
 
 // Displays a temporary floating error message at the bottom of the screen
 function showMessage(msg) {
