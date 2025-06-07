@@ -242,9 +242,13 @@ async function drawBubbleChart(voteData, politicianId) {
     .attr("viewBox", `${viewBoxX} ${viewBoxY} ${finalViewBoxSide} ${finalViewBoxSide}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
 
+  // politician.js (inside drawBubbleChart function)
+
+// ... (previous parts of drawBubbleChart: container, svg, data mapping, pack layout, nodes, viewBox calculation) ...
+
   const chartGroup = svg.append("g");
 
-  // Bubbles
+  // Bubbles (This part sets the bubble fill color and opacity)
   const bubbleLayer = chartGroup.append("g").attr("id", "bubble-layer");
   bubbleLayer.selectAll("circle")
     .data(nodes)
@@ -253,18 +257,16 @@ async function drawBubbleChart(voteData, politicianId) {
     .attr("cx", d => d.x)
     .attr("cy", d => d.y)
     .attr("r", d => d.r)
-    .attr("fill", d => { // --- NEW ---
+    .attr("fill", d => {
         const style = getBubbleFillStyle(d.data.score); // d.data.score is the numeric score
         return style.fill;
     })
-    .attr("fill-opacity", d => { // --- NEW ---
+    .attr("fill-opacity", d => {
         const style = getBubbleFillStyle(d.data.score);
         return style.fillOpacity;
     })
-    // .attr("opacity", 1) // fill-opacity will handle this now
     .style("cursor", "pointer")
     .on("click", (event, d) => {
-      // Ensure voteForWord is defined and accessible in this scope
       if (typeof voteForWord === 'function') {
         voteForWord(d.data.word, politicianId);
       } else {
@@ -273,38 +275,54 @@ async function drawBubbleChart(voteData, politicianId) {
     });
 
   // Labels
+// politician.js (inside drawBubbleChart function)
+
+// ... (previous parts of drawBubbleChart) ...
+
+  // Labels
   const labelLayer = chartGroup.append("g").attr("id", "label-layer");
   labelLayer.selectAll("text")
-    .data(nodes)
+    .data(nodes) // nodes here are the leaves of the pack layout
+                 // d.data will contain { word: ..., value: ..., score: ... }
     .enter()
     .append("text")
     .attr("x", d => d.x)
     .attr("y", d => d.y)
     .each(function (d) {
       const text = d3.select(this);
-      // Word tspan
       text.append("tspan")
         .text(d.data.word)
         .attr("x", d.x)
-        .attr("dy", "-0.3em"); // Adjust vertical position for the first line
+        .attr("dy", "-0.3em"); 
 
-      // Value tspan
       text.append("tspan")
-        .text(`${d.data.value}`)
+        .text(`${d.data.value}`) // This is the vote count
         .attr("x", d.x)
-        .attr("dy", "1em");  // Adjust vertical position for the second line, relative to the first
+        .attr("dy", "1em");
     })
     .attr("text-anchor", "middle")
     .attr("alignment-baseline", "middle")
     .attr("font-size", d => {
-        // Ensure radius is positive to avoid issues with Math.log or Math.sqrt if r can be 0
         const baseSize = d.r > 0 ? Math.max(Math.min(d.r * 0.4, 24), 8) : 8;
         return `${baseSize}px`;
     })
-    .style("fill", "#2e2e2e")
-    .style("paint-order", "stroke") // Improves readability of text over varied backgrounds
-    // .style("stroke", "#ffffffaa")    // Light stroke for better contrast (optional)
-    .style("stroke-width", "0.08em")    // Stroke width relative to font size (optional)
+    .style("fill", d => { // <--- MODIFICATION FOR TEXT COLOR HERE
+        // d.data.value is the vote count for the word in this bubble
+        // d.data.score is the numeric sentiment score
+
+        if (d.data.value >= 1 && d.data.value <= 9) {
+            return "#2e2e2e"; // Dark grey text for words with 1-3 votes
+        } else {
+            // For words with more than 3 votes, use sentiment-based coloring
+            if (d.data.score >= 0.05 || d.data.score <= -0.05) { // If positive or negative
+                return "#ffffff"; // White text
+            } else { // Neutral
+                return "#2e2e2e"; // Dark grey text
+            }
+        }
+    })
+    .style("paint-order", "stroke")
+    .style("stroke-width", "0.08em") 
     .style("stroke-linejoin", "round")
     .style("pointer-events", "none");
 }
