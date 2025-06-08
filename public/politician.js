@@ -39,42 +39,6 @@ function submitNewWord(event) {
   });
 }
 
-// Helper function to get style based on sentiment score
-// score is expected to be between -1.0 and 1.0
-function getSentimentStyle(score) {
-    let backgroundColor = '#eeeeee'; // Neutral/Gray base
-    let textColor = '#2e2e2e';
-    let opacity = 1.0;
-
-    if (score >= 0.05) { // Positive
-        backgroundColor = 'rgba(0, 128, 0, 1)'; // Green base (rgb for opacity)
-        textColor = 'white';
-        // Scale opacity: 0.05 -> ~0.3, 1.0 -> 1.0
-        opacity = 0.3 + (0.7 * (score - 0.05) / (1.0 - 0.05));
-        opacity = Math.min(1.0, Math.max(0.3, opacity)); // Clamp
-    } else if (score <= -0.05) { // Negative
-        backgroundColor = 'rgba(220, 20, 60, 1)'; // Crimson/Red base (rgb for opacity)
-        textColor = 'white';
-        // Scale opacity: -0.05 -> ~0.3, -1.0 -> 1.0
-        opacity = 0.3 + (0.7 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
-        opacity = Math.min(1.0, Math.max(0.3, opacity)); // Clamp
-    } else { // Neutral
-        backgroundColor = 'rgba(204, 204, 204, 1)'; // Gray base for neutral
-        opacity = 0.6; // Slightly less prominent neutral
-    }
-    
-    // Apply opacity to the background color
-    // Assumes backgroundColor is in 'rgba(r,g,b,1)' format
-    const colorParts = backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d(?:\.\d+)?))?\)/);
-    if (colorParts) {
-        backgroundColor = `rgba(${colorParts[1]}, ${colorParts[2]}, ${colorParts[3]}, ${opacity.toFixed(2)})`;
-    }
-
-
-    return { backgroundColor, color: textColor }; // Return an object for inline styling
-                                                  // For bubble chart, we'll need fill and fill-opacity
-}
-
 function getBubbleFillStyle(score) {
     let fill = '#eeeeee'; // Neutral gray
     let fillOpacity = 0.6;
@@ -311,13 +275,13 @@ async function drawBubbleChart(voteData, politicianId) {
         // d.data.score is the numeric sentiment score
 
         if (d.data.value >= 1 && d.data.value <= 9) {
-            return "#2e2e2e"; // Dark grey text for words with 1-3 votes
+            return "#000"; // Dark grey text for words with 1-3 votes
         } else {
             // For words with more than 3 votes, use sentiment-based coloring
             if (d.data.score >= 0.05 || d.data.score <= -0.05) { // If positive or negative
-                return "#ffffff"; // White text
+                return "#000"; // White text
             } else { // Neutral
-                return "#2e2e2e"; // Dark grey text
+                return "#000"; // Dark grey text
             }
         }
     })

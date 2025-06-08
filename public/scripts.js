@@ -197,18 +197,18 @@ function createMessageElement(msgText) {
 // score is expected to be between -1.0 and 1.0
 function getSentimentStyle(score) {
     let backgroundColor = '#eeeeee'; // Neutral/Gray base
-    let textColor = '#2e2e2e';
+    let textColor = '#000000';
     let opacity = 1.0;
 
     if (score >= 0.05) { // Positive
         backgroundColor = 'rgba(0, 128, 0, 1)'; // Green base (rgb for opacity)
-        textColor = 'white';
+        // textColor = 'white';
         // Scale opacity: 0.05 -> ~0.3, 1.0 -> 1.0
         opacity = 0.3 + (0.7 * (score - 0.05) / (1.0 - 0.05));
         opacity = Math.min(1.0, Math.max(0.3, opacity)); // Clamp
     } else if (score <= -0.05) { // Negative
         backgroundColor = 'rgba(220, 20, 60, 1)'; // Crimson/Red base (rgb for opacity)
-        textColor = 'white';
+        // textColor = 'white';
         // Scale opacity: -0.05 -> ~0.3, -1.0 -> 1.0
         opacity = 0.3 + (0.7 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
         opacity = Math.min(1.0, Math.max(0.3, opacity)); // Clamp
