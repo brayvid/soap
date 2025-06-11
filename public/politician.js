@@ -40,7 +40,7 @@ function submitNewWord(event) {
 }
 
 function getBubbleFillStyle(score) {
-    let fill = '#eeeeee'; // Neutral gray
+    let fill = '#AAA'; // Neutral gray
     let fillOpacity = 0.6;
 
     if (score >= 0.05) { // Positive
