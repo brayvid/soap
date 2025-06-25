@@ -1,3 +1,5 @@
+// Copyright 2024-2025 soap.fyi <https://soap.fyi>
+
 // scripts/processPortrait.js
 const fs = require('fs/promises');
 const path = require('path');

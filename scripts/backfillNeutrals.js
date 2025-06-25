@@ -1,3 +1,5 @@
+// Copyright 2024-2025 soap.fyi <https://soap.fyi>
+
 // soap/scripts/backfillNeutrals.js
 require('dotenv').config();
 const fs = require('fs');

@@ -76,18 +76,16 @@ function loadPoliticianData() {
         currentVoteData = politicianData.votesForPolitician || [];
         
         const bubbleContainer = document.getElementById('bubble-chart-container');
-        // --- THIS IS THE MODIFIED LOGIC ---
         if (!currentVoteData.some(v => v.count > 0)) {
             bubbleContainer.innerHTML = `<div style="text-align: center; padding: 1rem;">Be the first to add a word.</div>`;
-            bubbleContainer.classList.add('bubble-empty'); // Ensure class for styling empty state
+            bubbleContainer.classList.add('bubble-empty');
             bubbleContainer.classList.remove('bubble-active');
         } else {
-            bubbleContainer.innerHTML = '<svg id="bubble-chart"></svg>'; // Create SVG only if there's data
+            bubbleContainer.innerHTML = '<svg id="bubble-chart"></svg>'; 
             bubbleContainer.classList.remove('bubble-empty');
-            bubbleContainer.classList.add('bubble-active'); // Ensure class for styling active state
+            bubbleContainer.classList.add('bubble-active');
             drawBubbleChart(currentVoteData);
         }
-        // --- END OF MODIFIED LOGIC ---
     }).catch(err => {
         console.error('Error loading initial data:', err);
         window.location.href = '/404.html';
@@ -110,40 +108,66 @@ function drawBubbleChart(voteData) {
 // --- FALLBACK LAYOUT FUNCTION ---
 function drawFallbackLayout(data) {
     const svg = d3.select("#bubble-chart");
-    svg.selectAll("*").remove();
+    svg.selectAll("*").remove(); // Clear previous content
     const container = document.getElementById('bubble-chart-container');
     const PACK_LAYOUT_DIMENSION = Math.min(container.clientWidth, container.clientHeight) || 500;
 
     const pack = d3.pack().size([PACK_LAYOUT_DIMENSION, PACK_LAYOUT_DIMENSION]).padding(5);
     
-    // --- MODIFIED SIZING ---
-    // The sum is now based on the proportional value, not the absolute count.
     const totalSubmissionCount = d3.sum(data, d => d.value);
     const root = d3.hierarchy({ children: data }).sum(d => d.value / totalSubmissionCount);
     
-    const nodes = pack(root).leaves();
+    const nodes = pack(root).leaves(); // These nodes have .x, .y, .r, and .data (original datum)
 
     svg.attr("viewBox", `0 0 ${PACK_LAYOUT_DIMENSION} ${PACK_LAYOUT_DIMENSION}`)
        .attr("preserveAspectRatio", "xMidYMid meet");
 
-    const chartGroup = svg.append("g");
-    const bubbles = chartGroup.selectAll("g").data(nodes, d => d.data.word).join("g")
-        .attr('transform', d => `translate(${d.x}, ${d.y})`);
+    const chartGroup = svg.append("g"); // Main group for chart elements
 
-    bubbles.append("circle").attr("r", d => d.r).attr("fill", d => getBubbleFillStyle(d.data.score).fill).attr("fill-opacity", d => getBubbleFillStyle(d.data.score).fillOpacity).style("cursor", "pointer").on("click", (event, d) => voteForWord(d.data.word, currentPoliticianId));
+    // Create separate layers for circles and text
+    const circleLayer = chartGroup.append("g").attr("class", "circle-layer");
+    const textLayer = chartGroup.append("g").attr("class", "text-layer"); // Text layer will be drawn on top of circle layer
+
+    // Bind data to groups for circles
+    const circleGroups = circleLayer.selectAll("g.bubble-circle-group")
+        .data(nodes, d => d.data.word) // key by word from original data
+        .join("g")
+        .attr("class", "bubble-circle-group")
+        .attr('transform', d => `translate(${d.x},${d.y})`); // Position group
+
+    // Append circles to their groups
+    circleGroups.append("circle")
+        .attr("r", d => d.r)
+        .attr("fill", d => getBubbleFillStyle(d.data.score).fill)
+        .attr("fill-opacity", d => getBubbleFillStyle(d.data.score).fillOpacity)
+        .style("cursor", "pointer")
+        .on("click", (event, d) => voteForWord(d.data.word, currentPoliticianId));
         
-    bubbles.append("text").attr("text-anchor", "middle").style("font-size", d => Math.max(Math.min(d.r / 2.5, 32), 8) + "px").style("fill", "#000").style("pointer-events", "none").each(function(d) {
-        const el = d3.select(this);
-        const fontSize = parseFloat(el.style("font-size"));
-        el.append("tspan").text(d.data.word).attr("x", 0).attr("dy", -fontSize * 0.2);
-        el.append("tspan").text(d.data.value).attr("x", 0).attr("dy", "1.2em");
-    });
+    // Bind data to groups for text labels
+    const textGroups = textLayer.selectAll("g.bubble-text-group")
+        .data(nodes, d => d.data.word) // key by word from original data
+        .join("g")
+        .attr("class", "bubble-text-group")
+        .attr('transform', d => `translate(${d.x},${d.y})`); // Position group
+
+    // Append text labels to their groups
+    textGroups.append("text")
+        .attr("text-anchor", "middle")
+        .style("font-size", d => Math.max(Math.min(d.r / 2.5, 32), 8) + "px")
+        .style("fill", "#000")
+        .style("pointer-events", "none") // Ensures clicks pass through to circles
+        .each(function(d) { // d is a node from pack(root).leaves()
+            const el = d3.select(this);
+            const fontSize = parseFloat(el.style("font-size"));
+            el.append("tspan").text(d.data.word).attr("x", 0).attr("dy", -fontSize * 0.2);
+            el.append("tspan").text(d.data.value).attr("x", 0).attr("dy", "1.2em");
+        });
 }
 
 // --- FACE-SHAPING LAYOUT FUNCTION ---
 function drawFaceLayout(data) {
     const svg = d3.select("#bubble-chart");
-    svg.selectAll("*").remove();
+    svg.selectAll("*").remove(); // Clear previous content
     
     const headShape = [...layoutData.boundary];
     headShape.push({ x: headShape[headShape.length - 1].x, y: 0 }); 
@@ -159,7 +183,6 @@ function drawFaceLayout(data) {
     const ANCHOR_COUNT = 5;
     const featureTargets = layoutData.features.filter(Boolean);
 
-    // --- DETERMINISTIC STARTING POSITIONS (NO Math.random()) ---
     const nodes = sortedByPop.map((d, i) => {
         const scaledValue = Math.pow(d.value, POWER_SCALE);
         const bubbleArea = scaledValue * scalingFactor;
@@ -174,13 +197,12 @@ function drawFaceLayout(data) {
             target = layoutData.boundary[boundaryIndex];
         }
         
-        // Create a simple hash from the word for a consistent offset
         let hash = 0;
         for (let charIndex = 0; charIndex < d.word.length; charIndex++) {
             hash = (hash << 5) - hash + d.word.charCodeAt(charIndex);
-            hash |= 0; // Convert to 32bit integer
+            hash |= 0; 
         }
-        const offsetX = (hash % 10) - 4.5; // Small, consistent offset
+        const offsetX = (hash % 10) - 4.5; 
         const offsetY = ((hash >> 4) % 10) - 4.5;
 
         return {
@@ -189,10 +211,8 @@ function drawFaceLayout(data) {
             x: target.x + offsetX, 
             y: target.y + offsetY,
         };
-    });
+    }); // `nodes` is an array of { word, value, score, radius, x, y, ... }
 
-    // --- SEEDED PSEUDO-RANDOM NUMBER GENERATOR (PRNG) FOR DETERMINISTIC SIMULATION ---
-    // A simple Mulberry32 PRNG
     function mulberry32(a) {
         return function() {
           let t = a += 0x6D2B79F5;
@@ -201,11 +221,10 @@ function drawFaceLayout(data) {
           return ((t ^ t >>> 14) >>> 0) / 4294967296;
         }
     }
-    // Create a seed based on the politician ID and number of nodes
     const seed = parseInt(currentPoliticianId) * 1000 + nodes.length;
     const randomSource = mulberry32(seed);
 
-    const simulation = d3.forceSimulation(nodes, randomSource) // Pass the PRNG here
+    const simulation = d3.forceSimulation(nodes, randomSource)
         .force("collide", d3.forceCollide().radius(d => d.radius + 2).strength(0.9))
         .force("x", d3.forceX().strength(d => (sortedByPop.findIndex(n => n.word === d.word) < ANCHOR_COUNT) ? 0.3 : 0.1).x(d => d.target.x))
         .force("y", d3.forceY().strength(d => (sortedByPop.findIndex(n => n.word === d.word) < ANCHOR_COUNT) ? 0.3 : 0.1).y(d => d.target.y))
@@ -219,7 +238,7 @@ function drawFaceLayout(data) {
             }
         }).stop();
 
-    for (let i = 0; i < 300; ++i) simulation.tick();
+    for (let i = 0; i < 300; ++i) simulation.tick(); // Run simulation to position nodes
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     nodes.forEach(d => {
@@ -237,24 +256,49 @@ function drawFaceLayout(data) {
     svg.attr("viewBox", `${viewBoxX} ${viewBoxY} ${finalViewBoxSide} ${finalViewBoxSide}`)
        .attr("preserveAspectRatio", "xMidYMid meet");
 
-    const chartGroup = svg.append("g");
-    const bubbles = chartGroup.selectAll("g").data(nodes, d => d.word).join("g")
-        .attr('transform', d => `translate(${d.x}, ${d.y})`);
+    const chartGroup = svg.append("g"); // Main group for chart elements
 
-    bubbles.append("circle").attr("r", d => d.radius).attr("fill", d => getBubbleFillStyle(d.score).fill).attr("fill-opacity", d => getBubbleFillStyle(d.score).fillOpacity).style("cursor", "pointer").on("click", (event, d) => voteForWord(d.word, currentPoliticianId));
+    // Create separate layers for circles and text
+    const circleLayer = chartGroup.append("g").attr("class", "circle-layer");
+    const textLayer = chartGroup.append("g").attr("class", "text-layer"); // Text layer will be drawn on top
+
+    // Bind data to groups for circles
+    // `nodes` here is the array from the force simulation, members have .word, .radius, .score, .x, .y
+    const circleGroups = circleLayer.selectAll("g.bubble-circle-group")
+        .data(nodes, d => d.word) 
+        .join("g")
+        .attr("class", "bubble-circle-group")
+        .attr('transform', d => `translate(${d.x},${d.y})`); // Position group
+
+    // Append circles to their groups
+    circleGroups.append("circle")
+        .attr("r", d => d.radius)
+        .attr("fill", d => getBubbleFillStyle(d.score).fill)
+        .attr("fill-opacity", d => getBubbleFillStyle(d.score).fillOpacity)
+        .style("cursor", "pointer")
+        .on("click", (event, d) => voteForWord(d.word, currentPoliticianId));
     
-    // --- MORE GENEROUS AND PROPORTIONAL FONT SCALING ---
-    bubbles.append("text")
+    // Bind data to groups for text labels
+    const textGroups = textLayer.selectAll("g.bubble-text-group")
+        .data(nodes, d => d.word)
+        .join("g")
+        .attr("class", "bubble-text-group")
+        .attr('transform', d => `translate(${d.x},${d.y})`); // Position group
+        
+    // Append text labels to their groups
+    textGroups.append("text")
         .attr("text-anchor", "middle")
         .style("font-size", d => {
-            // Scale font size more aggressively with bubble radius
-            // The font size will be roughly 1/2 of the radius, capped.
             const baseSize = d.radius / 2;
-            return Math.max(Math.min(baseSize, 60), 8) + "px"; // Max font size 60px
+            return Math.max(Math.min(baseSize, 60), 8) + "px";
         }) 
-        .style("fill", "#000").style("pointer-events", "none")
-        .style("paint-order", "stroke").style("stroke-width", "0.08em").style("stroke-linejoin", "round")
-        .each(function(d) {
+        .style("fill", "#000")
+        .style("pointer-events", "none") // Ensures clicks pass through to circles
+        .style("paint-order", "stroke") 
+        .style("stroke-width", "0.08em")
+        .style("stroke-linejoin", "round")
+        // .style("stroke", "#FFFFFF") // Uncomment and set a contrast color for actual outline
+        .each(function(d) { // d is a node from the force simulation
             const el = d3.select(this);
             const fontSize = parseFloat(el.style("font-size"));
             el.append("tspan").text(d.word).attr("x", 0).attr("dy", -fontSize * 0.2); 
@@ -301,10 +345,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Received updated words, redrawing layout.');
         currentVoteData = updatedWords;
 
-        // --- THIS IS THE MODIFIED LOGIC ---
         const bubbleContainer = document.getElementById('bubble-chart-container');
         if (updatedWords.some(v => v.count > 0)) {
-            // If there's data, ensure SVG exists before drawing
             if (!document.getElementById('bubble-chart')) {
                 bubbleContainer.innerHTML = '<svg id="bubble-chart"></svg>';
             }
@@ -312,12 +354,10 @@ document.addEventListener('DOMContentLoaded', () => {
             bubbleContainer.classList.add('bubble-active');
             drawBubbleChart(updatedWords);
         } else {
-            // If no data (e.g., last word removed), show empty message
             bubbleContainer.innerHTML = `<div style="text-align: center; padding: 1rem;">Be the first to add a word.</div>`;
             bubbleContainer.classList.add('bubble-empty');
             bubbleContainer.classList.remove('bubble-active');
         }
-        // --- END OF MODIFIED LOGIC ---
     });
     socket.on('disconnect', () => console.log('Disconnected from WebSocket server.'));
 });
@@ -326,8 +366,12 @@ let resizeTimeout;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        if (currentVoteData && currentVoteData.length > 0) {
-            drawBubbleChart(currentVoteData);
+        // Check currentVoteData state as it might be empty
+        const activeData = currentVoteData.filter(entry => entry.count > 0);
+        if (activeData.length > 0) { // Only redraw if there's data to show
+            drawBubbleChart(currentVoteData); // drawBubbleChart itself filters for count > 0
         }
     }, 150);
 });
+
+// --- END OF FILE politician.js ---

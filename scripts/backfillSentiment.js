@@ -1,3 +1,5 @@
+// Copyright 2024-2025 soap.fyi <https://soap.fyi>
+
 require('dotenv').config();
 const db = require('../db');
 const vader = require('vader-sentiment');
