@@ -1,27 +1,46 @@
 // Copyright 2024-2025 soap.fyi <https://soap.fyi>
+// Filename: politician.js (for individual politician pages)
 
 // --- GLOBAL VARIABLES FOR STATE MANAGEMENT ---
 let currentVoteData = [];
 let currentPoliticianId = null;
-let layoutData = null;
+let layoutData = null; 
+let socket = null; 
+
+let rateLimitMessageElement = null;
+let rateLimitMessageTimeoutId = null;
+const RATE_LIMIT_MESSAGE_TEXT = "Rate limit exceeded for this IP";
+
+// --- MEDIAPIPE LANDMARK INDICES ---
+const MOUTH_OUTER_CONTOUR_INDICES = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146];
+const LEFT_EYE_CONTOUR_INDICES = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
+const RIGHT_EYE_CONTOUR_INDICES = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466];
+const NOSE_TIP_INDEX = 4;
+const CHIN_POINT_INDEX = 152;
+const FACE_SILHOUETTE_INDICES = [
+  10,  338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 
+  397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 
+  172, 58,  132, 93,  234, 127, 162, 21,  54,  103, 67,  109
+];
+// --- END MEDIAPIPE LANDMARK INDICES ---
+
 
 // --- HELPER FUNCTIONS ---
 function getBubbleFillStyle(score) {
-    let fill = '#AAA';
-    let fillOpacity = 0.6;
+    let fill = '#BFBFBF'; 
+    let fillOpacity = 0.65; 
     if (score >= 0.05) {
-        fill = '#008000';
-        fillOpacity = 0.3 + (0.7 * (score - 0.05) / (1.0 - 0.05));
-        fillOpacity = Math.min(1.0, Math.max(0.3, fillOpacity));
+        fill = '#2E8B57'; 
+        fillOpacity = 0.4 + (0.55 * (score - 0.05) / (1.0 - 0.05)); 
     } else if (score <= -0.05) {
-        fill = '#DC143C';
-        fillOpacity = 0.3 + (0.7 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
-        fillOpacity = Math.min(1.0, Math.max(0.3, fillOpacity));
+        fill = '#CD5C5C'; 
+        fillOpacity = 0.4 + (0.55 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
     }
+    fillOpacity = Math.min(0.95, Math.max(0.4, fillOpacity));
     return { fill, fillOpacity: fillOpacity.toFixed(2) };
 }
 
-function polygonArea(points) {
+function polygonArea(points) { /* ... (no change) ... */
     let area = 0;
     for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
         const p1x = points[i].x, p1y = points[i].y;
@@ -31,7 +50,7 @@ function polygonArea(points) {
     return Math.abs(area / 2);
 }
 
-function isInside(point, vs) {
+function isInside(point, vs) { /* ... (no change) ... */
     if (!point || typeof point.x !== 'number' || typeof point.y !== 'number' || isNaN(point.x) || isNaN(point.y)) return false;
     let x = point.x, y = point.y;
     let inside = false;
@@ -44,33 +63,110 @@ function isInside(point, vs) {
     return inside;
 }
 
+function getPointsByIndices(allPoints, indices) { /* ... (no change) ... */
+    if (!allPoints || !indices) return [];
+    return indices.map(index => allPoints[index]).filter(p => p && typeof p.x === 'number' && typeof p.y === 'number');
+}
+
+function getCenterOfPoints(points) { /* ... (no change) ... */
+    if (!points || points.length === 0) return null;
+    const sumX = points.reduce((acc, p) => acc + p.x, 0);
+    const sumY = points.reduce((acc, p) => acc + p.y, 0);
+    return { x: sumX / points.length, y: sumY / points.length };
+}
+
+function createMessageElement(msgText) { /* ... (no change) ... */
+    const el = document.createElement('div');
+    el.innerText = msgText;
+    el.style.position = 'fixed'; el.style.bottom = '20px'; el.style.left = '50%';
+    el.style.transform = 'translateX(-50%)'; el.style.background = '#ff3860';
+    el.style.color = 'white'; el.style.padding = '10px 20px';
+    el.style.borderRadius = '8px'; el.style.zIndex = 1000;
+    el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+    el.style.fontFamily = 'sans-serif'; el.style.fontSize = '1rem';
+    document.body.appendChild(el);
+    return el;
+}
+
+function showMessage(msg) { /* ... (no change) ... */
+    if (msg === RATE_LIMIT_MESSAGE_TEXT) {
+        if (rateLimitMessageElement && document.body.contains(rateLimitMessageElement)) {
+            clearTimeout(rateLimitMessageTimeoutId);
+            rateLimitMessageTimeoutId = setTimeout(() => {
+                if (rateLimitMessageElement) rateLimitMessageElement.remove();
+                rateLimitMessageElement = null; rateLimitMessageTimeoutId = null;
+            }, 5000);
+            return; 
+        } else {
+            if (rateLimitMessageTimeoutId) clearTimeout(rateLimitMessageTimeoutId);
+            if (rateLimitMessageElement && rateLimitMessageElement.parentElement) rateLimitMessageElement.remove();
+            rateLimitMessageElement = createMessageElement(msg);
+            rateLimitMessageTimeoutId = setTimeout(() => {
+                if (rateLimitMessageElement) rateLimitMessageElement.remove();
+                rateLimitMessageElement = null; rateLimitMessageTimeoutId = null;
+            }, 5000);
+            return;
+        }
+    }
+    const el = createMessageElement(msg);
+    setTimeout(() => { el.remove(); }, 5000);
+}
+
+function mulberry32(seed) {
+    return function() {
+      let t = seed += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+}
+
+
 // --- DATA LOADING & DRAWING ---
-function loadPoliticianData() {
+function loadPoliticianData() { /* ... (no change) ... */
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const politicianId = pathParts[pathParts.length - 1];
-    if (!politicianId || isNaN(Number(politicianId))) { window.location.href = '/404.html'; return; }
+    
+    if (!politicianId || isNaN(Number(politicianId))) { 
+        console.error("🔴 Invalid or missing politician ID in URL:", window.location.pathname);
+        window.location.href = '/404.html'; 
+        return; 
+    }
     currentPoliticianId = politicianId;
+    console.log(`Loading data for politician ID: ${currentPoliticianId}`);
 
     const politicianDataPromise = fetch(`/politician/${politicianId}/data`).then(res => {
-        if (!res.ok) throw new Error('Politician data not found');
+        if (!res.ok) {
+            console.error(`🔴 Failed to fetch politician data for ID ${politicianId}. Status: ${res.status} ${res.statusText}`);
+            throw new Error(`Politician data not found (status ${res.status})`);
+        }
         return res.json();
+    }).catch(err => {
+        console.error("🔴 Fetch error for politicianDataPromise:", err.message, err.stack);
+        throw err; 
     });
 
     const layoutDataPromise = fetch(`/data/layout-${politicianId}.json`).then(res => {
         if (!res.ok) {
-            console.warn(`Layout file for ID ${politicianId} not found. Using fallback layout.`);
+            console.warn(`🟡 Layout file /data/layout-${politicianId}.json not found. Status: ${res.status}. Using fallback layout.`);
             return null;
         }
         return res.json();
+    }).catch(err => {
+        console.warn(`🟡 Fetch error for layoutDataPromise: ${err.message}. Using fallback for layout.`);
+        return null;
     });
 
     Promise.all([politicianDataPromise, layoutDataPromise])
     .then(([politicianData, fetchedLayoutData]) => {
-        layoutData = fetchedLayoutData; 
-        if (layoutData) {
-            layoutData.boundary = layoutData.boundary.map(p => ({ x: p.x || p._x, y: p.y || p._y }));
-            layoutData.features = layoutData.features.map(f => ({ ...f, x: f.x || f._x, y: f.y || f._y }));
+        if (!politicianData || !politicianData.politician) {
+            console.error('🔴 Critical error: Politician core data object not loaded or incomplete.');
+            window.location.href = '/404.html';
+            return;
         }
+
+        layoutData = fetchedLayoutData; 
+
         document.getElementById('politician-name').textContent = politicianData.politician.name;
         document.getElementById('politician-position').textContent = politicianData.politician.position;
         currentVoteData = politicianData.votesForPolitician || [];
@@ -86,292 +182,426 @@ function loadPoliticianData() {
             bubbleContainer.classList.add('bubble-active');
             drawBubbleChart(currentVoteData);
         }
+        if (currentPoliticianId) {
+            initializeSocket(currentPoliticianId);
+        }
+
     }).catch(err => {
-        console.error('Error loading initial data:', err);
-        window.location.href = '/404.html';
-    });
-}
-
-function drawBubbleChart(voteData) {
-    const data = voteData.filter(entry => entry.count > 0).map(entry => ({
-        word: entry.word, value: entry.count, score: entry.sentiment_score,
-    }));
-    if (data.length === 0) return;
-
-    if (layoutData) {
-        drawFaceLayout(data);
-    } else {
-        drawFallbackLayout(data);
-    }
-}
-
-// --- FALLBACK LAYOUT FUNCTION ---
-function drawFallbackLayout(data) {
-    const svg = d3.select("#bubble-chart");
-    svg.selectAll("*").remove(); // Clear previous content
-    const container = document.getElementById('bubble-chart-container');
-    const PACK_LAYOUT_DIMENSION = Math.min(container.clientWidth, container.clientHeight) || 500;
-
-    const pack = d3.pack().size([PACK_LAYOUT_DIMENSION, PACK_LAYOUT_DIMENSION]).padding(5);
-    
-    const totalSubmissionCount = d3.sum(data, d => d.value);
-    const root = d3.hierarchy({ children: data }).sum(d => d.value / totalSubmissionCount);
-    
-    const nodes = pack(root).leaves(); // These nodes have .x, .y, .r, and .data (original datum)
-
-    svg.attr("viewBox", `0 0 ${PACK_LAYOUT_DIMENSION} ${PACK_LAYOUT_DIMENSION}`)
-       .attr("preserveAspectRatio", "xMidYMid meet");
-
-    const chartGroup = svg.append("g"); // Main group for chart elements
-
-    // Create separate layers for circles and text
-    const circleLayer = chartGroup.append("g").attr("class", "circle-layer");
-    const textLayer = chartGroup.append("g").attr("class", "text-layer"); // Text layer will be drawn on top of circle layer
-
-    // Bind data to groups for circles
-    const circleGroups = circleLayer.selectAll("g.bubble-circle-group")
-        .data(nodes, d => d.data.word) // key by word from original data
-        .join("g")
-        .attr("class", "bubble-circle-group")
-        .attr('transform', d => `translate(${d.x},${d.y})`); // Position group
-
-    // Append circles to their groups
-    circleGroups.append("circle")
-        .attr("r", d => d.r)
-        .attr("fill", d => getBubbleFillStyle(d.data.score).fill)
-        .attr("fill-opacity", d => getBubbleFillStyle(d.data.score).fillOpacity)
-        .style("cursor", "pointer")
-        .on("click", (event, d) => voteForWord(d.data.word, currentPoliticianId));
-        
-    // Bind data to groups for text labels
-    const textGroups = textLayer.selectAll("g.bubble-text-group")
-        .data(nodes, d => d.data.word) // key by word from original data
-        .join("g")
-        .attr("class", "bubble-text-group")
-        .attr('transform', d => `translate(${d.x},${d.y})`); // Position group
-
-    // Append text labels to their groups
-    textGroups.append("text")
-        .attr("text-anchor", "middle")
-        .style("font-size", d => Math.max(Math.min(d.r / 2.5, 32), 8) + "px")
-        .style("fill", "#000")
-        .style("pointer-events", "none") // Ensures clicks pass through to circles
-        .each(function(d) { // d is a node from pack(root).leaves()
-            const el = d3.select(this);
-            const fontSize = parseFloat(el.style("font-size"));
-            el.append("tspan").text(d.data.word).attr("x", 0).attr("dy", -fontSize * 0.2);
-            el.append("tspan").text(d.data.value).attr("x", 0).attr("dy", "1.2em");
-        });
-}
-
-// --- FACE-SHAPING LAYOUT FUNCTION ---
-function drawFaceLayout(data) {
-    const svg = d3.select("#bubble-chart");
-    svg.selectAll("*").remove(); // Clear previous content
-    
-    const headShape = [...layoutData.boundary];
-    headShape.push({ x: headShape[headShape.length - 1].x, y: 0 }); 
-    headShape.push({ x: headShape[0].x, y: 0 });
-
-    const faceArea = polygonArea(headShape);
-    const POWER_SCALE = 1.25;
-    const scaledTotalVoteValue = d3.sum(data, d => Math.pow(d.value, POWER_SCALE));
-    const targetCoverage = 1.1;
-    const scalingFactor = (faceArea * targetCoverage) / scaledTotalVoteValue;
-
-    const sortedByPop = [...data].sort((a, b) => b.value - a.value);
-    const ANCHOR_COUNT = 5;
-    const featureTargets = layoutData.features.filter(Boolean);
-
-    const nodes = sortedByPop.map((d, i) => {
-        const scaledValue = Math.pow(d.value, POWER_SCALE);
-        const bubbleArea = scaledValue * scalingFactor;
-        const radius = Math.sqrt(bubbleArea / Math.PI);
-        let target = {};
-
-        if (i < ANCHOR_COUNT && featureTargets[i]) {
-            target = featureTargets[i];
+        console.error("🔴 ERROR in Promise.all for initial data loading:", err.message, err.stack);
+        if (err.message.includes("Politician data not found")) {
+            window.location.href = '/404.html';
         } else {
-            const fillerIndex = i - ANCHOR_COUNT;
-            const boundaryIndex = fillerIndex % layoutData.boundary.length;
-            target = layoutData.boundary[boundaryIndex];
+            const bubbleContainer = document.getElementById('bubble-chart-container');
+            if (bubbleContainer) {
+                 bubbleContainer.innerHTML = `<div style="color: red; padding: 1rem;">Failed to load page data. Please try again. Check console for details.</div>`;
+            }
         }
-        
-        let hash = 0;
-        for (let charIndex = 0; charIndex < d.word.length; charIndex++) {
-            hash = (hash << 5) - hash + d.word.charCodeAt(charIndex);
-            hash |= 0; 
+    });
+}
+
+function drawBubbleChart(voteData) { /* ... (no change) ... */
+    try {
+        const data = voteData.filter(entry => entry.count > 0).map(entry => ({
+            word: entry.word, value: entry.count, score: entry.sentiment_score,
+        }));
+
+        if (data.length === 0) {
+            const svg = d3.select("#bubble-chart");
+            if (svg && !svg.empty()) svg.selectAll("*").remove();
+            const bubbleContainer = document.getElementById('bubble-chart-container');
+            if (bubbleContainer) {
+                bubbleContainer.innerHTML = `<div style="text-align: center; padding: 1rem;">No active words to display.</div>`;
+                bubbleContainer.classList.add('bubble-empty');
+                bubbleContainer.classList.remove('bubble-active');
+            }
+            return;
         }
-        const offsetX = (hash % 10) - 4.5; 
-        const offsetY = ((hash >> 4) % 10) - 4.5;
 
-        return {
-            ...d, radius: isNaN(radius) ? 10 : Math.max(radius, 3),
-            target: target, 
-            x: target.x + offsetX, 
-            y: target.y + offsetY,
-        };
-    }); // `nodes` is an array of { word, value, score, radius, x, y, ... }
+        if (layoutData && layoutData.all_points && layoutData.all_points.length > 0) {
+            drawFaceLayout(data);
+        } else {
+            console.warn("🟡 Fallback layout triggered.");
+            drawFallbackLayout(data);
+        }
+    } catch (err) {
+        console.error("🔴 ERROR in drawBubbleChart:", err.message, err.stack);
+    }
+}
 
-    function mulberry32(a) {
-        return function() {
-          let t = a += 0x6D2B79F5;
-          t = Math.imul(t ^ t >>> 15, t | 1);
-          t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+function drawFallbackLayout(data) { /* ... (no change) ... */
+    try {
+        const svg = d3.select("#bubble-chart");
+        if (svg.empty()) return;
+        svg.selectAll("*").remove();
+        const container = document.getElementById('bubble-chart-container');
+        if (!container) return;
+        const PACK_LAYOUT_DIMENSION = Math.min(container.clientWidth, container.clientHeight) || 500;
+
+        const pack = d3.pack().size([PACK_LAYOUT_DIMENSION, PACK_LAYOUT_DIMENSION]).padding(5);
+        const totalSubmissionCount = d3.sum(data, d => d.value) || 1;
+        const root = d3.hierarchy({ children: data }).sum(d => d.value / totalSubmissionCount);
+        const nodes = pack(root).leaves();
+
+        svg.attr("viewBox", `0 0 ${PACK_LAYOUT_DIMENSION} ${PACK_LAYOUT_DIMENSION}`)
+           .attr("preserveAspectRatio", "xMidYMid meet");
+
+        const chartGroup = svg.append("g");
+        const circleLayer = chartGroup.append("g").attr("class", "circle-layer");
+        const textLayer = chartGroup.append("g").attr("class", "text-layer");
+
+        const circleGroups = circleLayer.selectAll("g.bubble-circle-group")
+            .data(nodes, d => d.data.word)
+            .join("g")
+            .attr("class", "bubble-circle-group")
+            .attr('transform', d => `translate(${d.x},${d.y})`);
+
+        circleGroups.append("circle")
+            .attr("r", d => d.r)
+            .attr("fill", d => getBubbleFillStyle(d.data.score).fill)
+            .attr("fill-opacity", d => getBubbleFillStyle(d.data.score).fillOpacity)
+            .style("cursor", "pointer")
+            .on("click", (event, d) => voteForWord(d.data.word, currentPoliticianId));
+
+        const textGroups = textLayer.selectAll("g.bubble-text-group")
+            .data(nodes, d => d.data.word)
+            .join("g")
+            .attr("class", "bubble-text-group")
+            .attr('transform', d => `translate(${d.x},${d.y})`);
+
+        textGroups.append("text")
+            .attr("text-anchor", "middle")
+            .style("font-size", d => Math.max(Math.min(d.r / 2.5, 32), 8) + "px")
+            .style("fill", "#000")
+            .style("pointer-events", "none")
+            .each(function(d) {
+                const el = d3.select(this);
+                const fontSize = parseFloat(el.style("font-size"));
+                el.append("tspan").text(d.data.word).attr("x", 0).attr("dy", -fontSize * 0.2);
+                el.append("tspan").text(d.data.value).attr("x", 0).attr("dy", "1.2em");
+            });
+    } catch (err) {
+        console.error("🔴 ERROR IN drawFallbackLayout:", err.message, err.stack);
+        const bubbleContainer = document.getElementById('bubble-chart-container');
+        if (bubbleContainer) {
+            bubbleContainer.innerHTML = `<div style="color: red; padding: 1rem;">Error drawing chart (Fallback). Check console.</div>`;
         }
     }
-    const seed = parseInt(currentPoliticianId) * 1000 + nodes.length;
-    const randomSource = mulberry32(seed);
+}
 
-    const simulation = d3.forceSimulation(nodes, randomSource)
-        .force("collide", d3.forceCollide().radius(d => d.radius + 2).strength(0.9))
-        .force("x", d3.forceX().strength(d => (sortedByPop.findIndex(n => n.word === d.word) < ANCHOR_COUNT) ? 0.3 : 0.1).x(d => d.target.x))
-        .force("y", d3.forceY().strength(d => (sortedByPop.findIndex(n => n.word === d.word) < ANCHOR_COUNT) ? 0.3 : 0.1).y(d => d.target.y))
-        .force("boundary", (alpha) => {
-            for (const node of nodes) {
-                if (!isInside(node, headShape)) {
-                    const centerX = layoutData.canvasWidth / 2, centerY = layoutData.canvasHeight / 2;
-                    node.vx += (centerX - node.x) * 0.25 * alpha;
-                    node.vy += (centerY - node.y) * 0.25 * alpha;
+
+function drawFaceLayout(data) {
+    try {
+        const svg = d3.select("#bubble-chart");
+        if (svg.empty()) return;
+        svg.selectAll("*").remove();
+
+        const allPoints = layoutData.all_points;
+        const canvasWidth = layoutData.canvasWidth;
+        const canvasHeight = layoutData.canvasHeight;
+        const headShapePoints = getPointsByIndices(allPoints, FACE_SILHOUETTE_INDICES);
+        if (headShapePoints.length < 3) {
+            drawFallbackLayout(data); return;
+        }
+        const faceCentroid = getCenterOfPoints(headShapePoints);
+        if (!faceCentroid) {
+             drawFallbackLayout(data); return;
+        }
+
+        const faceArea = polygonArea(headShapePoints);
+        const POWER_SCALE = 1.1; 
+        const scaledTotalVoteValue = d3.sum(data, d => Math.pow(d.value, POWER_SCALE)) || 1;
+        const targetCoverage = 0.8; 
+        const scalingFactor = (faceArea * targetCoverage) / scaledTotalVoteValue;
+
+        const dataSignature = data.length + d3.sum(data, d => d.value);
+        const seed = parseInt(currentPoliticianId) * dataSignature;
+        const random = mulberry32(seed);
+
+        const featureTargets = [
+            getCenterOfPoints(getPointsByIndices(allPoints, LEFT_EYE_CONTOUR_INDICES)),
+            getCenterOfPoints(getPointsByIndices(allPoints, RIGHT_EYE_CONTOUR_INDICES)),
+            allPoints[NOSE_TIP_INDEX],
+            getCenterOfPoints(getPointsByIndices(allPoints, MOUTH_OUTER_CONTOUR_INDICES)),
+            allPoints[CHIN_POINT_INDEX] 
+        ].filter(p => p);
+
+        const sortedByPop = [...data].sort((a, b) => b.value - a.value);
+        const ANCHOR_COUNT = Math.min(featureTargets.length, sortedByPop.length, 5);
+
+        const nodes = sortedByPop.map((d, i) => {
+            const scaledValue = Math.pow(d.value, POWER_SCALE);
+            const bubbleArea = scaledValue * scalingFactor;
+            let radius = Math.sqrt(bubbleArea / Math.PI);
+            radius = isNaN(radius) || radius < 3 ? 3 : Math.max(radius, 3);
+
+            let targetX, targetY;
+            let isAnchor = false;
+            let forceStrengthModifier = 0.05;
+
+            if (i < ANCHOR_COUNT && featureTargets[i]) {
+                targetX = featureTargets[i].x;
+                targetY = featureTargets[i].y;
+                isAnchor = true;
+                forceStrengthModifier = 0.5;
+            } else {
+                let attempts = 0;
+                let pointFound = false;
+                do {
+                    const angle = random() * 2 * Math.PI;
+                    const dist = random() * Math.min(canvasWidth, canvasHeight) * 0.4; 
+                    targetX = faceCentroid.x + Math.cos(angle) * dist;
+                    targetY = faceCentroid.y + Math.sin(angle) * dist;
+                    attempts++;
+                    pointFound = isInside({x: targetX, y: targetY}, headShapePoints);
+                } while (!pointFound && attempts < 100); 
+                
+                if (!pointFound) { 
+                    targetX = faceCentroid.x;
+                    targetY = faceCentroid.y;
                 }
+                 forceStrengthModifier = 0.02 + (random() * 0.03);
             }
-        }).stop();
-
-    for (let i = 0; i < 300; ++i) simulation.tick(); // Run simulation to position nodes
-
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    nodes.forEach(d => {
-        minX = Math.min(minX, d.x - d.radius);
-        maxX = Math.max(maxX, d.x + d.radius);
-        minY = Math.min(minY, d.y - d.radius);
-        maxY = Math.max(maxY, d.y + d.radius);
-    });
-    
-    const contentWidth = maxX - minX, contentHeight = maxY - minY;
-    const finalViewBoxSide = Math.max(contentWidth, contentHeight) * 1.05; 
-    const viewBoxX = minX - (finalViewBoxSide - contentWidth) / 2;
-    const viewBoxY = minY - (finalViewBoxSide - contentHeight) / 2;
-    
-    svg.attr("viewBox", `${viewBoxX} ${viewBoxY} ${finalViewBoxSide} ${finalViewBoxSide}`)
-       .attr("preserveAspectRatio", "xMidYMid meet");
-
-    const chartGroup = svg.append("g"); // Main group for chart elements
-
-    // Create separate layers for circles and text
-    const circleLayer = chartGroup.append("g").attr("class", "circle-layer");
-    const textLayer = chartGroup.append("g").attr("class", "text-layer"); // Text layer will be drawn on top
-
-    // Bind data to groups for circles
-    // `nodes` here is the array from the force simulation, members have .word, .radius, .score, .x, .y
-    const circleGroups = circleLayer.selectAll("g.bubble-circle-group")
-        .data(nodes, d => d.word) 
-        .join("g")
-        .attr("class", "bubble-circle-group")
-        .attr('transform', d => `translate(${d.x},${d.y})`); // Position group
-
-    // Append circles to their groups
-    circleGroups.append("circle")
-        .attr("r", d => d.radius)
-        .attr("fill", d => getBubbleFillStyle(d.score).fill)
-        .attr("fill-opacity", d => getBubbleFillStyle(d.score).fillOpacity)
-        .style("cursor", "pointer")
-        .on("click", (event, d) => voteForWord(d.word, currentPoliticianId));
-    
-    // Bind data to groups for text labels
-    const textGroups = textLayer.selectAll("g.bubble-text-group")
-        .data(nodes, d => d.word)
-        .join("g")
-        .attr("class", "bubble-text-group")
-        .attr('transform', d => `translate(${d.x},${d.y})`); // Position group
-        
-    // Append text labels to their groups
-    textGroups.append("text")
-        .attr("text-anchor", "middle")
-        .style("font-size", d => {
-            const baseSize = d.radius / 2;
-            return Math.max(Math.min(baseSize, 60), 8) + "px";
-        }) 
-        .style("fill", "#000")
-        .style("pointer-events", "none") // Ensures clicks pass through to circles
-        .style("paint-order", "stroke") 
-        .style("stroke-width", "0.08em")
-        .style("stroke-linejoin", "round")
-        // .style("stroke", "#FFFFFF") // Uncomment and set a contrast color for actual outline
-        .each(function(d) { // d is a node from the force simulation
-            const el = d3.select(this);
-            const fontSize = parseFloat(el.style("font-size"));
-            el.append("tspan").text(d.word).attr("x", 0).attr("dy", -fontSize * 0.2); 
-            el.append("tspan").text(d.value).attr("x", 0).attr("dy", "1.1em");
+            
+            return {
+                ...d, radius, isAnchor,
+                targetX: targetX, targetY: targetY,
+                forceStrengthModifier: forceStrengthModifier,
+                x: targetX + (random() - 0.5) * radius * 0.1, 
+                y: targetY + (random() - 0.5) * radius * 0.1,
+            };
         });
+
+        const simulation = d3.forceSimulation(nodes)
+            .force("collide", d3.forceCollide().radius(d => d.radius + 1.2).strength(0.9))
+            .force("x_target", d3.forceX().strength(d => d.forceStrengthModifier).x(d => d.targetX))
+            .force("y_target", d3.forceY().strength(d => d.forceStrengthModifier).y(d => d.targetY))
+            .force("boundary", (alpha) => {
+                const boundaryStrength = 0.3 * alpha;
+                for (const node of nodes) {
+                    if (!isInside(node, headShapePoints)) {
+                        node.vx += (faceCentroid.x - node.x) * boundaryStrength;
+                        node.vy += (faceCentroid.y - node.y) * boundaryStrength;
+                    }
+                }
+            })
+            .force("center_overall", d3.forceCenter(faceCentroid.x, faceCentroid.y).strength(0.04))
+            .stop();
+
+        for (let i = 0; i < 300; ++i) { 
+            simulation.tick();
+        }
+
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        headShapePoints.forEach(p => {
+            minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+            minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+        });
+        nodes.forEach(d => {
+            minX = Math.min(minX, d.x - d.radius); maxX = Math.max(maxX, d.x + d.radius);
+            minY = Math.min(minY, d.y - d.radius); maxY = Math.max(maxY, d.y + d.radius);
+        });
+        
+        const PADDING = Math.min(canvasWidth, canvasHeight) * 0.02;
+        minX -= PADDING; minY -= PADDING;
+        maxX += PADDING; maxY += PADDING;
+
+        const contentWidth = maxX - minX;
+        const contentHeight = maxY - minY;
+        
+        svg.attr("viewBox", `${minX} ${minY} ${contentWidth} ${contentHeight}`)
+           .attr("preserveAspectRatio", "xMidYMid meet");
+
+        const chartGroup = svg.append("g");
+        
+        nodes.sort((a,b) => a.radius - b.radius); 
+
+        const circleLayer = chartGroup.append("g").attr("class", "circle-layer");
+        const textLayer = chartGroup.append("g").attr("class", "text-layer");
+
+        const circleGroups = circleLayer.selectAll("g.bubble-circle-group")
+            .data(nodes, d => d.word) 
+            .join("g")
+            .attr("class", "bubble-circle-group")
+            .attr('transform', d => `translate(${d.x.toFixed(2)},${d.y.toFixed(2)})`);
+
+        circleGroups.append("circle")
+            .attr("r", d => d.radius)
+            .attr("fill", d => getBubbleFillStyle(d.score).fill)
+            .attr("fill-opacity", d => getBubbleFillStyle(d.score).fillOpacity)
+            .style("cursor", "pointer")
+            .on("click", (event, d) => voteForWord(d.word, currentPoliticianId));
+        
+        const textGroups = textLayer.selectAll("g.bubble-text-group")
+            .data(nodes, d => d.word) 
+            .join("g")
+            .attr("class", "bubble-text-group")
+            .attr('transform', d => `translate(${d.x.toFixed(2)},${d.y.toFixed(2)})`);
+            
+        textGroups.append("text")
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "central")
+            .style("fill", "#000000") 
+            .style("pointer-events", "none")
+            .style("paint-order", "stroke") 
+            .each(function(d) {
+                const el = d3.select(this);
+                const wordText = d.word;
+                const countText = String(d.value);
+                const availableWidth = d.radius * 1.9; // Use ~95% of diameter
+
+                // --- NEW FONT SIZING LOGIC ---
+                // Start with a size proportional to the radius
+                let idealFontSize = Math.max(Math.min(d.radius / 2.2, 28), 8);
+                el.style("font-size", `${idealFontSize}px`);
+
+                // Check if the word overflows at this size
+                let textNode = el.node();
+                let textWidth = textNode.getComputedTextLength();
+                if (textWidth > availableWidth) {
+                    // If it overflows, scale it down to fit
+                    idealFontSize = idealFontSize * availableWidth / textWidth;
+                    el.style("font-size", `${idealFontSize}px`);
+                }
+                
+                // Add the word tspan
+                el.append("tspan").text(wordText).attr("x", 0).attr("dy", -idealFontSize * 0.15);
+                
+                // Add the count tspan below, sized relative to the final word font size
+                el.append("tspan").text(countText).attr("x", 0).attr("dy", "1.1em")
+                    .style("font-size", `${Math.max(idealFontSize * 0.7, 6)}px`) // Min size of 6px for count
+                    .style("fill", "#222222");
+            });
+
+    } catch (err) {
+        console.error("🔴 ERROR IN drawFaceLayout:", err.message, err.stack);
+        const bubbleContainer = document.getElementById('bubble-chart-container');
+        if (bubbleContainer) {
+            bubbleContainer.innerHTML = `<div style="color: red; padding: 1rem;">Error drawing chart (Face Layout). Check console.</div>`;
+        }
+    }
 }
 
 // --- EVENT HANDLERS AND REAL-TIME LOGIC ---
-function voteForWord(word, politicianId) {
+function voteForWord(word, politicianId) { /* ... (no change) ... */
     if (!word || !politicianId) return;
     fetch('/words', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ word, politician_id: Number(politicianId) }),
     }).then(async (response) => {
-        if (response.status === 429) showMessage("Rate limit exceeded for this IP");
-        else if (!response.ok) showMessage("Error submitting vote.");
+        if (response.status === 429) showMessage(RATE_LIMIT_MESSAGE_TEXT);
+        else if (!response.ok) {
+            try {
+                const errData = await response.json();
+                showMessage(errData.error || "Error submitting vote.");
+            } catch (e) {
+                showMessage("Error submitting vote (unable to parse server response).");
+            }
+        }
     }).catch(err => {
-        console.error('Vote error:', err);
-        showMessage("A network error occurred.");
+        console.error('🔴 Vote error:', err);
+        showMessage("A network error occurred while voting.");
     });
 }
 
-function submitNewWord(event) {
+function submitNewWord(event) { /* ... (no change) ... */
     event.preventDefault();
     const newWordInput = document.getElementById('new-word');
     const newWord = newWordInput.value.trim();
-    if (newWord) {
+    if (newWord && currentPoliticianId) {
         voteForWord(newWord, currentPoliticianId);
     }
     newWordInput.value = '';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const isPoliticianPage = /^\/politician\/\d+$/.test(window.location.pathname);
-    if (!isPoliticianPage) return;
-    loadPoliticianData();
-    const form = document.getElementById('add-word-form');
-    if (form) form.addEventListener('submit', submitNewWord);
+function initializeSocket(politicianIdForSocket) { /* ... (no change) ... */
+    if (!politicianIdForSocket) {
+        console.warn("🟡 Cannot initialize socket without politicianIdForSocket.");
+        return;
+    }
+    if (typeof io === 'undefined') {
+        console.error("🔴 Socket.IO client (io) not found. Make sure it's included in your HTML.");
+        return;
+    }
+    if (socket && socket.connected) {
+        socket.disconnect();
+    }
 
-    const socket = io();
-    socket.on('connect', () => {});
-    socket.on(`wordsUpdated:${currentPoliticianId}`, (updatedWords) => {
-        console.log('Received updated words, redrawing layout.');
-        currentVoteData = updatedWords;
+    socket = io(); 
+    socket.on('connect', () => {
+        console.log(`Socket connected. Listening for wordsUpdated:${politicianIdForSocket}`);
+    });
 
-        const bubbleContainer = document.getElementById('bubble-chart-container');
-        if (updatedWords.some(v => v.count > 0)) {
-            if (!document.getElementById('bubble-chart')) {
-                bubbleContainer.innerHTML = '<svg id="bubble-chart"></svg>';
+    socket.on(`wordsUpdated:${politicianIdForSocket}`, (updatedWords) => {
+        console.log(`Received updated words for ID ${politicianIdForSocket}.`);
+        currentVoteData = updatedWords; 
+
+        try {
+            const bubbleContainer = document.getElementById('bubble-chart-container');
+            if (!bubbleContainer) return;
+
+            if (updatedWords && updatedWords.some(v => v.count > 0)) {
+                if (!document.getElementById('bubble-chart')) { 
+                    bubbleContainer.innerHTML = '<svg id="bubble-chart"></svg>';
+                }
+                bubbleContainer.classList.remove('bubble-empty');
+                bubbleContainer.classList.add('bubble-active');
+                drawBubbleChart(updatedWords);
+            } else {
+                bubbleContainer.innerHTML = `<div style="text-align: center; padding: 1rem;">Be the first to add a word.</div>`;
+                bubbleContainer.classList.add('bubble-empty');
+                bubbleContainer.classList.remove('bubble-active');
             }
-            bubbleContainer.classList.remove('bubble-empty');
-            bubbleContainer.classList.add('bubble-active');
-            drawBubbleChart(updatedWords);
-        } else {
-            bubbleContainer.innerHTML = `<div style="text-align: center; padding: 1rem;">Be the first to add a word.</div>`;
-            bubbleContainer.classList.add('bubble-empty');
-            bubbleContainer.classList.remove('bubble-active');
+        } catch (err) {
+            console.error("🔴 ERROR in socket wordsUpdated handler:", err.message, err.stack);
         }
     });
-    socket.on('disconnect', () => console.log('Disconnected from WebSocket server.'));
-});
+
+    socket.on('disconnect', (reason) => console.log('Disconnected from WebSocket server. Reason:', reason));
+    socket.on('connect_error', (err) => {
+        console.error('🔴 Socket connection error:', err.message, err.type);
+    });
+}
 
 let resizeTimeout;
-window.addEventListener('resize', () => {
+window.addEventListener('resize', () => { /* ... (no change) ... */
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        // Check currentVoteData state as it might be empty
-        const activeData = currentVoteData.filter(entry => entry.count > 0);
-        if (activeData.length > 0) { // Only redraw if there's data to show
-            drawBubbleChart(currentVoteData); // drawBubbleChart itself filters for count > 0
+        try { 
+            const activeData = currentVoteData && currentVoteData.filter(entry => entry.count > 0);
+            if (activeData && activeData.length > 0 && document.getElementById('bubble-chart')) { 
+                drawBubbleChart(currentVoteData); 
+            }
+        } catch (err) {
+            console.error("🔴 ERROR in resize handler:", err.message, err.stack);
         }
-    }, 150);
+    }, 200);
 });
 
-// --- END OF FILE politician.js ---
+document.addEventListener('DOMContentLoaded', () => { /* ... (no change) ... */
+    try {
+        const isPoliticianPage = /^\/politician\/\d+$/.test(window.location.pathname);
+        if (!isPoliticianPage) return;
+        
+        if (!document.getElementById('politician-name') || 
+            !document.getElementById('politician-position') ||
+            !document.getElementById('bubble-chart-container')) {
+            console.error("🔴 Critical HTML elements for politician page are missing.");
+            return;
+        }
+
+        loadPoliticianData(); 
+        
+        const form = document.getElementById('add-word-form');
+        if (form) {
+            form.addEventListener('submit', submitNewWord);
+        } else {
+            console.warn("🟡 Add word form not found.");
+        }
+
+    } catch (err) {
+        console.error("🔴 ERROR in DOMContentLoaded:", err.message, err.stack);
+         const body = document.querySelector('body');
+         if(body) body.innerHTML = `<div style="color: red; padding: 20px; text-align: center;">A critical error occurred setting up the page. Please check the console.</div>`;
+    }
+});
