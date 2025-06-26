@@ -40,7 +40,7 @@ function getBubbleFillStyle(score) {
     return { fill, fillOpacity: fillOpacity.toFixed(2) };
 }
 
-function polygonArea(points) { /* ... (no change) ... */
+function polygonArea(points) {
     let area = 0;
     for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
         const p1x = points[i].x, p1y = points[i].y;
@@ -50,7 +50,7 @@ function polygonArea(points) { /* ... (no change) ... */
     return Math.abs(area / 2);
 }
 
-function isInside(point, vs) { /* ... (no change) ... */
+function isInside(point, vs) {
     if (!point || typeof point.x !== 'number' || typeof point.y !== 'number' || isNaN(point.x) || isNaN(point.y)) return false;
     let x = point.x, y = point.y;
     let inside = false;
@@ -63,19 +63,19 @@ function isInside(point, vs) { /* ... (no change) ... */
     return inside;
 }
 
-function getPointsByIndices(allPoints, indices) { /* ... (no change) ... */
+function getPointsByIndices(allPoints, indices) {
     if (!allPoints || !indices) return [];
     return indices.map(index => allPoints[index]).filter(p => p && typeof p.x === 'number' && typeof p.y === 'number');
 }
 
-function getCenterOfPoints(points) { /* ... (no change) ... */
+function getCenterOfPoints(points) {
     if (!points || points.length === 0) return null;
     const sumX = points.reduce((acc, p) => acc + p.x, 0);
     const sumY = points.reduce((acc, p) => acc + p.y, 0);
     return { x: sumX / points.length, y: sumY / points.length };
 }
 
-function createMessageElement(msgText) { /* ... (no change) ... */
+function createMessageElement(msgText) {
     const el = document.createElement('div');
     el.innerText = msgText;
     el.style.position = 'fixed'; el.style.bottom = '20px'; el.style.left = '50%';
@@ -88,7 +88,7 @@ function createMessageElement(msgText) { /* ... (no change) ... */
     return el;
 }
 
-function showMessage(msg) { /* ... (no change) ... */
+function showMessage(msg) {
     if (msg === RATE_LIMIT_MESSAGE_TEXT) {
         if (rateLimitMessageElement && document.body.contains(rateLimitMessageElement)) {
             clearTimeout(rateLimitMessageTimeoutId);
@@ -123,7 +123,7 @@ function mulberry32(seed) {
 
 
 // --- DATA LOADING & DRAWING ---
-function loadPoliticianData() { /* ... (no change) ... */
+function loadPoliticianData() {
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const politicianId = pathParts[pathParts.length - 1];
     
@@ -199,7 +199,7 @@ function loadPoliticianData() { /* ... (no change) ... */
     });
 }
 
-function drawBubbleChart(voteData) { /* ... (no change) ... */
+function drawBubbleChart(voteData) {
     try {
         const data = voteData.filter(entry => entry.count > 0).map(entry => ({
             word: entry.word, value: entry.count, score: entry.sentiment_score,
@@ -228,7 +228,7 @@ function drawBubbleChart(voteData) { /* ... (no change) ... */
     }
 }
 
-function drawFallbackLayout(data) { /* ... (no change) ... */
+function drawFallbackLayout(data) {
     try {
         const svg = d3.select("#bubble-chart");
         if (svg.empty()) return;
@@ -294,23 +294,19 @@ function drawFaceLayout(data) {
         const svg = d3.select("#bubble-chart");
         if (svg.empty()) return;
         svg.selectAll("*").remove();
-
+        
         const allPoints = layoutData.all_points;
         const canvasWidth = layoutData.canvasWidth;
         const canvasHeight = layoutData.canvasHeight;
         const headShapePoints = getPointsByIndices(allPoints, FACE_SILHOUETTE_INDICES);
-        if (headShapePoints.length < 3) {
-            drawFallbackLayout(data); return;
-        }
+        if (headShapePoints.length < 3) { drawFallbackLayout(data); return; }
         const faceCentroid = getCenterOfPoints(headShapePoints);
-        if (!faceCentroid) {
-             drawFallbackLayout(data); return;
-        }
+        if (!faceCentroid) { drawFallbackLayout(data); return; }
 
         const faceArea = polygonArea(headShapePoints);
-        const POWER_SCALE = 1.1; 
+        const POWER_SCALE = 1.05; 
         const scaledTotalVoteValue = d3.sum(data, d => Math.pow(d.value, POWER_SCALE)) || 1;
-        const targetCoverage = 0.8; 
+        const targetCoverage = 0.9; 
         const scalingFactor = (faceArea * targetCoverage) / scaledTotalVoteValue;
 
         const dataSignature = data.length + d3.sum(data, d => d.value);
@@ -438,38 +434,28 @@ function drawFaceLayout(data) {
             .attr('transform', d => `translate(${d.x.toFixed(2)},${d.y.toFixed(2)})`);
             
         textGroups.append("text")
+            .text(d => d.word)
             .attr("text-anchor", "middle")
             .attr("dominant-baseline", "central")
-            .style("fill", "#000000") 
+            .style("fill", "#111")
+            .style("font-family", "Inter, sans-serif") // Ensure consistent font for measurement
             .style("pointer-events", "none")
-            .style("paint-order", "stroke") 
+            // REMOVED stroke for cleaner text
             .each(function(d) {
-                const el = d3.select(this);
-                const wordText = d.word;
-                const countText = String(d.value);
-                const availableWidth = d.radius * 1.9; // Use ~95% of diameter
-
-                // --- NEW FONT SIZING LOGIC ---
-                // Start with a size proportional to the radius
-                let idealFontSize = Math.max(Math.min(d.radius / 2.2, 28), 8);
-                el.style("font-size", `${idealFontSize}px`);
-
-                // Check if the word overflows at this size
-                let textNode = el.node();
-                let textWidth = textNode.getComputedTextLength();
-                if (textWidth > availableWidth) {
-                    // If it overflows, scale it down to fit
-                    idealFontSize = idealFontSize * availableWidth / textWidth;
-                    el.style("font-size", `${idealFontSize}px`);
-                }
+                const textSelection = d3.select(this);
+                const availableWidth = d.radius * 1.9; // Use ~95% of diameter for padding
                 
-                // Add the word tspan
-                el.append("tspan").text(wordText).attr("x", 0).attr("dy", -idealFontSize * 0.15);
+                // Set a temporary base font size to measure the text's natural width
+                textSelection.style("font-size", "10px");
+                const naturalWidthAt10px = this.getComputedTextLength();
+                if (naturalWidthAt10px === 0) return;
+
+                // Calculate the new font size that makes the text fit the available width
+                // while maintaining the font's natural aspect ratio.
+                const newFontSize = (10 * availableWidth) / naturalWidthAt10px;
                 
-                // Add the count tspan below, sized relative to the final word font size
-                el.append("tspan").text(countText).attr("x", 0).attr("dy", "1.1em")
-                    .style("font-size", `${Math.max(idealFontSize * 0.7, 6)}px`) // Min size of 6px for count
-                    .style("fill", "#222222");
+                // Apply the new font size, with min/max constraints for readability.
+                textSelection.style("font-size", `${Math.min(d.radius * 1.4, Math.max(newFontSize, 6))}px`);
             });
 
     } catch (err) {
@@ -481,8 +467,9 @@ function drawFaceLayout(data) {
     }
 }
 
+
 // --- EVENT HANDLERS AND REAL-TIME LOGIC ---
-function voteForWord(word, politicianId) { /* ... (no change) ... */
+function voteForWord(word, politicianId) {
     if (!word || !politicianId) return;
     fetch('/words', {
         method: 'POST',
@@ -504,7 +491,7 @@ function voteForWord(word, politicianId) { /* ... (no change) ... */
     });
 }
 
-function submitNewWord(event) { /* ... (no change) ... */
+function submitNewWord(event) {
     event.preventDefault();
     const newWordInput = document.getElementById('new-word');
     const newWord = newWordInput.value.trim();
@@ -514,7 +501,7 @@ function submitNewWord(event) { /* ... (no change) ... */
     newWordInput.value = '';
 }
 
-function initializeSocket(politicianIdForSocket) { /* ... (no change) ... */
+function initializeSocket(politicianIdForSocket) {
     if (!politicianIdForSocket) {
         console.warn("🟡 Cannot initialize socket without politicianIdForSocket.");
         return;
@@ -526,7 +513,6 @@ function initializeSocket(politicianIdForSocket) { /* ... (no change) ... */
     if (socket && socket.connected) {
         socket.disconnect();
     }
-
     socket = io(); 
     socket.on('connect', () => {
         console.log(`Socket connected. Listening for wordsUpdated:${politicianIdForSocket}`);
@@ -539,7 +525,6 @@ function initializeSocket(politicianIdForSocket) { /* ... (no change) ... */
         try {
             const bubbleContainer = document.getElementById('bubble-chart-container');
             if (!bubbleContainer) return;
-
             if (updatedWords && updatedWords.some(v => v.count > 0)) {
                 if (!document.getElementById('bubble-chart')) { 
                     bubbleContainer.innerHTML = '<svg id="bubble-chart"></svg>';
@@ -564,7 +549,7 @@ function initializeSocket(politicianIdForSocket) { /* ... (no change) ... */
 }
 
 let resizeTimeout;
-window.addEventListener('resize', () => { /* ... (no change) ... */
+window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
         try { 
@@ -578,7 +563,7 @@ window.addEventListener('resize', () => { /* ... (no change) ... */
     }, 200);
 });
 
-document.addEventListener('DOMContentLoaded', () => { /* ... (no change) ... */
+document.addEventListener('DOMContentLoaded', () => {
     try {
         const isPoliticianPage = /^\/politician\/\d+$/.test(window.location.pathname);
         if (!isPoliticianPage) return;
@@ -589,16 +574,13 @@ document.addEventListener('DOMContentLoaded', () => { /* ... (no change) ... */
             console.error("🔴 Critical HTML elements for politician page are missing.");
             return;
         }
-
         loadPoliticianData(); 
-        
         const form = document.getElementById('add-word-form');
         if (form) {
             form.addEventListener('submit', submitNewWord);
         } else {
             console.warn("🟡 Add word form not found.");
         }
-
     } catch (err) {
         console.error("🔴 ERROR in DOMContentLoaded:", err.message, err.stack);
          const body = document.querySelector('body');
