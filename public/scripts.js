@@ -193,55 +193,54 @@ function createMessageElement(msgText) {
 }
 
 
-// Helper function to get style based on sentiment score
-// score is expected to be between -1.0 and 1.0
+/**
+ * UPDATED: Gets background and text color for word tags,
+ * using the same logic as the bubbles for perfect consistency.
+ * @param {number} score - Sentiment score from -1.0 to 1.0
+ * @returns {{backgroundColor: string, color: string}}
+ */
 function getSentimentStyle(score) {
-    let backgroundColor = '#eeeeee'; // Neutral/Gray base
-    let textColor = '#000000';
-    let opacity = 1.0;
+    // Get the base color and opacity from our master style function
+    const { fill, fillOpacity } = getBubbleFillStyle(score);
 
-    if (score >= 0.05) { // Positive
-        backgroundColor = 'rgba(0, 128, 0, 1)'; // Green base (rgb for opacity)
-        // textColor = 'white';
-        // Scale opacity: 0.05 -> ~0.3, 1.0 -> 1.0
-        opacity = 0.3 + (0.7 * (score - 0.05) / (1.0 - 0.05));
-        opacity = Math.min(1.0, Math.max(0.3, opacity)); // Clamp
-    } else if (score <= -0.05) { // Negative
-        backgroundColor = 'rgba(220, 20, 60, 1)'; // Crimson/Red base (rgb for opacity)
-        // textColor = 'white';
-        // Scale opacity: -0.05 -> ~0.3, -1.0 -> 1.0
-        opacity = 0.3 + (0.7 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
-        opacity = Math.min(1.0, Math.max(0.3, opacity)); // Clamp
-    } else { // Neutral
-        backgroundColor = 'rgba(204, 204, 204, 1)'; // Gray base for neutral
-        opacity = 0.6; // Slightly less prominent neutral
+    // Convert the hex color to an RGB object to create an rgba() color
+    let r = 0, g = 0, b = 0;
+    if (fill.startsWith('#')) {
+        const hex = fill.slice(1);
+        if (hex.length === 3) { // Handle shorthand hex like #F00
+            r = parseInt(hex[0] + hex[0], 16);
+            g = parseInt(hex[1] + hex[1], 16);
+            b = parseInt(hex[2] + hex[2], 16);
+        } else if (hex.length === 6) { // Handle standard hex like #FF0000
+            r = parseInt(hex.substring(0, 2), 16);
+            g = parseInt(hex.substring(2, 4), 16);
+            b = parseInt(hex.substring(4, 6), 16);
+        }
     }
     
-    // Apply opacity to the background color
-    // Assumes backgroundColor is in 'rgba(r,g,b,1)' format
-    const colorParts = backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d(?:\.\d+)?))?\)/);
-    if (colorParts) {
-        backgroundColor = `rgba(${colorParts[1]}, ${colorParts[2]}, ${colorParts[3]}, ${opacity.toFixed(2)})`;
-    }
+    // Construct the final rgba background color string
+    const backgroundColor = `rgba(${r}, ${g}, ${b}, ${fillOpacity})`;
 
+    // Determine text color (black or white) based on the background brightness
+    // This formula calculates perceived brightness
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    const textColor = '#111111'; // Dark text on light BG, White text on dark BG
 
-    return { backgroundColor, color: textColor }; // Return an object for inline styling
-                                                  // For bubble chart, we'll need fill and fill-opacity
+    return { backgroundColor, color: textColor };
 }
 
+// This function defines the master color scheme
 function getBubbleFillStyle(score) {
-    let fill = '#eeeeee'; // Neutral gray
-    let fillOpacity = 0.6;
-
-    if (score >= 0.05) { // Positive
-        fill = '#008000'; // Green
-        fillOpacity = 0.3 + (0.7 * (score - 0.05) / (1.0 - 0.05));
-        fillOpacity = Math.min(1.0, Math.max(0.3, fillOpacity));
-    } else if (score <= -0.05) { // Negative
-        fill = '#DC143C'; // Crimson Red
-        fillOpacity = 0.3 + (0.7 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
-        fillOpacity = Math.min(1.0, Math.max(0.3, fillOpacity));
+    let fill = '#BFBFBF'; 
+    let fillOpacity = 0.65; 
+    if (score >= 0.05) {
+        fill = '#2E8B57'; // Sea Green
+        fillOpacity = 0.4 + (0.55 * (score - 0.05) / (1.0 - 0.05)); 
+    } else if (score <= -0.05) {
+        fill = '#CD5C5C'; // Indian Red
+        fillOpacity = 0.4 + (0.55 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
     }
+    fillOpacity = Math.min(0.95, Math.max(0.4, fillOpacity));
     return { fill, fillOpacity: fillOpacity.toFixed(2) };
 }
 

@@ -1,13 +1,13 @@
-/* Companion App's CSS (App B) - with modifications for mobile navbar height/font */
+/* public/styles.css */
 
-html { /* CHANGED/ADDED */
+html {
   box-sizing: border-box;
-  min-height: 100vh; /* Ensures HTML element can fill viewport height */
-  margin: 0; /* Reset default browser margin */
-  padding: 0; /* Reset default browser padding */
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
-*, *::before, *::after { /* ADDED for universal box-sizing */
+*, *::before, *::after {
   box-sizing: inherit;
 }
 
@@ -24,17 +24,17 @@ body {
   background-color: #f8f8f8;
   color: #2e2e2e;
 
-  display: flex;             /* MUST HAVE */
-  flex-direction: column;    /* MUST HAVE */
-  min-height: 100vh;         /* MUST HAVE: Body must also be able to fill viewport height */
-  margin: 0;                 /* Ensure no body margin */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
 
-  /* Desktop padding-top based on .navbar padding (10*2) + .navbar a padding (14*2) + font (~18) = ~66-68px */
-  padding-top: 68px;
-  padding-bottom: 20px;      /* ADDED: This creates the 20px space below where the footer will sit */
+  /* Adjust body padding-top based on navbar height */
+  padding-top: 68px; /* Default for desktop */
+  padding-bottom: 20px; 
 }
 
-.table-scroll-wrapper { /* Styles from your App B CSS */
+.table-scroll-wrapper {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -60,35 +60,34 @@ button:hover { background-color: #d7f0fa; color: #2e2e2e; }
 .message-container { margin-top: 10px; font-size: 16px; color: #555; }
 #filter-input { margin-bottom: 10px; padding: 8px; width: 100%; font-size: 16px; background-color: #ffffff; color: #2e2e2e; border: 1px solid #ccc; border-radius: 4px; }
 
-/* --- Navbar (FROM YOUR APP B CSS) --- */
+/* --- Navbar --- */
 .navbar {
   background-color: #bce0f0; 
   overflow: hidden;
   position: fixed;
   top: 0;
-  left: 0; /* Added for explicit positioning */
+  left: 0;
   width: 100%;
   z-index: 2000;
   -webkit-transform: translateZ(0); 
   transform: translateZ(0); 
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Pushes left link and right .spacer apart */
-  padding: 10px 15px; /* Desktop padding. Vertical padding contributes to height. */
-  box-sizing: border-box; /* Added for consistent padding behavior */
+  justify-content: space-between;
+  padding: 10px 15px;
+  box-sizing: border-box;
 }
 
-.navbar a { /* This applies to the left link primarily in App B's structure */
-  /* float: left; /* Not ideal with flex */
+.navbar a {
   display: block;
   color: #2e2e2e;
   text-align: center;
-  padding: 14px 16px; /* Desktop: This + font-size gives the link its height */
+  padding: 14px 16px;
   text-decoration: none;
-  font-size: 17px;    /* Desktop: Link font size */
+  font-size: 17px;
   -webkit-tap-highlight-color: transparent; 
   transition: background-color 0.2s ease; 
-  white-space: nowrap; /* Added */
+  white-space: nowrap;
 }
 .navbar a:hover {
   background-color: #d7f0fa;
@@ -96,91 +95,112 @@ button:hover { background-color: #d7f0fa; color: #2e2e2e; }
 }
 
 .navbar-title {
-  position: absolute; /* Key for centering */
+  position: absolute;
   left: 50%;
   transform: translateX(-50%);
   color: #2e2e2e;
-  font-size: 20px; /* Desktop: Title font size */
+  font-size: 20px;
   font-weight: bold;
   white-space: nowrap;
-  /* To vertically center with absolute positioning if navbar has fixed height: */
-  /* top: 50%; transform: translate(-50%, -50%); */
-  /* Or rely on align-items of parent if not using fixed height on navbar */
-  /* For now, let's assume align-items on .navbar handles its vertical position within navbar's flow height */
 }
 
 .footer {
-  /* REMOVE position:absolute; and bottom: styles if they were present */
-  margin-top: auto;         /* KEY: Pushes footer to the bottom of available space in body */
-  flex-shrink: 0;           /* ADDED: Prevents footer from shrinking */
+  margin-top: auto;
+  flex-shrink: 0;
   padding: 10px 20px;
   background-color: #f8f8f8;
   text-align: center;
   width: 100%;
-  /* box-sizing: border-box; /* Already inherited */
   color: #666;
 }
 .footer-link { color: #70c1b3; }
 
-.spacer { /* This is from App B, used to balance the left link for absolute title */
-  width: 80px; /* Adjust if App B's left link has a different typical width */
-  flex-shrink: 0; /* Prevent spacer from shrinking */
+.spacer {
+  width: 80px;
+  flex-shrink: 0;
 }
 
-/* Other App B styles (sort-handle, bubble-chart, politician-grid, etc. - condensed) */
-.sort-handle { cursor: pointer; margin-right: 5px; font-size: 14px; color: #999; } .sort-handle:hover { color: #70c1b3; } .sort-arrow { cursor: pointer; margin-left: 5px; font-size: 14px; color: #999; }
-#bubble-chart-container { position: relative; width: 100%; padding-top: 100%; margin: 0 auto 20px; box-sizing: border-box; } #bubble-chart { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+/* --- App Specific Styles --- */
+.sort-handle { cursor: pointer; margin-right: 5px; font-size: 14px; color: #999; }
+.sort-handle:hover { color: #70c1b3; }
+.sort-arrow { cursor: pointer; margin-left: 5px; font-size: 14px; color: #999; }
+#bubble-chart-container { position: relative; width: 100%; padding-top: 100%; margin: 0 auto 20px; box-sizing: border-box; }
+#bubble-chart { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+.bubble-empty { height: 60px !important; max-height: none !important; padding: 0 !important; display: flex !important; justify-content: center; align-items: center; }
+.bubble-active { height: auto; aspect-ratio: 1 / 1; max-height: 80vh; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; }
+
 #politician-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; padding: 0.75rem; width: 100%; box-sizing: border-box; }
-.politician-card { background-color: #fefefe; border-radius: 12px; padding: 0.5rem; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); cursor: pointer; transition: transform 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; color: #2e2e2e; will-change: transform; -webkit-tap-highlight-color: transparent; } .politician-card:hover { transform: scale(1.02); } .politician-bubble { background-color: transparent; color: #2e2e2e; font-weight: bold; font-size: 0.9rem; border-radius: 999px; padding: 0.3rem 0.6rem; min-width: 1.5rem; height: auto; line-height: 1; border: 1.2px solid #000; } .politician-name { font-weight: bold; margin-top: 0.5rem; } .politician-position { font-size: 0.9rem; color: #666; } .politician-top-words { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.3rem; justify-content: center; }
-.word-tag { background-color: #bce0f0; padding: 0.15rem 0.4rem; border-radius: 999px; font-size: 0.7rem; color: #2e2e2e; line-height: 1; } .word-tag.muted { background-color: transparent; color: #aaa; font-style: italic; }
-.bubble-empty { height: 60px !important; max-height: none !important; padding: 0 !important; display: flex !important; justify-content: center; align-items: center; } .bubble-active { height: auto; aspect-ratio: 1 / 1; max-height: 80vh; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; }
-.word-tag { display: inline-block; padding: 0.3em 0.6em; margin: 0.2em; border-radius: 999px; font-size: 0.85rem; font-weight: 500; color: #000; background-color: rgba(128, 128, 128, 0.5); }
-.word-green { background-color: #0080004d; } .word-red { background-color: rgba(220, 20, 60, 0.3); } .word-gray { background-color: rgba(128, 128, 128, 0.11); }
-.banner-message { background-color: rgba(255,56,96,0.7); color: #FFFFFF; padding: 12px 20px; display: flex; align-items: center; line-height: 1.4; } .banner-text-wrapper { flex-grow: 1; text-align: center; margin-right: 10px; } .banner-message a { color: #FFFFFF; font-weight: bold; text-decoration: underline; } .banner-message a:hover { color: #FFFFFF; text-decoration: none; } .close-banner-btn { background: transparent; border: none; color: #FFFFFF; font-size: 1.8rem; font-weight: bold; cursor: pointer; padding: 0 8px; line-height: 1; -webkit-tap-highlight-color: transparent; } .close-banner-btn:hover { color: #EEEEEE; }
+.politician-card { background-color: #fefefe; border-radius: 12px; padding: 0.5rem; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); cursor: pointer; transition: transform 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; color: #2e2e2e; will-change: transform; -webkit-tap-highlight-color: transparent; }
+.politician-card:hover { transform: scale(1.02); }
+.politician-bubble { background-color: transparent; color: #2e2e2e; font-weight: bold; font-size: 0.9rem; border-radius: 999px; padding: 0.3rem 0.6rem; min-width: 1.5rem; height: auto; line-height: 1; border: 1.2px solid #000; }
+.politician-name { font-weight: bold; margin-top: 0.5rem; }
+.politician-position { font-size: 0.9rem; color: #666; }
+.politician-top-words { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.3rem; justify-content: center; }
+
+/* === CONSOLIDATED AND UPDATED .word-tag STYLING === */
+.word-tag { 
+  display: inline-block;
+  padding: 0.2em 0.5em;
+  margin: 0.15em;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.2;
+  border: none; /* CHANGED: No border */
+  
+  /* The 'background-color' will be set by JS. */
+  /* The 'color' will ALSO be set by JS to ensure it's always black. */
+  /* These are fallbacks. */
+  background-color: #e0e0e0;
+  color: #000000;
+}
+
+.word-tag.muted { 
+  background-color: transparent; 
+  color: #aaa; 
+  font-style: italic; 
+  border: none; /* Ensure muted tags also have no border */
+}
+
+.banner-message { background-color: rgba(255,56,96,0.7); color: #FFFFFF; padding: 12px 20px; display: flex; align-items: center; line-height: 1.4; }
+.banner-text-wrapper { flex-grow: 1; text-align: center; margin-right: 10px; }
+.banner-message a { color: #FFFFFF; font-weight: bold; text-decoration: underline; }
+.banner-message a:hover { color: #FFFFFF; text-decoration: none; }
+.close-banner-btn { background: transparent; border: none; color: #FFFFFF; font-size: 1.8rem; font-weight: bold; cursor: pointer; padding: 0 8px; line-height: 1; -webkit-tap-highlight-color: transparent; }
+.close-banner-btn:hover { color: #EEEEEE; }
 
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
   .container { width: 100%; padding: 0 1rem; box-sizing: border-box; }
-  /* Add any general table font reduction for App B if needed */
-  /* table th, table td { font-size: 0.9em; padding: 7px; } */
 }
 
 @media (max-width: 680px) { /* Mobile/small tablets */
-  /* Navbar adjustments for App B to match target height and font */
   .navbar {
-      /* Reduce overall navbar padding, let link content primarily define height */
-      padding: 0 10px; /* Only horizontal padding on navbar itself */
-      height: 49px; /* << EXPLICIT TARGET HEIGHT */
+      padding: 0 10px;
+      height: 49px;
   }
-  .navbar a { /* Affects left link primarily, assuming one link on left */
-    font-size: 16px;   /* << TARGET FONT SIZE FOR LINKS */
-    padding: 0 12px;   /* << HORIZONTAL PADDING for links */
-                       /* Vertical centering handled by align-items on .navbar */
+  .navbar a {
+    font-size: 16px;
+    padding: 0 12px;
   }
   .navbar-title {
-    font-size: 17px; /* << TARGET FONT SIZE FOR TITLE */
-    /* For absolute positioning, vertical centering needs top:50% and transform:translateY(-50%) */
+    font-size: 17px;
     top: 50%;
-    transform: translate(-50%, -50%); /* Ensures both X and Y centering */
+    transform: translate(-50%, -50%);
   }
   .spacer {
-      width: 60px; /* May need to reduce spacer width on mobile if left link is narrower */
+      width: 60px;
   }
-  /* -------- IMPORTANT: SET THIS FOR APP B -------- */
-  body { padding-top: 49px; /* << MATCHES NAVBAR HEIGHT */ }
-
-  /* Other App B specific mobile styles if needed */
+  body { padding-top: 49px; }
   #politician-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 }
 
 @media (max-width: 480px) { /* Very small screens */
   #politician-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; padding: 0.5rem; }
   .politician-card { font-size: 0.8rem; padding: 0.4rem; }
-  /* .word-tag { font-size: 0.65rem; padding: 0.1rem 0.3rem; } /* Already defined, ensure consistency */
 
-  /* Navbar adjustments for App B */
   .navbar {
-      height: 46px; /* Slightly smaller if preferred */
+      height: 46px;
       padding: 0 8px; 
   }
   .navbar a {
@@ -189,39 +209,23 @@ button:hover { background-color: #d7f0fa; color: #2e2e2e; }
   }
   .navbar-title {
     font-size: 16px;
-    /* top: 50%; transform: translate(-50%, -50%); /* Already set */
   }
   .spacer {
-      width: 50px; /* Further reduce spacer if needed */
+      width: 50px;
   }
-  /* -------- IMPORTANT: SET THIS FOR APP B -------- */
-  body { padding-top: 46px; /* << MATCHES NAVBAR HEIGHT */ }
+  body { padding-top: 46px; }
 }
 
-  /* ---- START: Added rule for the "Click a word to agree" h2 ---- */
-  #votes-summary h2 {
-    font-size: 1.2em; /* Default h2 is often 1.5em (e.g., 24px). This makes it ~20px. */
-    /* You can adjust 1.25rem to 1.2rem or 1.15rem if you want it even smaller */
-  }
-  /* ---- END: Added rule ---- */
+/* --- Font Size Adjustments for Headings and Footer --- */
+#votes-summary h2,
+#add-word h2 {
+  font-size: 1.2rem;
+}
 
-  /* ---- START: Added rule for the "Click a word to agree" h2 ---- */
-  #add-word h2 {
-    font-size: 1.2rem; /* Default h2 is often 1.5em (e.g., 24px). This makes it ~20px. */
-    /* You can adjust 1.25rem to 1.2rem or 1.15rem if you want it even smaller */
-  }
-  /* ---- END: Added rule ---- */
+.footer p {
+  font-size: 0.8rem;
+}
 
-  /* ---- START: Added rule for the "Click a word to agree" h2 ---- */
-  .footer p {
-    font-size: 0.8rem; /* Default h2 is often 1.5em (e.g., 24px). This makes it ~20px. */
-    /* You can adjust 1.25rem to 1.2rem or 1.15rem if you want it even smaller */
-  }
-  /* ---- END: Added rule ---- */
-
-    /* ---- START: Added rule for the "Click a word to agree" h2 ---- */
-  #instructions p {
-    font-size: 0.9rem; /* Default h2 is often 1.5em (e.g., 24px). This makes it ~20px. */
-    /* You can adjust 1.25rem to 1.2rem or 1.15rem if you want it even smaller */
-  }
-  /* ---- END: Added rule ---- */
+#instructions p {
+  font-size: 0.9rem;
+}
