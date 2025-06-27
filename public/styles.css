@@ -229,3 +229,52 @@ button:hover { background-color: #d7f0fa; color: #2e2e2e; }
 #instructions p {
   font-size: 0.9rem;
 }
+
+
+/* --- Corrected Bubble Chart Layering --- */
+#bubble-chart-container {
+  position: relative;
+  background-color: #fff; /* A light background is best for multiply */
+  
+  /* Sizing from your original styles */
+  width: 100%;
+  padding-top: 100%;
+  margin: 0 auto 20px;
+  box-sizing: border-box;
+}
+
+#bubble-chart-container.bubble-active {
+  height: auto;
+  aspect-ratio: 1 / 1;
+  max-height: 80vh;
+}
+
+#bubble-chart-container.bubble-empty {
+  height: 60px !important;
+  max-height: none !important;
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Both the SVG and the overlay must be absolutely positioned to stack correctly */
+#bubble-chart, #portrait-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#bubble-chart {
+  z-index: 1; /* SVG is on the bottom layer */
+}
+
+#portrait-overlay {
+  background-size: cover;
+  background-position: center;
+  mix-blend-mode: multiply;
+  pointer-events: none; /* Clicks pass through to the SVG */
+  z-index: 2; /* Portrait is on the top layer */
+}

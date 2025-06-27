@@ -26,19 +26,32 @@ const FACE_SILHOUETTE_INDICES = [
 
 
 // --- HELPER FUNCTIONS ---
+
 function getBubbleFillStyle(score) {
-    let fill = '#BFBFBF'; 
-    let fillOpacity = 0.65; 
+    const BUBBLE_OPACITY = 1.0; // A fixed opacity for all bubbles.
+    let colorString;
+
     if (score >= 0.05) {
-        fill = '#2E8B57'; 
-        fillOpacity = 0.4 + (0.55 * (score - 0.05) / (1.0 - 0.05)); 
+        // Positive score: vary green from light to dark
+        const strength = (score - 0.05) / (1.0 - 0.05); // Normalize score from 0 to 1
+        const color = d3.hsl('#2E8B57'); // Start with SeaGreen
+        color.l = 0.65 - (strength * 0.25); // Vary lightness from 65% down to 40%
+        colorString = color.toString();
     } else if (score <= -0.05) {
-        fill = '#CD5C5C'; 
-        fillOpacity = 0.4 + (0.55 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
+        // Negative score: vary red from light to dark
+        const strength = (Math.abs(score) - 0.05) / (1.0 - 0.05); // Normalize score from 0 to 1
+        const color = d3.hsl('#CD5C5C'); // Start with IndianRed
+        color.l = 0.75 - (strength * 0.20); // Vary lightness from 75% down to 55%
+        colorString = color.toString();
+    } else {
+        // Neutral score
+        colorString = '#BFBFBF';
     }
-    fillOpacity = Math.min(0.95, Math.max(0.4, fillOpacity));
-    return { fill, fillOpacity: fillOpacity.toFixed(2) };
+    
+    // Return the calculated color and the fixed opacity.
+    return { fill: colorString, fillOpacity: BUBBLE_OPACITY };
 }
+
 
 function polygonArea(points) {
     let area = 0;
@@ -177,7 +190,10 @@ function loadPoliticianData() {
             bubbleContainer.classList.add('bubble-empty');
             bubbleContainer.classList.remove('bubble-active');
         } else {
-            bubbleContainer.innerHTML = '<svg id="bubble-chart"></svg>'; 
+            bubbleContainer.innerHTML = `
+                <div id="portrait-overlay"></div>
+                <svg id="bubble-chart"></svg>
+            `;
             bubbleContainer.classList.remove('bubble-empty');
             bubbleContainer.classList.add('bubble-active');
             drawBubbleChart(currentVoteData);
@@ -197,6 +213,24 @@ function loadPoliticianData() {
             }
         }
     });
+}
+
+// +++ SIMPLIFIED: The server now handles the fallback logic +++
+function applyPortraitOverlay(politicianId) {
+    if (!politicianId) return;
+
+    const portraitOverlay = document.getElementById('portrait-overlay');
+    if (!portraitOverlay) {
+        // This can happen if the socket updates the page to an empty state. It's safe to ignore.
+        return;
+    }
+    
+    // The client simply requests the image. The server will respond with the
+    // correct portrait or the blank.jpg automatically. No client-side
+    // error handling is needed for this anymore.
+    const portraitUrl = `/portraits/portrait-${politicianId}.jpg`;
+    portraitOverlay.style.backgroundImage = `url('${portraitUrl}')`;
+    console.log(`🖼️ Requesting portrait: ${portraitUrl}`);
 }
 
 function drawBubbleChart(voteData) {
@@ -267,34 +301,20 @@ function drawFallbackLayout(data) {
             .join("g")
             .attr("class", "bubble-text-group")
             .attr('transform', d => `translate(${d.x},${d.y})`);
-            
-        // --- START: MODIFIED CODE BLOCK ---
-        // This logic is now consistent with drawFaceLayout
+
         textGroups.append("text")
-            .text(d => d.data.word) // Note: data is nested under d.data
             .attr("text-anchor", "middle")
-            .attr("dominant-baseline", "central")
-            .style("fill", "#111")
-            .style("font-family", "Inter, sans-serif")
+            .style("font-size", d => Math.max(Math.min(d.r / 2.5, 32), 8) + "px")
+            .style("fill", "#000")
             .style("pointer-events", "none")
             .each(function(d) {
-                const textSelection = d3.select(this);
-                // Note: radius is d.r in the pack layout
-                const availableWidth = d.r * 1.9;
-
-                // Set a temporary base font size to measure the text's natural width
-                textSelection.style("font-size", "10px");
-                const naturalWidthAt10px = this.getComputedTextLength();
-                if (naturalWidthAt10px === 0) return;
-
-                // Calculate the new font size that makes the text fit
-                const newFontSize = (10 * availableWidth) / naturalWidthAt10px;
-                
-                // Apply the new font size, with min/max constraints for readability.
-                // Note: radius is d.r
-                textSelection.style("font-size", `${Math.min(d.r * 1.4, Math.max(newFontSize, 6))}px`);
+                const el = d3.select(this);
+                const fontSize = parseFloat(el.style("font-size"));
+                el.append("tspan").text(d.data.word).attr("x", 0).attr("dy", -fontSize * 0.2);
+                el.append("tspan").text(d.data.value).attr("x", 0).attr("dy", "1.2em");
             });
-        // --- END: MODIFIED CODE BLOCK ---
+            
+        applyPortraitOverlay(currentPoliticianId);
 
     } catch (err) {
         console.error("🔴 ERROR IN drawFallbackLayout:", err.message, err.stack);
@@ -455,25 +475,22 @@ function drawFaceLayout(data) {
             .attr("text-anchor", "middle")
             .attr("dominant-baseline", "central")
             .style("fill", "#111")
-            .style("font-family", "Inter, sans-serif") // Ensure consistent font for measurement
+            .style("font-family", "Inter, sans-serif")
             .style("pointer-events", "none")
-            // REMOVED stroke for cleaner text
             .each(function(d) {
                 const textSelection = d3.select(this);
-                const availableWidth = d.radius * 1.9; // Use ~95% of diameter for padding
+                const availableWidth = d.radius * 1.9;
                 
-                // Set a temporary base font size to measure the text's natural width
                 textSelection.style("font-size", "10px");
                 const naturalWidthAt10px = this.getComputedTextLength();
                 if (naturalWidthAt10px === 0) return;
 
-                // Calculate the new font size that makes the text fit the available width
-                // while maintaining the font's natural aspect ratio.
                 const newFontSize = (10 * availableWidth) / naturalWidthAt10px;
                 
-                // Apply the new font size, with min/max constraints for readability.
                 textSelection.style("font-size", `${Math.min(d.radius * 1.4, Math.max(newFontSize, 6))}px`);
             });
+            
+        applyPortraitOverlay(currentPoliticianId);
 
     } catch (err) {
         console.error("🔴 ERROR IN drawFaceLayout:", err.message, err.stack);
@@ -544,7 +561,10 @@ function initializeSocket(politicianIdForSocket) {
             if (!bubbleContainer) return;
             if (updatedWords && updatedWords.some(v => v.count > 0)) {
                 if (!document.getElementById('bubble-chart')) { 
-                    bubbleContainer.innerHTML = '<svg id="bubble-chart"></svg>';
+                    bubbleContainer.innerHTML = `
+                        <div id="portrait-overlay"></div>
+                        <svg id="bubble-chart"></svg>
+                    `;
                 }
                 bubbleContainer.classList.remove('bubble-empty');
                 bubbleContainer.classList.add('bubble-active');
