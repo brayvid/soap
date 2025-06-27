@@ -9,4 +9,3 @@ node_modules/
 *.log
 .streamlit/
 .venv/
-portraits/

@@ -1,8 +1,11 @@
-// Copyright 2024-2025 soap.fyi <https://soap.fyi>
+// Copyright 2024-2025 soap.fyi
 
 // --- CHANGE 1: Add http and socket.io ---
 const http = require('http');
 const { Server } = require("socket.io");
+
+// +++ ADD THIS LINE: Import the File System module +++
+const fs = require('fs');
 
 // Imports rate limit utilities and logging middleware
 const { isUnderLimit, logAction } = require('./middleware/ipRateLimit');
@@ -65,6 +68,65 @@ function getClientIP(req) {
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+// This route securely serves individual portraits and handles fallbacks.
+app.get('/portraits/:filename', (req, res) => {
+    const { filename } = req.params;
+
+    // --- Security Validation ---
+    // Ensure the filename matches the expected format to prevent path traversal attacks.
+    // It should be 'portrait-ID.jpg' or 'blank.jpg'.
+    if (!/^portrait-\d+\.jpg$/.test(filename) && filename !== 'blank.jpg') {
+        return res.status(400).send('Invalid filename format');
+    }
+
+    // Construct the absolute path to the requested portrait on the server.
+    // The 'portraits' directory is now a private, server-side asset folder.
+    const requestedPortraitPath = path.join(__dirname, 'portraits', filename);
+
+    // Check if the specific portrait file exists.
+    fs.access(requestedPortraitPath, fs.constants.F_OK, (err) => {
+        if (err) {
+            // The portrait does NOT exist. Instead of a 404, send the blank fallback image.
+            console.warn(`Portrait for '${filename}' not found, serving blank.jpg.`);
+            const fallbackPortraitPath = path.join(__dirname, 'portraits', 'blank.jpg');
+            res.sendFile(fallbackPortraitPath, (fallbackErr) => {
+                if(fallbackErr) {
+                    // This is a serious issue: the fallback image itself is missing.
+                    console.error("CRITICAL: Fallback image 'blank.jpg' is missing.", fallbackErr);
+                    res.status(404).send('Image not found');
+                }
+            });
+        } else {
+            // The portrait exists, send it.
+            res.sendFile(requestedPortraitPath);
+        }
+    });
+});
+
+// This route securely serves individual layout files.
+app.get('/data/layout-:id.json', (req, res) => {
+    const politicianId = req.params.id;
+
+    // --- Security Validation ---
+    if (!/^\d+$/.test(politicianId)) {
+        return res.status(400).send('Invalid ID format');
+    }
+
+    // Construct the absolute path to the requested layout file
+    const requestedLayoutPath = path.join(__dirname, 'data', `layout-${politicianId}.json`);
+
+    // Check if the file exists
+    fs.access(requestedLayoutPath, fs.constants.F_OK, (err) => {
+        if (err) {
+            // If the layout file doesn't exist, it's a valid state.
+            // Send a 404, which the client-side fetch will catch.
+            return res.status(404).send('Layout data not found');
+        }
+        // The file exists, send it. Express handles the Content-Type.
+        res.sendFile(requestedLayoutPath);
+    });
+});
 
 app.get('/politicians', async (req, res) => {
     try {

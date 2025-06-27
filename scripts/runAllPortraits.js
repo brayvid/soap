@@ -8,7 +8,7 @@ const { exec } = require('child_process');
 // Project root is one level up from the 'scripts/' directory
 const PROJECT_ROOT = path.resolve(__dirname, '..'); 
 
-const PORTRAITS_DIR = path.join(PROJECT_ROOT, 'portraits'); // Correct: soap/portraits/
+const PORTRAITS_DIR = path.join(PROJECT_ROOT, 'originals'); // Correct: soap/portraits/
 const PROCESS_SCRIPT_PATH = path.join(__dirname, 'processPortrait.js'); // Correct: soap/scripts/processPortrait.js
 
 // --- End Configuration ---
@@ -48,7 +48,7 @@ async function main() {
         process.exit(1); // Exit if we can't read the portraits dir
     }
 
-    const portraitRegex = /^portrait-(\d+)\.jpg$/i;
+    const portraitRegex = /^original-(\d+)\.jpg$/i;
     const politicianIds = [];
 
     for (const file of files) {
@@ -59,7 +59,7 @@ async function main() {
     }
 
     if (politicianIds.length === 0) {
-        console.log("No portraits found matching the pattern 'portrait-<id>.jpg'.");
+        console.log("No portraits found matching the pattern 'original-<id>.jpg'.");
         return;
     }
 
