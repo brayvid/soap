@@ -301,16 +301,26 @@ function drawFallbackLayout(data) {
             .attr("class", "bubble-text-group")
             .attr('transform', d => `translate(${d.x},${d.y})`);
 
+        // CORRECTED TEXT LOGIC TO MATCH FACE LAYOUT
         textGroups.append("text")
+            .text(d => d.data.word)
             .attr("text-anchor", "middle")
-            .style("font-size", d => Math.max(Math.min(d.r / 2.5, 32), 8) + "px")
+            .attr("dominant-baseline", "central")
             .style("fill", "#000")
+            .style("font-family", "Inter, sans-serif")
             .style("pointer-events", "none")
             .each(function(d) {
-                const el = d3.select(this);
-                const fontSize = parseFloat(el.style("font-size"));
-                el.append("tspan").text(d.data.word).attr("x", 0).attr("dy", -fontSize * 0.2);
-                el.append("tspan").text(d.data.value).attr("x", 0).attr("dy", "1.2em");
+                const textSelection = d3.select(this);
+                const availableWidth = d.r * 1.9; // Use d.r for radius here
+                
+                textSelection.style("font-size", "10px");
+                const naturalWidthAt10px = this.getComputedTextLength();
+                if (naturalWidthAt10px === 0) return;
+
+                const newFontSize = (10 * availableWidth) / naturalWidthAt10px;
+                
+                // Use d.r for radius here as well
+                textSelection.style("font-size", `${Math.min(d.r * 1.4, Math.max(newFontSize, 6))}px`);
             });
             
         applyPortraitOverlay(currentPoliticianId);
