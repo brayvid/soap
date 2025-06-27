@@ -267,18 +267,35 @@ function drawFallbackLayout(data) {
             .join("g")
             .attr("class", "bubble-text-group")
             .attr('transform', d => `translate(${d.x},${d.y})`);
-
+            
+        // --- START: MODIFIED CODE BLOCK ---
+        // This logic is now consistent with drawFaceLayout
         textGroups.append("text")
+            .text(d => d.data.word) // Note: data is nested under d.data
             .attr("text-anchor", "middle")
-            .style("font-size", d => Math.max(Math.min(d.r / 2.5, 32), 8) + "px")
-            .style("fill", "#000")
+            .attr("dominant-baseline", "central")
+            .style("fill", "#111")
+            .style("font-family", "Inter, sans-serif")
             .style("pointer-events", "none")
             .each(function(d) {
-                const el = d3.select(this);
-                const fontSize = parseFloat(el.style("font-size"));
-                el.append("tspan").text(d.data.word).attr("x", 0).attr("dy", -fontSize * 0.2);
-                el.append("tspan").text(d.data.value).attr("x", 0).attr("dy", "1.2em");
+                const textSelection = d3.select(this);
+                // Note: radius is d.r in the pack layout
+                const availableWidth = d.r * 1.9;
+
+                // Set a temporary base font size to measure the text's natural width
+                textSelection.style("font-size", "10px");
+                const naturalWidthAt10px = this.getComputedTextLength();
+                if (naturalWidthAt10px === 0) return;
+
+                // Calculate the new font size that makes the text fit
+                const newFontSize = (10 * availableWidth) / naturalWidthAt10px;
+                
+                // Apply the new font size, with min/max constraints for readability.
+                // Note: radius is d.r
+                textSelection.style("font-size", `${Math.min(d.r * 1.4, Math.max(newFontSize, 6))}px`);
             });
+        // --- END: MODIFIED CODE BLOCK ---
+
     } catch (err) {
         console.error("🔴 ERROR IN drawFallbackLayout:", err.message, err.stack);
         const bubbleContainer = document.getElementById('bubble-chart-container');
