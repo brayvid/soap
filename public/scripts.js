@@ -170,7 +170,7 @@ async function loadPoliticiansGrid() {
 // Global variables to track the rate limit message specifically
 let rateLimitMessageElement = null;
 let rateLimitMessageTimeoutId = null;
-const RATE_LIMIT_MESSAGE_TEXT = "Rate limit exceeded for this IP";
+const RATE_LIMIT_MESSAGE_TEXT = "Rate limit exceeded";
 
 // Helper function to create and style a message element
 function createMessageElement(msgText) {

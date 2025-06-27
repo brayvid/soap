@@ -88,7 +88,7 @@ app.get('/portraits/:filename', (req, res) => {
     fs.access(requestedPortraitPath, fs.constants.F_OK, (err) => {
         if (err) {
             // The portrait does NOT exist. Instead of a 404, send the blank fallback image.
-            console.warn(`Portrait for '${filename}' not found, serving blank.jpg.`);
+            // console.warn(`Portrait for '${filename}' not found, serving blank.jpg.`);
             const fallbackPortraitPath = path.join(__dirname, 'portraits', 'blank.jpg');
             res.sendFile(fallbackPortraitPath, (fallbackErr) => {
                 if(fallbackErr) {
@@ -197,7 +197,7 @@ app.post('/politicians', async (req, res) => {
 
     const underLimit = await isUnderLimit(ip, 'add_politician', null, 1);
     if (!underLimit) {
-        return res.status(429).send('Rate limit exceeded for this IP');
+        return res.status(429).send('Rate limit exceeded');
     }
 
     try {

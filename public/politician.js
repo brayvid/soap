@@ -1,5 +1,4 @@
 // Copyright 2024-2025 soap.fyi <https://soap.fyi>
-// Filename: politician.js (for individual politician pages)
 
 // --- GLOBAL VARIABLES FOR STATE MANAGEMENT ---
 let currentVoteData = [];
@@ -9,7 +8,7 @@ let socket = null;
 
 let rateLimitMessageElement = null;
 let rateLimitMessageTimeoutId = null;
-const RATE_LIMIT_MESSAGE_TEXT = "Rate limit exceeded for this IP";
+const RATE_LIMIT_MESSAGE_TEXT = "Rate limit exceeded";
 
 // --- MEDIAPIPE LANDMARK INDICES ---
 const MOUTH_OUTER_CONTOUR_INDICES = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146];
@@ -474,7 +473,7 @@ function drawFaceLayout(data) {
             .text(d => d.word)
             .attr("text-anchor", "middle")
             .attr("dominant-baseline", "central")
-            .style("fill", "#111")
+            .style("fill", "#fff")
             .style("font-family", "Inter, sans-serif")
             .style("pointer-events", "none")
             .each(function(d) {

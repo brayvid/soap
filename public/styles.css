@@ -1,4 +1,4 @@
-/* public/styles.css */
+/* Copyright 2024-2025 soap.fyi. All rights reserved. <https://soap.fyi> */
 
 html {
   box-sizing: border-box;
@@ -223,7 +223,7 @@ button:hover { background-color: #d7f0fa; color: #2e2e2e; }
 }
 
 .footer p {
-  font-size: 0.8rem;
+  font-size: 0.6rem;
 }
 
 #instructions p {
