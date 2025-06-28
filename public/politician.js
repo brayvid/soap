@@ -189,10 +189,8 @@ function loadPoliticianData() {
             bubbleContainer.classList.add('bubble-empty');
             bubbleContainer.classList.remove('bubble-active');
         } else {
-            bubbleContainer.innerHTML = `
-                <div id="portrait-overlay"></div>
-                <svg id="bubble-chart"></svg>
-            `;
+            // REMOVED portrait-overlay div. The SVG is now the only child.
+            bubbleContainer.innerHTML = `<svg id="bubble-chart"></svg>`;
             bubbleContainer.classList.remove('bubble-empty');
             bubbleContainer.classList.add('bubble-active');
             drawBubbleChart(currentVoteData);
@@ -213,23 +211,22 @@ function loadPoliticianData() {
         }
     });
 }
-
 // +++ SIMPLIFIED: The server now handles the fallback logic +++
 function applyPortraitOverlay(politicianId) {
     if (!politicianId) return;
 
-    const portraitOverlay = document.getElementById('portrait-overlay');
-    if (!portraitOverlay) {
-        // This can happen if the socket updates the page to an empty state. It's safe to ignore.
+    // TARGET THE MAIN CONTAINER, NOT AN OVERLAY DIV
+    const bubbleContainer = document.getElementById('bubble-chart-container');
+    if (!bubbleContainer) {
+        console.warn("Could not find bubble-chart-container to apply portrait.");
         return;
     }
     
-    // The client simply requests the image. The server will respond with the
-    // correct portrait or the blank.jpg automatically. No client-side
-    // error handling is needed for this anymore.
+    // The portrait is now the background of the container.
+    // The SVG will sit on top of this background.
     const portraitUrl = `/portraits/portrait-${politicianId}.jpg`;
-    portraitOverlay.style.backgroundImage = `url('${portraitUrl}')`;
-    console.log(`🖼️ Requesting portrait: ${portraitUrl}`);
+    bubbleContainer.style.backgroundImage = `url('${portraitUrl}')`;
+    console.log(`🖼️ Applying portrait to container background: ${portraitUrl}`);
 }
 
 function drawBubbleChart(voteData) {
@@ -279,6 +276,7 @@ function drawFallbackLayout(data) {
            .attr("preserveAspectRatio", "xMidYMid meet");
 
         const chartGroup = svg.append("g");
+        // NOTE: No blend modes applied here for the fallback
         const circleLayer = chartGroup.append("g").attr("class", "circle-layer");
         const textLayer = chartGroup.append("g").attr("class", "text-layer");
 
@@ -301,17 +299,16 @@ function drawFallbackLayout(data) {
             .attr("class", "bubble-text-group")
             .attr('transform', d => `translate(${d.x},${d.y})`);
 
-        // CORRECTED TEXT LOGIC TO MATCH FACE LAYOUT
         textGroups.append("text")
             .text(d => d.data.word)
             .attr("text-anchor", "middle")
             .attr("dominant-baseline", "central")
-            .style("fill", "#000")
+            .style("fill", "#000") // BLACK text for fallback
             .style("font-family", "Inter, sans-serif")
             .style("pointer-events", "none")
             .each(function(d) {
                 const textSelection = d3.select(this);
-                const availableWidth = d.r * 1.9; // Use d.r for radius here
+                const availableWidth = d.r * 1.9;
                 
                 textSelection.style("font-size", "10px");
                 const naturalWidthAt10px = this.getComputedTextLength();
@@ -319,12 +316,9 @@ function drawFallbackLayout(data) {
 
                 const newFontSize = (10 * availableWidth) / naturalWidthAt10px;
                 
-                // Use d.r for radius here as well
                 textSelection.style("font-size", `${Math.min(d.r * 1.4, Math.max(newFontSize, 6))}px`);
             });
             
-        applyPortraitOverlay(currentPoliticianId);
-
     } catch (err) {
         console.error("🔴 ERROR IN drawFallbackLayout:", err.message, err.stack);
         const bubbleContainer = document.getElementById('bubble-chart-container');
@@ -333,7 +327,6 @@ function drawFallbackLayout(data) {
         }
     }
 }
-
 
 function drawFaceLayout(data) {
     try {
@@ -454,11 +447,26 @@ function drawFaceLayout(data) {
            .attr("preserveAspectRatio", "xMidYMid meet");
 
         const chartGroup = svg.append("g");
+
+        // 1. ADD THE PORTRAIT AS THE BOTTOM LAYER, SCALED TO THE ORIGINAL CANVAS
+        chartGroup.append("image")
+            .attr("href", `/portraits/portrait-${currentPoliticianId}.jpg`)
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", canvasWidth)
+            .attr("height", canvasHeight);
         
         nodes.sort((a,b) => a.radius - b.radius); 
 
-        const circleLayer = chartGroup.append("g").attr("class", "circle-layer");
-        const textLayer = chartGroup.append("g").attr("class", "text-layer");
+        // 2. CREATE BUBBLE LAYER AND APPLY MULTIPLY BLENDING
+        const circleLayer = chartGroup.append("g")
+            .attr("class", "circle-layer")
+            .style("mix-blend-mode", "multiply");
+
+        // 3. CREATE TEXT LAYER AND ISOLATE IT FROM BLENDING
+        const textLayer = chartGroup.append("g")
+            .attr("class", "text-layer")
+            .style("mix-blend-mode", "normal");
 
         const circleGroups = circleLayer.selectAll("g.bubble-circle-group")
             .data(nodes, d => d.word) 
@@ -483,7 +491,7 @@ function drawFaceLayout(data) {
             .text(d => d.word)
             .attr("text-anchor", "middle")
             .attr("dominant-baseline", "central")
-            .style("fill", "#fff")
+            .style("fill", "#fff") // PURE WHITE TEXT
             .style("font-family", "Inter, sans-serif")
             .style("pointer-events", "none")
             .each(function(d) {
@@ -498,8 +506,6 @@ function drawFaceLayout(data) {
                 
                 textSelection.style("font-size", `${Math.min(d.radius * 1.4, Math.max(newFontSize, 6))}px`);
             });
-            
-        applyPortraitOverlay(currentPoliticianId);
 
     } catch (err) {
         console.error("🔴 ERROR IN drawFaceLayout:", err.message, err.stack);
@@ -509,7 +515,6 @@ function drawFaceLayout(data) {
         }
     }
 }
-
 
 // --- EVENT HANDLERS AND REAL-TIME LOGIC ---
 function voteForWord(word, politicianId) {
@@ -570,10 +575,8 @@ function initializeSocket(politicianIdForSocket) {
             if (!bubbleContainer) return;
             if (updatedWords && updatedWords.some(v => v.count > 0)) {
                 if (!document.getElementById('bubble-chart')) { 
-                    bubbleContainer.innerHTML = `
-                        <div id="portrait-overlay"></div>
-                        <svg id="bubble-chart"></svg>
-                    `;
+                    // Use the new, correct structure here as well.
+                    bubbleContainer.innerHTML = `<svg id="bubble-chart"></svg>`;
                 }
                 bubbleContainer.classList.remove('bubble-empty');
                 bubbleContainer.classList.add('bubble-active');
@@ -582,6 +585,8 @@ function initializeSocket(politicianIdForSocket) {
                 bubbleContainer.innerHTML = `<div style="text-align: center; padding: 1rem;">Be the first to add a word.</div>`;
                 bubbleContainer.classList.add('bubble-empty');
                 bubbleContainer.classList.remove('bubble-active');
+                // Clear the background image if there are no bubbles
+                bubbleContainer.style.backgroundImage = 'none';
             }
         } catch (err) {
             console.error("🔴 ERROR in socket wordsUpdated handler:", err.message, err.stack);
