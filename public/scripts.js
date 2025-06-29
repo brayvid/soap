@@ -203,45 +203,71 @@ function getSentimentStyle(score) {
     // Get the base color and opacity from our master style function
     const { fill, fillOpacity } = getBubbleFillStyle(score);
 
-    // Convert the hex color to an RGB object to create an rgba() color
     let r = 0, g = 0, b = 0;
-    if (fill.startsWith('#')) {
+
+    // *** FIX IS HERE: Handle both 'rgb(r,g,b)' and '#rrggbb' formats ***
+    let match = fill.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (match) {
+        // Handle 'rgb(r, g, b)' strings from D3
+        r = parseInt(match[1]);
+        g = parseInt(match[2]);
+        b = parseInt(match[3]);
+    } else if (fill.startsWith('#')) {
+        // Handle hex strings (like the neutral color)
         const hex = fill.slice(1);
-        if (hex.length === 3) { // Handle shorthand hex like #F00
+        if (hex.length === 3) {
             r = parseInt(hex[0] + hex[0], 16);
             g = parseInt(hex[1] + hex[1], 16);
             b = parseInt(hex[2] + hex[2], 16);
-        } else if (hex.length === 6) { // Handle standard hex like #FF0000
+        } else if (hex.length === 6) {
             r = parseInt(hex.substring(0, 2), 16);
             g = parseInt(hex.substring(2, 4), 16);
             b = parseInt(hex.substring(4, 6), 16);
         }
     }
     
-    // Construct the final rgba background color string
+    // Construct the final rgba background color string for tags and card backgrounds
     const backgroundColor = `rgba(${r}, ${g}, ${b}, ${fillOpacity})`;
 
     // Determine text color (black or white) based on the background brightness
-    // This formula calculates perceived brightness
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    const textColor = '#111111'; // Dark text on light BG, White text on dark BG
+    const textColor = '#FFFFFF'; 
 
     return { backgroundColor, color: textColor };
 }
 
 // This function defines the master color scheme
 function getBubbleFillStyle(score) {
-    let fill = '#BFBFBF'; 
-    let fillOpacity = 0.65; 
+    const BUBBLE_OPACITY = 1.0;
+    let colorString;
+
+    // Define the color scales based on the desired mappings.
+    // D3 will handle the smooth interpolation between these points.
+
+    // Scale for positive scores: from 'A little positive' to 'Most positive'
+    const positiveColorScale = d3.scaleLinear()
+        .domain([0.05, 1.0])        // Input score range
+        .range(['#9fad42', '#2a8d64']) // Output color range
+        .clamp(true); // Ensures values outside the domain are snapped to the ends
+
+    // Scale for negative scores: from 'A little negative' to 'Most negative'
+    const negativeColorScale = d3.scaleLinear()
+        .domain([-0.05, -1.0])       // Input score range
+        .range(['#CDb14c', '#DE3B3B']) // Output color range
+        .clamp(true); // Ensures values outside the domain are snapped to the ends
+
+    // Determine which scale to use based on the score
     if (score >= 0.05) {
-        fill = '#2E8B57'; // Sea Green
-        fillOpacity = 0.4 + (0.55 * (score - 0.05) / (1.0 - 0.05)); 
+        // Use the positive scale for scores from 0.05 to 1.0
+        colorString = positiveColorScale(score);
     } else if (score <= -0.05) {
-        fill = '#CD5C5C'; // Indian Red
-        fillOpacity = 0.4 + (0.55 * (Math.abs(score) - 0.05) / (1.0 - 0.05));
+        // Use the negative scale for scores from -0.05 to -1.0
+        colorString = negativeColorScale(score);
+    } else {
+        // Use the fixed neutral color for scores between -0.05 and 0.05
+        colorString = '#BFBFBF';
     }
-    fillOpacity = Math.min(0.95, Math.max(0.4, fillOpacity));
-    return { fill, fillOpacity: fillOpacity.toFixed(2) };
+    
+    return { fill: colorString, fillOpacity: BUBBLE_OPACITY };
 }
 
 
