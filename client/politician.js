@@ -1,5 +1,8 @@
 // Copyright 2024-2025 soap.fyi <https://soap.fyi>
 
+import './styles.css';
+import * as d3 from 'd3';
+
 // --- GLOBAL VARIABLES FOR STATE MANAGEMENT ---
 let currentVoteData = [];
 let currentPoliticianId = null;
