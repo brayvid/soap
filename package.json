@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
+    "start": "npm run migrate && node index.js",
+    "migrate": "npx knex migrate:latest --knexfile knexfile.cjs",
     "build": "vite build",
     "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
     "dev:server": "nodemon index.js",
