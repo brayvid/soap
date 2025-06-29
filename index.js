@@ -128,6 +128,16 @@ app.get('/data/layout-:id.json', (req, res) => {
     });
 });
 
+// --- SIMPLE HEALTH CHECK ROUTE ---
+// This tells Railway that your app is "alive".
+app.get('/healthz', (req, res) => {
+  // You can send a simple text response
+  // res.status(200).send('OK');
+
+  // Or a JSON response, which is more common for APIs
+  res.status(200).json({ status: 'ok' });
+});
+
 app.get('/politicians', async (req, res) => {
     try {
         const politicians = await db('politicians').select('*');
@@ -389,6 +399,8 @@ app.post('/sentiment', (req, res) => {
         res.status(500).json({ error: 'Sentiment analysis failed' });
     }
 });
+
+
 
 app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
