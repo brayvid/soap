@@ -97,14 +97,18 @@ def process_politician_image(politician_id_str):
         # --- 6. Crop the Image, Resize it, and Save ---
         initial_cropped_image = image[crop_y1:crop_y2, crop_x1:crop_x2]
         
-        # --- MODIFICATION START ---
         # Resize the initially cropped square to the final desired dimensions.
         # cv2.INTER_AREA is a good choice for downsampling (shrinking).
         final_portrait = cv2.resize(initial_cropped_image, (FINAL_PORTRAIT_SIZE, FINAL_PORTRAIT_SIZE), interpolation=cv2.INTER_AREA)
 
+        # --- MODIFICATION START ---
+        # Convert the final portrait to grayscale
+        final_portrait_grayscale = cv2.cvtColor(final_portrait, cv2.COLOR_BGR2GRAY)
+        # --- MODIFICATION END ---
+        
         try:
-            # Save the resized final portrait
-            cv2.imwrite(output_portrait_path, final_portrait)
+            # Save the resized final GRAYSCALE portrait
+            cv2.imwrite(output_portrait_path, final_portrait_grayscale)
             print(f"Python Info: Cropped and resized portrait saved to {output_portrait_path}", file=sys.stderr)
         except Exception as e:
             print(f"Python Error: Could not save final portrait to {output_portrait_path}: {e}", file=sys.stderr)
@@ -141,7 +145,6 @@ def process_politician_image(politician_id_str):
             "num_landmarks": len(processed_landmarks),
             "all_points": processed_landmarks,
         }
-        # --- MODIFICATION END ---
         return layout_data
 
 

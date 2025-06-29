@@ -7,7 +7,7 @@ const MEDIAPIPE_VERSION = '0.10.9'; // Ensure this matches the version you inten
 const BASE_CDN_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm/`;
 const MODEL_CDN_URL = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 
-const PROJECT_ROOT = __dirname; // Assumes this script is run from the project root
+const PROJECT_ROOT = path.resolve(__dirname, '..'); // Assumes this script is run from the project root
 // Or if this script is in 'scripts/', use: const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 

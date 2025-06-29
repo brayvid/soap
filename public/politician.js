@@ -27,26 +27,38 @@ const FACE_SILHOUETTE_INDICES = [
 // --- HELPER FUNCTIONS ---
 
 function getBubbleFillStyle(score) {
-    const BUBBLE_OPACITY = 1.0;
+    const BUBBLE_OPACITY = 0.75;
     let colorString;
 
+    // Define the color scales based on the desired mappings.
+    // D3 will handle the smooth interpolation between these points.
+
+    // Scale for positive scores: from 'A little positive' to 'Most positive'
+    const positiveColorScale = d3.scaleLinear()
+        .domain([0.05, 1.0])        // Input score range
+        .range(['#9fad42', '#2a8d64']) // Output color range
+        .clamp(true); // Ensures values outside the domain are snapped to the ends
+
+    // Scale for negative scores: from 'A little negative' to 'Most negative'
+    const negativeColorScale = d3.scaleLinear()
+        .domain([-0.05, -1.0])       // Input score range
+        .range(['#CDb14c', '#DE3B3B']) // Output color range
+        .clamp(true); // Ensures values outside the domain are snapped to the ends
+
+    // Determine which scale to use based on the score
     if (score >= 0.05) {
-        const strength = (score - 0.05) / (1.0 - 0.05);
-        const color = d3.hsl('#2E8B57');
-        color.l = 0.65 - (strength * 0.25);
-        colorString = color.toString();
+        // Use the positive scale for scores from 0.05 to 1.0
+        colorString = positiveColorScale(score);
     } else if (score <= -0.05) {
-        const strength = (Math.abs(score) - 0.05) / (1.0 - 0.05);
-        const color = d3.hsl('#CD5C5C');
-        color.l = 0.75 - (strength * 0.20);
-        colorString = color.toString();
+        // Use the negative scale for scores from -0.05 to -1.0
+        colorString = negativeColorScale(score);
     } else {
+        // Use the fixed neutral color for scores between -0.05 and 0.05
         colorString = '#BFBFBF';
     }
     
     return { fill: colorString, fillOpacity: BUBBLE_OPACITY };
 }
-
 
 function polygonArea(points) {
     let area = 0;
