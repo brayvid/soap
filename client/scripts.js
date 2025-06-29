@@ -90,7 +90,7 @@ async function submitNewPolitician(event) {
         nameInput.value = '';
         positionInput.value = '';
         loadPoliticiansGrid(); // Reload the grid to show the new politician
-        showMessage('Politician added successfully!', 'success');
+        showMessage('Added successfully', 'success');
 
     } catch (err) {
         console.error('Error adding politician:', err);
