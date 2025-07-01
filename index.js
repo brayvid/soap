@@ -242,13 +242,6 @@ app.get('/politician/:id', async (req, res, next) => {
     }
 });
 
-// --------------------------------
-// Catch-all 404 page
-// --------------------------------
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
-});
-
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'dist')));
