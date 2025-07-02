@@ -13,7 +13,7 @@ Users can update their choices at any time, allowing for a dynamic and evolving 
 
 Soap is more than just a social platform—it's a movement towards more constructive discourse about our leaders. Join us in shaping a new way to discuss politics, where every word counts and every voice is heard. Together, we can create a more thoughtful, reasonable, and effective conversation.
 
-<h3><a href="https://use.soap.fyi">Try Soap Now 🫧</a></h3>
+<h3><a href="https://www.use.soap.fyi">Try Soap Now 🫧</a></h3>
 
 ---
 
@@ -31,43 +31,39 @@ Soap is more than just a social platform—it's a movement towards more construc
  <i>Phase 1 complete</i>
 <h3>Phase 2</h3>
 
-- User accounts, demographics, location
+- User accounts, demographics
 - Public vs logged-in views
 - Ability to undo submissions
 - Ranked choice voting system
 - Locality aware - federal, state, local
-- Bubbles shrink over time (optional view)
+- Bubbles shrink over time (and other views)
 - Universe of politicians
-- Universe of words
-- Form a business entity
-- Release alpha
+- Universe of words, definitions
+- Autocomplete & autocorrect
+- NLP word selection tool
+- Users can also submit reasons for their selections
 
 <h3>Phase 3</h3>
 
-- Definitions of words
-- NLP word selection tool
-- Autocomplete & autocorrect
-- Cohort sentiment analysis
 - Data products
-- Comparison between two or more politicians
-- Users can also submit reasons for their selections
+- Cohort analysis
 - Social features
 - Support multiple languages
 
 ---
 <br>
-<div align="center"><img src="images/example1.png"></div>
-<p align="center">Home page</p>
+<div align="center"><img src="images/home.png"></div>
+<p align="center"><a href="https://www.use.soap.fyi">Home page</a> (7/1/25)</p>
 <br>
 
 <br>
-<div align="center"><img src="images/example2.png"></div>
-<p align="center">Politician page</p>
+<div align="center"><img src="images/example.png"></div>
+<p align="center"><a href="https://www.use.soap.fyi/politician/1">Politician page</a> (7/1/25)</p>
 <br>
 
 <br>
-<div align="center"><img src="images/home1.png"></div>
-<p align="center">Future home page illustration</p>
+<div align="center"><img src="images/dash.png"></div>
+<p align="center"><a href="https://www.dash.soap.fyi">Data dashboard</a> (7/1/25)</p> 
 <br>
 
 --- 
