@@ -9,7 +9,7 @@ const { exec } = require('child_process');
 const PROJECT_ROOT = path.resolve(__dirname, '..'); 
 
 const PORTRAITS_DIR = path.join(PROJECT_ROOT, 'originals'); // Correct: soap/portraits/
-const PROCESS_SCRIPT_PATH = path.join(__dirname, 'processPortrait.js'); // Correct: soap/scripts/processPortrait.js
+const PROCESS_SCRIPT_PATH = path.join(__dirname, 'processPortrait.cjs'); // Correct: soap/scripts/processPortrait.js
 
 // --- End Configuration ---
 
