@@ -10,3 +10,4 @@ node_modules/
 .streamlit/
 .venv/
 models/
+.vscode/
