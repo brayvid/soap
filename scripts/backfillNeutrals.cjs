@@ -1,29 +1,29 @@
 // Copyright 2024-2025 soap.fyi <https://soap.fyi>
 
-// soap/scripts/backfillNeutrals.js
+// soap/scripts/backfillNeutrals.cjs
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // --- Configuration ---
-const KNEX_CONFIG_PATH = path.join(__dirname, '..', 'knexfile.js');
+const KNEX_CONFIG_PATH = path.join(__dirname, '..', 'knexfile.cjs');
 const KNEX_ENV = process.env.NODE_ENV || 'development';
 
 const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY;
 
 if (!GEMINI_API_KEY) {
-    console.error("ERROR: GOOGLE_GEMINI_API_KEY environment variable is not set (and not found in .env).");
+    console.error(`[${new Date().toISOString()}] ERROR: GOOGLE_GEMINI_API_KEY environment variable is not set (and not found in .env).`);
     process.exit(1);
 }
 
-const GEMINI_MODEL_NAME = "gemini-2.5-flash-preview-05-20"; // Or your preferred model
+const GEMINI_MODEL_NAME = "gemini-1.5-flash-latest"; // Or your preferred model
 
 const CUSTOM_MANUAL_LEXICON_PATH = path.join(__dirname, '..', 'custom_sentiment_lexicon.json');
 
 // Lexicon Database Table and Column names (your 'words' table)
 const LEXICON_DB_TABLE_NAME = 'words';
-const LEXICON_DB_ID_COLUMN = 'word_id'; // CORRECTED
+const LEXICON_DB_ID_COLUMN = 'word_id';
 const LEXICON_DB_WORD_COLUMN = 'word';
 const LEXICON_DB_SCORE_COLUMN = 'sentiment_score';
 // Optional: Column to track the source of the score
@@ -48,9 +48,9 @@ try {
         throw new Error(`Knex configuration for environment '${KNEX_ENV}' not found in ${KNEX_CONFIG_PATH}`);
     }
     knexLexiconDB = require('knex')(knexConfig);
-    console.log(`Connected to lexicon database using '${KNEX_ENV}' config.`);
+    console.log(`[${new Date().toISOString()}] Connected to lexicon database using '${KNEX_ENV}' config.`);
 } catch (error) {
-    console.error("Error initializing Knex for lexicon DB:", error.message);
+    console.error(`[${new Date().toISOString()}] Error initializing Knex for lexicon DB:`, error.message);
     process.exit(1);
 }
 
@@ -61,12 +61,12 @@ let customManualLexicon = {};
 try {
     if (fs.existsSync(CUSTOM_MANUAL_LEXICON_PATH)) {
         customManualLexicon = JSON.parse(fs.readFileSync(CUSTOM_MANUAL_LEXICON_PATH, 'utf8'));
-        console.log(`Loaded custom manual lexicon from: ${CUSTOM_MANUAL_LEXICON_PATH}`);
+        console.log(`[${new Date().toISOString()}] Loaded custom manual lexicon from: ${CUSTOM_MANUAL_LEXICON_PATH}`);
     } else {
-        console.warn(`Custom manual lexicon file not found at ${CUSTOM_MANUAL_LEXICON_PATH}.`);
+        console.warn(`[${new Date().toISOString()}] Custom manual lexicon file not found at ${CUSTOM_MANUAL_LEXICON_PATH}.`);
     }
 } catch (error) {
-    console.error("Error loading custom manual lexicon:", error);
+    console.error(`[${new Date().toISOString()}] Error loading custom manual lexicon:`, error);
 }
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -87,7 +87,7 @@ Word to analyze: "${word}"
 JSON response:`;
 
     try {
-        console.log(`    Querying Gemini for: "${word}"`);
+        console.log(`[${new Date().toISOString()}]     Querying Gemini for: "${word}"`);
         const result = await model.generateContent(prompt);
         const response = result.response;
         const text = response.text();
@@ -99,13 +99,13 @@ JSON response:`;
             score = Math.max(-1.0, Math.min(1.0, score));
             return parseFloat(score.toFixed(4));
         } else {
-            console.warn(`    Gemini response for "${word}" was not in expected JSON format: ${text}`);
+            console.warn(`[${new Date().toISOString()}]     Gemini response for "${word}" was not in expected JSON format: ${text}`);
             return null;
         }
     } catch (error) {
-        console.error(`    Error calling Gemini API for "${word}":`, error.message);
+        console.error(`[${new Date().toISOString()}]     Error calling Gemini API for "${word}":`, error.message);
         if (error.message.includes('429') || error.message.includes('rate limit')) {
-            console.warn('    Rate limit likely hit. Consider increasing REQUEST_DELAY_MS.');
+            console.warn(`[${new Date().toISOString()}]     Rate limit likely hit. Consider increasing REQUEST_DELAY_MS.`);
         }
         return null;
     }
@@ -115,8 +115,8 @@ JSON response:`;
  * Main function to backfill scores in the 'words' table using Gemini.
  * Only processes words where sentiment_score is currently 0.0.
  */
-async function backfillNeutrals() { // Renamed from backfillNeutrals
-    console.log("\nStarting backfill for 'words' table (targeting sentiment_score = 0.0) using Google Gemini...");
+async function backfillNeutrals() {
+    console.log(`[${new Date().toISOString()}] \nStarting backfill for 'words' table (targeting sentiment_score = 0.0) using Google Gemini...`);
     let recordsScanned = 0;
     let recordsUpdated = 0;
     let recordsStillZero = 0;
@@ -132,19 +132,19 @@ async function backfillNeutrals() { // Renamed from backfillNeutrals
 
         recordsScanned = wordsToProcess.length;
         if (recordsScanned === 0) {
-            console.log("No words found with sentiment_score = 0.0 to backfill.");
+            console.log(`[${new Date().toISOString()}] No words found with sentiment_score = 0.0 to backfill.`);
             return;
         }
-        console.log(`Found ${recordsScanned} words with sentiment_score = 0.0 to process.`);
+        console.log(`[${new Date().toISOString()}] Found ${recordsScanned} words with sentiment_score = 0.0 to process.`);
 
         for (let i = 0; i < wordsToProcess.length; i++) {
             const entry = wordsToProcess[i];
-            const wordId = entry[LEXICON_DB_ID_COLUMN]; // This will be the value from 'word_id' column
+            const wordId = entry[LEXICON_DB_ID_COLUMN];
             const wordText = entry[LEXICON_DB_WORD_COLUMN];
-            const originalDbScore = entry[LEXICON_DB_SCORE_COLUMN]; // Will be 0.0
+            const originalDbScore = entry[LEXICON_DB_SCORE_COLUMN];
             const standardizedWord = wordText.toLowerCase().trim();
 
-            console.log(`\nProcessing word ${i + 1}/${recordsScanned}: "${wordText}" (ID: ${wordId}, current score: ${originalDbScore})`);
+            console.log(`[${new Date().toISOString()}] \nProcessing word ${i + 1}/${recordsScanned}: "${wordText}" (ID: ${wordId}, current score: ${originalDbScore})`);
 
             let newScore = null;
             let scoreSource = 'gemini_api';
@@ -157,7 +157,7 @@ async function backfillNeutrals() { // Renamed from backfillNeutrals
 
                 if (newScore !== null) {
                     scoreSource = 'custom_manual_lexicon';
-                    console.log(`    Using score from manual lexicon: ${newScore}`);
+                    console.log(`[${new Date().toISOString()}]     Using score from manual lexicon: ${newScore}`);
                 }
             }
 
@@ -178,16 +178,16 @@ async function backfillNeutrals() { // Renamed from backfillNeutrals
             if (needsUpdate) {
                 const updatePayload = { [LEXICON_DB_SCORE_COLUMN]: newScore };
                 await knexLexiconDB(LEXICON_DB_TABLE_NAME)
-                    .where(LEXICON_DB_ID_COLUMN, wordId) // Uses 'word_id' here
+                    .where(LEXICON_DB_ID_COLUMN, wordId)
                     .update(updatePayload);
                 recordsUpdated++;
-                console.log(`    SUCCESS: Updated ID ${wordId} ("${wordText}"): old_score=${originalDbScore}, new_score=${newScore} (source: ${scoreSource})`);
+                console.log(`[${new Date().toISOString()}]     SUCCESS: Updated ID ${wordId} ("${wordText}"): old_score=${originalDbScore}, new_score=${newScore} (source: ${scoreSource})`);
             } else {
                 recordsStillZero++;
                 if (newScore !== null) {
-                     console.log(`    INFO: Score for ID ${wordId} ("${wordText}") determined as ${newScore} (source: ${scoreSource}), but this did not differ from original_score=${originalDbScore}. No update needed.`);
+                     console.log(`[${new Date().toISOString()}]     INFO: Score for ID ${wordId} ("${wordText}") determined as ${newScore} (source: ${scoreSource}), but this did not differ from original_score=${originalDbScore}. No update needed.`);
                 } else {
-                     console.log(`    INFO: Could not determine a new score for ID ${wordId} ("${wordText}"). Score remains ${originalDbScore}.`);
+                     console.log(`[${new Date().toISOString()}]     INFO: Could not determine a new score for ID ${wordId} ("${wordText}"). Score remains ${originalDbScore}.`);
                 }
             }
 
@@ -197,16 +197,17 @@ async function backfillNeutrals() { // Renamed from backfillNeutrals
         }
 
     } catch (error) {
-        console.error("\nError during Gemini backfill process:", error);
+        console.error(`[${new Date().toISOString()}] \nError during Gemini backfill process:`, error);
     } finally {
-        console.log("\n--- Gemini Backfill Summary (Targeting Score = 0.0) ---");
-        console.log(`Total words scanned (original score = 0.0): ${recordsScanned}`);
-        console.log(`Words updated with a new non-zero score: ${recordsUpdated}`);
-        console.log(`API/Processing failures (could not get score from Gemini): ${apiFailures}`);
-        console.log(`Words where score remained 0.0 (or API failed): ${recordsStillZero}`);
+        const finalTimestamp = `[${new Date().toISOString()}]`;
+        console.log(`${finalTimestamp} \n--- Gemini Backfill Summary (Targeting Score = 0.0) ---`);
+        console.log(`${finalTimestamp} Total words scanned (original score = 0.0): ${recordsScanned}`);
+        console.log(`${finalTimestamp} Words updated with a new non-zero score: ${recordsUpdated}`);
+        console.log(`${finalTimestamp} API/Processing failures (could not get score from Gemini): ${apiFailures}`);
+        console.log(`${finalTimestamp} Words where score remained 0.0 (or API failed): ${recordsStillZero}`);
         if (knexLexiconDB) {
             await knexLexiconDB.destroy();
-            console.log("Database connection closed.");
+            console.log(`${finalTimestamp} Database connection closed.`);
         }
     }
 }
