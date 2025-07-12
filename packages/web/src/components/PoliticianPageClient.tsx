@@ -4,38 +4,28 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import * as d3 from 'd3';
-import { Socket } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import { getBubbleFillStyle } from '@/lib/styleUtils';
 import { useToast } from '@/context/ToastContext';
 
 // --- Type Definitions ---
 type Vote = { word: string; count: number; sentiment_score: number; last_voted_at: string; };
 type Politician = { politician_id: number; name: string; position: string; };
-type LayoutPoint = { id: number; x: number; y: number };
+type LayoutPoint = { id: number; x: number; y: number; };
 type LayoutData = { canvasWidth: number; canvasHeight: number; all_points: LayoutPoint[]; };
 type BubbleData = { word: string; value: number; score: number; decayFactor: number; };
 type SimulationNode = BubbleData & d3.SimulationNodeDatum & { radius: number; targetX: number; targetY: number; forceStrengthModifier: number; };
 type HierarchyBubbleNode = d3.HierarchyCircularNode<BubbleData>;
 
-// --- D3 Helper Functions ---
+// --- D3 Helper Functions (unchanged, but included for completeness) ---
 const FACE_SILHOUETTE_INDICES = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109];
 const LEFT_EYE_CONTOUR_INDICES = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
 const RIGHT_EYE_CONTOUR_INDICES = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466];
 const MOUTH_OUTER_CONTOUR_INDICES = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146];
 const NOSE_TIP_INDEX = 4;
 const CHIN_POINT_INDEX = 152;
-
 function polygonArea(points: { x: number; y: number }[]): number { let a = 0; for (let i = 0, j = points.length - 1; i < points.length; j = i++) a += (points[j].x + points[i].x) * (points[j].y - points[i].y); return Math.abs(a / 2); }
-function isInside(point: { x: number; y: number }, vs: { x: number; y: number }[]): boolean { 
-    const x = point.x, y = point.y;
-    let inside = false; 
-    for (let c = 0, j = vs.length - 1; c < vs.length; j = c++) { 
-        const vi = vs[c]; // <-- FIX: Changed to 'const'
-        const vj = vs[j]; // <-- FIX: Changed to 'const'
-        if (((vi.y > y) !== (vj.y > y)) && (x < (vj.x - vi.x) * (y - vi.y) / (vj.y - vi.y) + vi.x)) inside = !inside; 
-    } 
-    return inside; 
-}
+function isInside(point: { x: number; y: number }, vs: { x: number; y: number }[]): boolean { let x = point.x, y = point.y, i = false; for (let c = 0, j = vs.length - 1; c < vs.length; j = c++) { let vi = vs[c], vj = vs[j]; if (((vi.y > y) !== (vj.y > y)) && (x < (vj.x - vi.x) * (y - vi.y) / (vj.y - vi.y) + vi.x)) i = !i; } return i; }
 function getPointsByIndices(allPoints: LayoutPoint[], indices: number[]): { x: number; y: number }[] { return indices.map(i => allPoints?.[i]).filter(Boolean); }
 function getCenterOfPoints(points: { x: number; y: number }[]): { x: number; y: number } | null { if (!points || points.length === 0) return null; const s = points.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 }); return { x: s.x / points.length, y: s.y / points.length }; }
 function mulberry32(seed: number): () => number { return function() { let t = seed += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; } }
@@ -43,8 +33,6 @@ function mulberry32(seed: number): () => number { return function() { let t = se
 export function PoliticianPageClient() {
     const params = useParams();
     const politicianId = params.id as string;
-
-    // --- THIS IS THE MISSING LINE ---
     const { showToast } = useToast();
 
     const [politician, setPolitician] = useState<Politician | null>(null);
@@ -58,42 +46,32 @@ export function PoliticianPageClient() {
     const svgRef = useRef<SVGSVGElement>(null);
     const socketRef = useRef<Socket | null>(null);
 
-// packages/web/src/components/PoliticianPageClient.tsx
-
     const handleVote = useCallback(async (word: string) => {
         if (!politicianId) return;
         try {
-            const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/words`;
-            
-            // Get the response from the fetch call
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ word, politician_id: politicianId }),
-            });
-
-            // Check the response to show messages
+            // Ensure single slash between base URL and path
+            const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/words`; 
+            const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ word, politician_id: politicianId }), });
             if (response.status === 429) {
                 showToast('Rate limit exceeded', 'error');
             } else if (!response.ok) {
-                const errData = await response.json().catch(() => ({})); // Try to get error message from API
+                const errData = await response.json().catch(() => ({}));
                 showToast(errData.error || "An error occurred.", 'error');
             }
-            // No success toast here, because the socket update is the real success indicator.
-
         } catch (error) {
             console.error("Vote submission error:", error);
-            showToast("A network error occurred. Please try again.", 'error');
+            showToast("A network error occurred.", 'error');
         }
-    }, [politicianId, showToast]); // <-- The dependency array is now correct
+    }, [politicianId, showToast]);
 
     useEffect(() => {
         if (!politicianId) return;
         const fetchData = async () => {
             try {
                 setIsLoading(true); setError(null);
+                // Ensure single slash between base URL and path
                 const [politicianRes, layoutRes] = await Promise.all([
-                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/politician/${politicianId}/data`),
+                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/politician/${politicianId}/data`), 
                     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/data/layout-${politicianId}.json`)
                 ]);
                 if (!politicianRes.ok) throw new Error('Politician not found');
@@ -133,6 +111,11 @@ export function PoliticianPageClient() {
         
         const dataForChart: BubbleData[] = processedData.map(d => ({ word: d.word, value: d.decayedCount, score: d.sentiment_score, decayFactor: d.decayFactor }));
         
+        if (dataForChart.length === 0) {
+            svg.append("text").attr("x", "50%").attr("y", "50%").attr("text-anchor", "middle").attr("dominant-baseline", "central").style("font-family", "Inter, sans-serif").style("font-size", "1rem").text("Be the first to add a word.");
+            return;
+        }
+        
         if (layout) {
             drawFaceLayout(svg, dataForChart, layout, politicianId, handleVote);
         } else {
@@ -154,7 +137,7 @@ export function PoliticianPageClient() {
 
 function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: BubbleData[], layoutData: LayoutData, politicianId: string, handleVote: (word: string) => void) {
     if (data.length === 0) {
-        svg.append("text").attr("x", "50%").attr("y", "50%").attr("text-anchor", "middle").style("font-size", "1rem").text("Be the first to add a word.");
+        svg.append("text").attr("x", "50%").attr("y", "50%").attr("text-anchor", "middle").style("font-family", "Inter, sans-serif").text("Be the first to add a word.");
         return;
     }
 
@@ -164,7 +147,9 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
     if (!headShapePoints || headShapePoints.length < 3 || !canvasWidth || !canvasHeight || !faceCentroid) { return drawFallbackLayout(svg, data, handleVote); }
     svg.attr("viewBox", `0 0 ${canvasWidth} ${canvasHeight}`).attr("preserveAspectRatio", "xMidYMid meet");
     const chartGroup = svg.append("g");
-    chartGroup.append("image").attr("href", `${process.env.NEXT_PUBLIC_API_BASE_URL}/portraits/portrait-${politicianId}.jpg`).attr("width", canvasWidth).attr("height", canvasHeight);
+    // Ensure single slash between base URL and path
+    const imageUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/portraits/portrait-${politicianId}.jpg`; 
+    chartGroup.append("image").attr("href", imageUrl).attr("width", canvasWidth).attr("height", canvasHeight);
     const faceArea = polygonArea(headShapePoints);
     const scaledTotalVoteValue = d3.sum(data, d => Math.pow(d.value, 1.05)) || 1;
     const scalingFactor = (faceArea * 0.9) / scaledTotalVoteValue;
@@ -184,10 +169,7 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
 }
 
 function drawFallbackLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: BubbleData[], handleVote: (word: string) => void) {
-  if (data.length === 0) {
-      svg.append("text").attr("x", "50%").attr("y", "50%").attr("text-anchor", "middle").style("font-size", "1rem").text("Be the first to add a word.");
-      return;
-  }
+  if (data.length === 0) { svg.append("text").attr("x", "50%").attr("y", "50%").attr("text-anchor", "middle").style("font-size", "1rem").text("Be the first to add a word."); return; }
   const container = svg.node()!.parentElement as HTMLElement;
   const width = container.clientWidth;
   const height = container.clientHeight;
