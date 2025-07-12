@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import * as d3 from 'd3';
-import { io, Socket } from 'socket.io-client';
+import { Socket } from 'socket.io-client'; // FIX: Removed 'io' from here
 import { getBubbleFillStyle } from '@/lib/styleUtils';
 import { useToast } from '@/context/ToastContext';
 
@@ -17,15 +17,25 @@ type BubbleData = { word: string; value: number; score: number; decayFactor: num
 type SimulationNode = BubbleData & d3.SimulationNodeDatum & { radius: number; targetX: number; targetY: number; forceStrengthModifier: number; };
 type HierarchyBubbleNode = d3.HierarchyCircularNode<BubbleData>;
 
-// --- D3 Helper Functions (unchanged, but included for completeness) ---
+// --- D3 Helper Functions ---
 const FACE_SILHOUETTE_INDICES = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109];
 const LEFT_EYE_CONTOUR_INDICES = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
 const RIGHT_EYE_CONTOUR_INDICES = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466];
 const MOUTH_OUTER_CONTOUR_INDICES = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146];
 const NOSE_TIP_INDEX = 4;
 const CHIN_POINT_INDEX = 152;
+
 function polygonArea(points: { x: number; y: number }[]): number { let a = 0; for (let i = 0, j = points.length - 1; i < points.length; j = i++) a += (points[j].x + points[i].x) * (points[j].y - points[i].y); return Math.abs(a / 2); }
-function isInside(point: { x: number; y: number }, vs: { x: number; y: number }[]): boolean { let x = point.x, y = point.y, i = false; for (let c = 0, j = vs.length - 1; c < vs.length; j = c++) { let vi = vs[c], vj = vs[j]; if (((vi.y > y) !== (vj.y > y)) && (x < (vj.x - vi.x) * (y - vi.y) / (vj.y - vi.y) + vi.x)) i = !i; } return i; }
+function isInside(point: { x: number; y: number }, vs: { x: number; y: number }[]): boolean { 
+    const x = point.x, y = point.y; // Correctly 'const'
+    let inside = false; 
+    for (let c = 0, j = vs.length - 1; c < vs.length; j = c++) { 
+        const vi = vs[c]; // Correctly 'const'
+        const vj = vs[j]; // Correctly 'const'
+        if (((vi.y > y) !== (vj.y > y)) && (x < (vj.x - vi.x) * (y - vi.y) / (vj.y - vi.y) + vi.x)) inside = !inside; 
+    } 
+    return inside; 
+}
 function getPointsByIndices(allPoints: LayoutPoint[], indices: number[]): { x: number; y: number }[] { return indices.map(i => allPoints?.[i]).filter(Boolean); }
 function getCenterOfPoints(points: { x: number; y: number }[]): { x: number; y: number } | null { if (!points || points.length === 0) return null; const s = points.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 }); return { x: s.x / points.length, y: s.y / points.length }; }
 function mulberry32(seed: number): () => number { return function() { let t = seed += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; } }
@@ -49,7 +59,6 @@ export function PoliticianPageClient() {
     const handleVote = useCallback(async (word: string) => {
         if (!politicianId) return;
         try {
-            // Ensure single slash between base URL and path
             const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/words`; 
             const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ word, politician_id: politicianId }), });
             if (response.status === 429) {
@@ -69,7 +78,6 @@ export function PoliticianPageClient() {
         const fetchData = async () => {
             try {
                 setIsLoading(true); setError(null);
-                // Ensure single slash between base URL and path
                 const [politicianRes, layoutRes] = await Promise.all([
                     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/politician/${politicianId}/data`), 
                     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/data/layout-${politicianId}.json`)
@@ -87,7 +95,7 @@ export function PoliticianPageClient() {
     useEffect(() => {
         if (!politicianId) return;
         const socketInitializer = async () => {
-            const { io } = await import('socket.io-client');
+            const { io } = await import('socket.io-client'); // FIX: Dynamic import of 'io' here is correct
             const socketUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
             socketRef.current = io(socketUrl);
             socketRef.current.on('connect', () => console.log(`Socket connected to ${socketUrl}`));
@@ -137,7 +145,7 @@ export function PoliticianPageClient() {
 
 function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: BubbleData[], layoutData: LayoutData, politicianId: string, handleVote: (word: string) => void) {
     if (data.length === 0) {
-        svg.append("text").attr("x", "50%").attr("y", "50%").attr("text-anchor", "middle").style("font-family", "Inter, sans-serif").text("Be the first to add a word.");
+        svg.append("text").attr("x", "50%").attr("y", "50%").attr("text-anchor", "middle").attr("dominant-baseline", "central").style("font-family", "Inter, sans-serif").style("font-size", "1rem").text("Be the first to add a word.");
         return;
     }
 
