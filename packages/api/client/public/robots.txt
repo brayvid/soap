@@ -1,0 +1,16 @@
+# This robots.txt file applies to all subdomains of soap.fyi
+
+User-agent: *
+
+# Disallow crawling of internal API endpoints and data files
+Disallow: /politician/*/data
+Disallow: /data/
+Disallow: /words
+Disallow: /sentiment
+Disallow: /politicians
+
+# Disallow crawling of the health check endpoint
+Disallow: /healthz
+
+# Use the full canonical URL
+Sitemap: https://www.use.soap.fyi/sitemap.xml

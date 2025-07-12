@@ -1,0 +1,13 @@
+*.pyc
+__pycache__/
+instance/
+.env
+.env.local
+site.db
+.DS_Store
+node_modules/
+*.log
+.streamlit/
+.venv/
+models/
+.vscode/

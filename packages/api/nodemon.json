@@ -1,0 +1,15 @@
+{
+  "verbose": true,
+  "watch": [
+    "index.js"
+  ],
+  "ext": "js,mjs,cjs,json",
+  "ignore": [
+    "client/*",
+    "dist/*",
+    "node_modules/*",
+    "*.db",
+    "*.sqlite",
+    "*.sqlite3"
+  ]
+}
