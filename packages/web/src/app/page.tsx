@@ -11,20 +11,14 @@ type Politician = {
 };
 
 async function getPoliticians(): Promise<Politician[]> {
-  // This function runs on the server, so it should use the internal API URL.
-  let apiUrl: string;
-  if (process.env.API_INTERNAL_URL) {
-    apiUrl = process.env.API_INTERNAL_URL;
-  } else {
-    // Fallback for local development if API_INTERNAL_URL is not set in .env.local
-    // For local dev, we use localhost directly.
-    apiUrl = 'http://localhost:3001';
-  }
-
+  // --- THIS IS THE FINAL FIX ---
+  // Use the API service name directly, as provided by Railway's environment.
+  // Railway automatically sets up environment variables like SOAP_API_URL if you create a reference.
+  const apiUrl = process.env.SOAP_API_URL || 'http://localhost:3001'; // Default to localhost for local dev
+  
   try {
     const res = await fetch(`${apiUrl}/politicians`, { cache: 'no-store' });
     if (!res.ok) {
-      // Log the URL that failed for debugging
       console.error(`API fetch failed for URL: ${apiUrl}/politicians`);
       throw new Error('API fetch failed');
     }
@@ -39,5 +33,3 @@ export default async function Home() {
   const politicians = await getPoliticians();
   return <HomePage politicians={politicians} />;
 }
-
-
