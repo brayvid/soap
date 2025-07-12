@@ -26,7 +26,16 @@ const NOSE_TIP_INDEX = 4;
 const CHIN_POINT_INDEX = 152;
 
 function polygonArea(points: { x: number; y: number }[]): number { let a = 0; for (let i = 0, j = points.length - 1; i < points.length; j = i++) a += (points[j].x + points[i].x) * (points[j].y - points[i].y); return Math.abs(a / 2); }
-function isInside(point: { x: number; y: number }, vs: { x: number; y: number }[]): boolean { const x = point.x, y = point.y; let i = false; for (let c = 0, j = vs.length - 1; c < vs.length; j = c++) { let vi = vs[c], vj = vs[j]; if (((vi.y > y) !== (vj.y > y)) && (x < (vj.x - vi.x) * (y - vi.y) / (vj.y - vi.y) + vi.x)) i = !i; } return i; }
+function isInside(point: { x: number; y: number }, vs: { x: number; y: number }[]): boolean { 
+    const x = point.x, y = point.y;
+    let inside = false; 
+    for (let c = 0, j = vs.length - 1; c < vs.length; j = c++) { 
+        const vi = vs[c]; // <-- FIX: Changed to 'const'
+        const vj = vs[j]; // <-- FIX: Changed to 'const'
+        if (((vi.y > y) !== (vj.y > y)) && (x < (vj.x - vi.x) * (y - vi.y) / (vj.y - vi.y) + vi.x)) inside = !inside; 
+    } 
+    return inside; 
+}
 function getPointsByIndices(allPoints: LayoutPoint[], indices: number[]): { x: number; y: number }[] { return indices.map(i => allPoints?.[i]).filter(Boolean); }
 function getCenterOfPoints(points: { x: number; y: number }[]): { x: number; y: number } | null { if (!points || points.length === 0) return null; const s = points.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 }); return { x: s.x / points.length, y: s.y / points.length }; }
 function mulberry32(seed: number): () => number { return function() { let t = seed += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; } }
