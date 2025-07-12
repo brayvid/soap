@@ -1,5 +1,4 @@
 // packages/web/src/components/HomePage.tsx
-import { PoliticianGrid } from './PoliticianGrid';
 import { AddPoliticianForm } from './AddPoliticianForm';
 import { FilterBar } from './FilterBar';
 
