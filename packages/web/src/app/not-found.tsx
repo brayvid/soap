@@ -15,9 +15,12 @@ export default function NotFound() {
         <h1 style={{ fontSize: '3rem', color: '#76B0DF', marginBottom: '1rem' }}>
           404
         </h1>
-        {/* FIX: Escape the apostrophes here */}
+        {/*
+          CRITICAL FIX: Changed ' to ' in "you're" and "doesn't"
+          This resolves the reaåct/no-unescaped-entities ESLint error.
+        */}
         <p style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
-          Oops! The page you're looking for doesn't exist.
+          Oops! The page you&apos;re looking for doesn&apos;t exist.
         </p>
         <Link href="/" style={{ color: '#76B0DF', fontWeight: 'bold', textDecoration: 'none' }}>
           ← Back to Home
