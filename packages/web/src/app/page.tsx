@@ -1,4 +1,5 @@
 // packages/web/src/app/page.tsx
+import React, { Suspense } from 'react';
 import { HomePage } from '@/components/HomePage';
 
 type Politician = {
@@ -11,25 +12,22 @@ type Politician = {
 };
 
 async function getPoliticians(): Promise<Politician[]> {
-  const apiUrl = process.env.SOAP_API_URL || 'http://localhost:3001'; // Default to localhost for local dev
+  const apiUrl = process.env.SOAP_API_URL || 'http://localhost:3001';
 
   try {
     const res = await fetch(`${apiUrl}/politicians`, {
-      // --- CHANGE THIS LINE ---
-      // Instead of cache: 'no-store', use revalidate for ISR
-      // Here, the data will be re-fetched from the API every 60 seconds
       next: {
-        revalidate: 60, // Data will be fresh for at least 60 seconds (1 minute)
+        revalidate: 60,
       },
     });
 
     if (!res.ok) {
       console.error(`API fetch failed for URL: ${apiUrl}/politicians`);
-      // It's good practice to log the response body for more context on errors
       const errorBody = await res.text();
       console.error("API Error Response:", errorBody);
       throw new Error('API fetch failed');
     }
+
     return res.json();
   } catch (error) {
     console.error("Server-side fetch error:", error);
@@ -37,7 +35,15 @@ async function getPoliticians(): Promise<Politician[]> {
   }
 }
 
-export default async function Home() {
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading politicians...</div>}>
+      <HomePageWrapper />
+    </Suspense>
+  );
+}
+
+async function HomePageWrapper() {
   const politicians = await getPoliticians();
   return <HomePage politicians={politicians} />;
 }
