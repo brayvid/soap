@@ -19,11 +19,57 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
+
+const allowedOrigins = [
+  'https://www.use.soap.fyi',
+  'https://use.soap.fyi',
+  process.env.FRONTEND_URL || 'http://localhost:3000',
+];
+
+// CORS middleware with multiple allowed origins
+app.use(cors({
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error(`CORS policy: Origin ${origin} not allowed`));
+    }
+  }
+}));
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ["GET", "POST"]
   }
+});
+
+app.use(compression());
+app.set('trust proxy', true); // Important for getting IP address behind a proxy (like Railway)
+app.use(express.json());
+
+// Serve all static files (portraits, layouts) from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Redirect naked domain to www in production
+app.use((req, res, next) => {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (req.hostname === 'use.soap.fyi' || req.hostname === 'use.soap.fyi:443') &&
+    req.path !== '/healthz'
+  ) {
+    return res.redirect(301, `https://www.use.soap.fyi${req.originalUrl}`);
+  }
+  next();
 });
 
 // --- HELPER FUNCTIONS ---
@@ -60,23 +106,6 @@ function getClientIP(req) {
     const forwarded = req.headers['x-forwarded-for'];
     return (forwarded ? forwarded.split(',')[0] : req.socket.remoteAddress).trim();
 }
-
-// --- MIDDLEWARE (Correct Order) ---
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000' }));
-app.use(compression());
-app.set('trust proxy', true); // Important for getting IP address behind a proxy (like Railway)
-app.use(express.json());
-
-// Serve all static files (portraits, layouts) from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Redirect naked domain to www in production
-app.use((req, res, next) => {
-    if (process.env.NODE_ENV === 'production' && req.host === 'use.soap.fyi' && req.path !== '/healthz') {
-        return res.redirect(301, 'https://www.use.soap.fyi' + req.originalUrl);
-    }
-    next();
-});
 
 // --- API ROUTES ---
 app.get('/healthz', (req, res) => res.status(200).json({ status: 'ok' }));
