@@ -161,17 +161,19 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
     svg.attr("viewBox", `0 0 ${canvasWidth} ${canvasHeight}`).attr("preserveAspectRatio", "xMidYMid meet");
     
     // --- FIX START ---
-    // Widen the range of the logarithmic scale to exaggerate the size difference.
-    const [, maxVal] = d3.extent(data, d => d.value);
-    const sizeScale = d3.scaleLog().domain([1, maxVal || 1]).range([3, 22]).clamp(true);
-    const contribution = (val: number) => Math.pow(sizeScale(Math.max(1, val)), 2);
-
+    // This new system dynamically calculates bubble sizes to fill the face area.
     const faceArea = polygonArea(headShapePoints);
-    const scaledTotalVoteValue = d3.sum(data, d => contribution(d.value)) || 1;
+    const targetCoverage = 0.85; // Target 85% of the face area to be covered by bubbles.
+    const targetTotalBubbleArea = faceArea * targetCoverage;
+
+    // Use a sqrt scale on the vote values to determine their contribution to the area.
+    // This makes bubble growth feel more natural.
+    const totalVoteValue = d3.sum(data, d => d.value);
+    
+    // Calculate a scaling factor to map the sum of all vote values to the target area.
+    const areaScalingFactor = targetTotalBubbleArea / totalVoteValue;
     // --- FIX END ---
     
-    const targetCoverage = 0.9;
-    const scalingFactor = (faceArea * targetCoverage) / scaledTotalVoteValue;
     const dataSignature = data.length + d3.sum(data, d => d.value);
     const seed = Number(politicianId) * dataSignature;
     const random = mulberry32(seed);
@@ -180,12 +182,12 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
     const ANCHOR_COUNT = Math.min(featureTargets.length, sortedByPop.length, 5);
     
     const nodes: SimulationNode[] = sortedByPop.map((d, i) => { 
-        const scaledValue = contribution(d.value);
-        const bubbleArea = scaledValue * scalingFactor; 
-        let radius = Math.sqrt(bubbleArea / Math.PI); 
         // --- FIX START ---
-        // Adjust the minimum radius to match the new scale, ensuring visibility without flattening the range.
-        radius = isNaN(radius) || radius < 6 ? 6 : radius;
+        // Each bubble's area is its value * the scaling factor.
+        const bubbleArea = d.value * areaScalingFactor;
+        // The radius is the sqrt of the area, with a minimum size enforced.
+        let radius = Math.sqrt(bubbleArea / Math.PI);
+        radius = Math.max(8, radius); // Enforce a minimum radius of 8px.
         // --- FIX END ---
         
         let targetX, targetY, forceStrengthModifier; 
@@ -210,7 +212,14 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
         return { ...d, radius: radius, targetX: targetX, targetY: targetY, forceStrengthModifier: forceStrengthModifier, x: targetX + (random() - 0.5), y: targetY + (random() - 0.5) }; 
     });
     
-    const simulation = d3.forceSimulation(nodes).force("collide", d3.forceCollide<SimulationNode>().radius(d => d.radius + 1.2).strength(0.9)).force("x_target", d3.forceX<SimulationNode>().strength(d => d.forceStrengthModifier).x(d => d.targetX)).force("y_target", d3.forceY<SimulationNode>().strength(d => d.forceStrengthModifier).y(d => d.targetY)).force("boundary", alpha => { for (const node of nodes) { const point = { x: node.x ?? 0, y: node.y ?? 0 }; if (!isInside(point, headShapePoints)) { node.vx = (node.vx || 0) + (faceCentroid.x - point.x) * 0.3 * alpha; node.vy = (node.vy || 0) + (faceCentroid.y - point.y) * 0.3 * alpha; } } }).force("center_overall", d3.forceCenter(faceCentroid.x, faceCentroid.y).strength(0.04)).stop();
+    const simulation = d3.forceSimulation(nodes)
+        .force("collide", d3.forceCollide<SimulationNode>().radius(d => d.radius + 1.5).strength(0.8))
+        .force("x_target", d3.forceX<SimulationNode>().strength(d => d.forceStrengthModifier).x(d => d.targetX))
+        .force("y_target", d3.forceY<SimulationNode>().strength(d => d.forceStrengthModifier).y(d => d.targetY))
+        .force("boundary", alpha => { for (const node of nodes) { const point = { x: node.x ?? 0, y: node.y ?? 0 }; if (!isInside(point, headShapePoints)) { node.vx = (node.vx || 0) + (faceCentroid.x - point.x) * 0.3 * alpha; node.vy = (node.vy || 0) + (faceCentroid.y - point.y) * 0.3 * alpha; } } })
+        .force("center_overall", d3.forceCenter(faceCentroid.x, faceCentroid.y).strength(0.04))
+        .stop();
+
     for (let i = 0; i < 300; ++i) simulation.tick();
 
     const chartGroup = svg.append("g");
@@ -229,12 +238,15 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
     textGroups.append("text").text(d => d.word).attr("text-anchor", "middle").attr("dominant-baseline", "central").style("fill", "#fff").style("font-family", "Inter, sans-serif").style("pointer-events", "none")
       .each(function(d) {
           const textSelection = d3.select(this);
-          const availableWidth = d.radius * 1.9;
+          const availableWidth = d.radius * 1.8;
           textSelection.style("font-size", "10px");
           const naturalWidth = (this as SVGTextElement).getComputedTextLength();
-          if (naturalWidth === 0) return;
+          if (naturalWidth === 0 || d.radius < 8) {
+              textSelection.style('display', 'none');
+              return;
+          }
           const newFontSize = (10 * availableWidth) / naturalWidth;
-          textSelection.style("font-size", `${Math.min(d.radius * 1.4, Math.max(newFontSize, 6))}px`);
+          textSelection.style("font-size", `${Math.min(d.radius * 1.2, Math.max(newFontSize, 8))}px`);
       });
 }
 
@@ -258,7 +270,10 @@ function drawFallbackLayout(svg: d3.Selection<SVGSVGElement, unknown, null, unde
       return;
   }
 
-  const pack = d3.pack<BubbleData>().size([width, height]).padding(5);
+  // --- FIX START ---
+  // For d3.pack, simply summing by the value is the most direct way to make
+  // the bubble area proportional to the vote count. D3 handles the sqrt scaling internally.
+  const pack = d3.pack<BubbleData>().size([width, height]).padding(8); // Increased padding
 
   const rootData: BubbleData & { children?: BubbleData[] } = {
     word: 'root',
@@ -268,13 +283,7 @@ function drawFallbackLayout(svg: d3.Selection<SVGSVGElement, unknown, null, unde
     children: data
   };
   
-  // --- FIX START ---
-  // Replicate the widened logarithmic scale for consistency.
-  const [, maxVal] = d3.extent(data, d => d.value);
-  const sizeScale = d3.scaleLog().domain([1, maxVal || 1]).range([3, 22]).clamp(true);
-  const contribution = (val: number) => Math.pow(sizeScale(Math.max(1, val)), 2);
-  
-  const root = d3.hierarchy(rootData).sum((d) => d.value ? contribution(d.value) : 0);
+  const root = d3.hierarchy(rootData).sum((d) => d.value || 0);
   // --- FIX END ---
   
   const nodes = pack(root).leaves();
@@ -285,10 +294,7 @@ function drawFallbackLayout(svg: d3.Selection<SVGSVGElement, unknown, null, unde
       .attr('transform', d => `translate(${d.x},${d.y})`);
   
   circleGroups.append("circle")
-      // --- FIX START ---
-      // Adjust minimum radius to match the new scale.
-      .attr("r", d => Math.max(d.r, 6))
-      // --- FIX END ---
+      .attr("r", d => d.r)
       .attr("fill", d => getBubbleFillStyle(d.data.score).fill)
       .attr("fill-opacity", d => getBubbleFillStyle(d.data.score).fillOpacity)
       .style("cursor", "pointer")
@@ -303,16 +309,15 @@ function drawFallbackLayout(svg: d3.Selection<SVGSVGElement, unknown, null, unde
       .style("pointer-events", "none")
       .each(function(d) {
           const textSelection = d3.select(this);
-          // --- FIX START ---
-          const radius = Math.max(d.r, 6);
-          const availableWidth = radius * 1.9;
-          // --- FIX END ---
+          const radius = d.r;
+          const availableWidth = radius * 1.8;
           textSelection.style("font-size", "10px");
           const naturalWidth = (this as SVGTextElement).getComputedTextLength();
-          if (naturalWidth === 0) return;
+           if (naturalWidth === 0 || radius < 8) {
+              textSelection.style('display', 'none');
+              return;
+          }
           const newFontSize = (10 * availableWidth) / naturalWidth;
-          // --- FIX START ---
-          textSelection.style("font-size", `${Math.min(radius * 1.4, Math.max(newFontSize, 6))}px`);
-          // --- FIX END ---
+          textSelection.style("font-size", `${Math.min(radius * 1.2, Math.max(newFontSize, 8))}px`);
       });
 }
