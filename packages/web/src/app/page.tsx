@@ -62,7 +62,7 @@ async function HomePageWrapper() {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: 'red' }}>
         <h2>Failed to load politicians.</h2>
-        <p>There was an error connecting to the server. Please check the deployment logs for more details.</p>
+        <p>There was an error connecting to the server.</p>
       </div>
     );
   }
