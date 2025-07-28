@@ -175,10 +175,6 @@ app.get('/politicians', async (req, res) => {
     }
 });
 
-// In your server/index.js
-
-// ... (keep all your other code)
-
 app.post('/politicians', async (req, res) => {
     const { name, position } = req.body;
     const ip = getClientIP(req);

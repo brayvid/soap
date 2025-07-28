@@ -12,37 +12,38 @@ type Politician = {
   search_words?: string[];
 };
 
-async function getPoliticians(): Promise<Politician[] | null> { // Return null on error
+async function getPoliticians(): Promise<Politician[] | null> {
   const apiUrl = process.env.SOAP_API_URL;
 
-  // --- ADD THIS CHECK ---
   if (!apiUrl) {
     console.error("CRITICAL: SOAP_API_URL environment variable is not set!");
-    return null; // Fail fast if the URL is missing
+    return null;
   }
   
   try {
-    console.log(`Fetching politicians from production URL: ${apiUrl}/politicians`); // Log the URL being used
+    console.log(`Fetching politicians from production URL: ${apiUrl}/politicians`);
     
     const res = await fetch(`${apiUrl}/politicians`, {
-      next: {
-        tags: ['politicians-list'],
-      },
+      // --- CHANGE THIS ---
+      // next: {
+      //   tags: ['politicians-list'],
+      // },
+      // --- TO THIS ---
+      cache: 'no-store', // This forces the request to be dynamic every time
     });
 
     if (!res.ok) {
       const errorBody = await res.text();
-      // --- MORE DETAILED LOGGING ---
       console.error(`API fetch failed with status: ${res.status}`);
       console.error(`Failing URL: ${apiUrl}/politicians`);
       console.error("API Error Response Body:", errorBody);
-      return null; // Return null instead of an empty array
+      return null;
     }
 
     return res.json();
   } catch (error) {
     console.error("A critical server-side fetch error occurred:", error);
-    return null; // Return null on network or other errors
+    return null;
   }
 }
 
