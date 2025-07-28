@@ -12,29 +12,37 @@ type Politician = {
   search_words?: string[];
 };
 
-async function getPoliticians(): Promise<Politician[]> {
-  const apiUrl = process.env.SOAP_API_URL || 'http://localhost:3001';
+async function getPoliticians(): Promise<Politician[] | null> { // Return null on error
+  const apiUrl = process.env.SOAP_API_URL;
 
+  // --- ADD THIS CHECK ---
+  if (!apiUrl) {
+    console.error("CRITICAL: SOAP_API_URL environment variable is not set!");
+    return null; // Fail fast if the URL is missing
+  }
+  
   try {
+    console.log(`Fetching politicians from production URL: ${apiUrl}/politicians`); // Log the URL being used
+    
     const res = await fetch(`${apiUrl}/politicians`, {
       next: {
-        // --- CHANGE THIS ---
-        tags: ['politicians-list'], // Assign a specific cache tag
-        // --- TO THIS ---
+        tags: ['politicians-list'],
       },
     });
 
     if (!res.ok) {
-      console.error(`API fetch failed for URL: ${apiUrl}/politicians`);
       const errorBody = await res.text();
-      console.error("API Error Response:", errorBody);
-      throw new Error('API fetch failed');
+      // --- MORE DETAILED LOGGING ---
+      console.error(`API fetch failed with status: ${res.status}`);
+      console.error(`Failing URL: ${apiUrl}/politicians`);
+      console.error("API Error Response Body:", errorBody);
+      return null; // Return null instead of an empty array
     }
 
     return res.json();
   } catch (error) {
-    console.error("Server-side fetch error:", error);
-    return [];
+    console.error("A critical server-side fetch error occurred:", error);
+    return null; // Return null on network or other errors
   }
 }
 
@@ -48,5 +56,16 @@ export default function Home() {
 
 async function HomePageWrapper() {
   const politicians = await getPoliticians();
+
+  // --- ADD THIS ERROR HANDLING ---
+  if (politicians === null) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: 'red' }}>
+        <h2>Failed to load politicians.</h2>
+        <p>There was an error connecting to the server. Please check the deployment logs for more details.</p>
+      </div>
+    );
+  }
+
   return <HomePage politicians={politicians} />;
 }
