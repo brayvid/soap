@@ -24,7 +24,7 @@ export function AddPoliticianForm() {
       if (res.ok) {
         setNewName('');
         setNewPosition('');
-        showToast('Politician added successfully!', 'success');
+        showToast('Politician added successfully', 'success');
         router.refresh();
       } else {
         const err = await res.json();

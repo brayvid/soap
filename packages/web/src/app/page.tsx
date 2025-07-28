@@ -1,4 +1,5 @@
 // packages/web/src/app/page.tsx
+
 import React, { Suspense } from 'react';
 import { HomePage } from '@/components/HomePage';
 
@@ -17,7 +18,9 @@ async function getPoliticians(): Promise<Politician[]> {
   try {
     const res = await fetch(`${apiUrl}/politicians`, {
       next: {
-        revalidate: 60,
+        // --- CHANGE THIS ---
+        tags: ['politicians-list'], // Assign a specific cache tag
+        // --- TO THIS ---
       },
     });
 

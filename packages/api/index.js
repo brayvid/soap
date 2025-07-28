@@ -175,6 +175,10 @@ app.get('/politicians', async (req, res) => {
     }
 });
 
+// In your server/index.js
+
+// ... (keep all your other code)
+
 app.post('/politicians', async (req, res) => {
     const { name, position } = req.body;
     const ip = getClientIP(req);
@@ -190,6 +194,26 @@ app.post('/politicians', async (req, res) => {
         const userId = await getOrCreateUserIdFromIP(ip);
         const [newPolitician] = await db('politicians').insert({ name, position, user_id: userId }).returning('*');
         await logAction(ip, 'add_politician', null);
+
+        // --- ADD THIS REVALIDATION LOGIC ---
+        try {
+            console.log('Politician added. Triggering cache revalidation on the frontend...');
+            await fetch(`${process.env.NEXT_FRONTEND_URL}/api/revalidate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tag: 'politicians-list', // The tag you want to revalidate
+                    secret: process.env.REVALIDATION_TOKEN
+                })
+            });
+            console.log('Cache revalidation signal sent.');
+        } catch (revalError) {
+            // Log the error, but don't fail the main request.
+            // The politician was added successfully.
+            console.error('Error triggering frontend revalidation:', revalError);
+        }
+        // --- END OF REVALIDATION LOGIC ---
+
         res.status(201).json(newPolitician);
     } catch (err) {
         console.error('Error adding politician:', err);

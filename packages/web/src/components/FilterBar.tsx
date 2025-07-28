@@ -35,7 +35,7 @@ export function FilterBar({ politicians }: Props) {
       <input
         type="text"
         id="filter-input"
-        placeholder="Search for politicians..."
+        placeholder="Search for politicians or words..."
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
       />
