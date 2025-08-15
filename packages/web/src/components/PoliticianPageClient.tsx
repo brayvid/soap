@@ -12,7 +12,7 @@ type Vote = { word: string; count: number; sentiment_score: number; last_voted_a
 type Politician = { politician_id: number; name: string; position: string; };
 type LayoutPoint = { id: number; x: number; y: number; };
 type LayoutData = { canvasWidth: number; canvasHeight: number; all_points: LayoutPoint[]; };
-type BubbleData = { word: string; value: number; score: number; decayFactor: number; };
+type BubbleData = { word: string; value: number; score: number; };
 type SimulationNode = BubbleData & d3.SimulationNodeDatum & { radius: number; targetX: number; targetY: number; forceStrengthModifier: number; };
 type HierarchyBubbleNode = d3.HierarchyCircularNode<BubbleData>;
 
@@ -56,12 +56,17 @@ export function PoliticianPageClient() {
     const { showToast } = useToast();
 
     const [politician, setPolitician] = useState<Politician | null>(null);
-    const [votes, setVotes] = useState<Vote[]>([]);
+    const [allTimeVotes, setAllTimeVotes] = useState<Vote[]>([]);
+    const [recentVotes, setRecentVotes] = useState<Vote[] | null>(null);
     const [layout, setLayout] = useState<LayoutData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isRecentLoading, setIsRecentLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [newWord, setNewWord] = useState('');
-    const [isTimeFadeEnabled, setIsTimeFadeEnabled] = useState(false);
+    const [isTimeFilterEnabled, setIsTimeFilterEnabled] = useState(false);
+    // --- FIX START: Add a state to trigger refetching without clearing data ---
+    const [refetchTrigger, setRefetchTrigger] = useState(0);
+    // --- FIX END ---
     
     const svgRef = useRef<SVGSVGElement>(null);
     const socketRef = useRef<Socket | null>(null);
@@ -94,13 +99,35 @@ export function PoliticianPageClient() {
                 ]);
                 if (!politicianRes.ok) throw new Error('Politician not found');
                 const politicianData = await politicianRes.json();
-                setPolitician(politicianData.politician); setVotes(politicianData.votesForPolitician);
+                setPolitician(politicianData.politician); setAllTimeVotes(politicianData.votesForPolitician);
                 if (layoutRes.ok) { setLayout(await layoutRes.json()); } else { setLayout(null); }
             } catch (err) { setError('Failed to load politician data.'); console.error(err); } 
             finally { setIsLoading(false); }
         };
         fetchData();
     }, [politicianId]);
+    
+    useEffect(() => {
+        // --- FIX: This effect now triggers on toggle OR when refetchTrigger changes ---
+        if (isTimeFilterEnabled && politicianId) {
+            const fetchRecentData = async () => {
+                setIsRecentLoading(true);
+                try {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/politician/${politicianId}/data?range=7d`);
+                    if (!response.ok) throw new Error('Failed to fetch recent votes');
+                    const recentData = await response.json();
+                    setRecentVotes(recentData.votesForPolitician);
+                } catch (err) {
+                    console.error("Failed to load recent politician data:", err);
+                    showToast("Could not load 7-day data.", 'error');
+                    setRecentVotes([]);
+                } finally {
+                    setIsRecentLoading(false);
+                }
+            };
+            fetchRecentData();
+        }
+    }, [isTimeFilterEnabled, politicianId, refetchTrigger, showToast]);
 
     useEffect(() => {
         if (!politicianId) return;
@@ -109,32 +136,50 @@ export function PoliticianPageClient() {
             const socketUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
             socketRef.current = io(socketUrl);
             socketRef.current.on('connect', () => console.log(`Socket connected to ${socketUrl}`));
-            socketRef.current.on(`wordsUpdated:${politicianId}`, (updatedWords: Vote[]) => { setVotes(updatedWords); });
+            socketRef.current.on(`wordsUpdated:${politicianId}`, (updatedWords: Vote[]) => { 
+                if (isTimeFilterEnabled) {
+                    // --- FIX: Instead of clearing data, just trigger a refetch ---
+                    setRefetchTrigger(c => c + 1);
+                } else {
+                    setAllTimeVotes(updatedWords);
+                }
+            });
         };
         socketInitializer();
         return () => { socketRef.current?.disconnect(); };
-    }, [politicianId]);
+    }, [politicianId, isTimeFilterEnabled]);
 
     const processedData = useMemo(() => {
-        if (!isTimeFadeEnabled) { return votes.map(d => ({ ...d, decayFactor: 1.0, decayedCount: d.count })); }
-        const FADE_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
-        const now = Date.now();
-        return votes.map(d => { const ageMs = now - new Date(d.last_voted_at).getTime(); const decayFactor = Math.max(0, 1 - ageMs / FADE_DURATION_MS); return { ...d, decayFactor, decayedCount: d.count * decayFactor }; }).filter(d => d.decayedCount >= 0.1);
-    }, [votes, isTimeFadeEnabled]);
-
+        // --- FIX: Simplify logic to prevent clearing data during a refetch ---
+        const sourceData = isTimeFilterEnabled ? (recentVotes || []) : allTimeVotes;
+        
+        return sourceData.map(d => ({
+            word: d.word,
+            value: d.count,
+            score: d.sentiment_score
+        }));
+    }, [allTimeVotes, recentVotes, isTimeFilterEnabled]);
+    
     useEffect(() => {
         if (!svgRef.current) return;
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
         
-        const dataForChart: BubbleData[] = processedData.map(d => ({ word: d.word, value: d.decayedCount, score: d.sentiment_score, decayFactor: d.decayFactor }));
+        const dataForChart: BubbleData[] = processedData;
         
+        // --- FIX: Show a loading message only on the initial load of recent data ---
+        if (isTimeFilterEnabled && isRecentLoading && !recentVotes) {
+            drawFallbackLayout(svg, [], handleVote); // Will draw the loading/empty message
+            return;
+        }
+
         if (layout) {
             drawFaceLayout(svg, dataForChart, layout, politicianId, handleVote);
         } else {
             drawFallbackLayout(svg, dataForChart, handleVote);
         }
-    }, [processedData, layout, politicianId, handleVote]);
+    }, [processedData, layout, politicianId, handleVote, isTimeFilterEnabled, isRecentLoading, recentVotes]);
+
 
     const handleNewWordSubmit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -145,7 +190,7 @@ export function PoliticianPageClient() {
     if (error) return <p style={{ textAlign: 'center', padding: '2rem', color: 'red' }}>{error}</p>;
     if (!politician) return <p style={{ textAlign: 'center', padding: '2rem' }}>Politician not found.</p>;
 
-    return ( <div className="container"> <header> <h1>{politician.name}</h1> <p>{politician.position}</p> </header> <section id="votes-summary"> <div className="section-header"> <h2>Click to agree</h2> <div id="chart-controls"> <label className="switch"> <input type="checkbox" id="time-fade-toggle" checked={isTimeFadeEnabled} onChange={(e) => setIsTimeFadeEnabled(e.target.checked)} /> <span className="slider round"></span> </label> <span style={{ marginLeft: '8px' }}>Last 7 Days Only</span> </div> </div> <div id="bubble-chart-container" className={processedData.length > 0 ? 'bubble-active' : 'bubble-empty'}> <svg id="bubble-chart" ref={svgRef}></svg> </div> </section> <section id="add-word"> <h2>Add a word</h2> <form id="add-word-form" onSubmit={handleNewWordSubmit}> <label htmlFor="new-word">New Word:</label> <input type="text" id="new-word" name="new-word" maxLength={30} required value={newWord} onChange={(e) => setNewWord(e.target.value)} /> <button type="submit">Add Word</button> </form> </section> </div> );
+    return ( <div className="container"> <header> <h1>{politician.name}</h1> <p>{politician.position}</p> </header> <section id="votes-summary"> <div className="section-header"> <h2>Click to agree</h2> <div id="chart-controls"> <label className="switch"> <input type="checkbox" id="time-fade-toggle" checked={isTimeFilterEnabled} onChange={(e) => setIsTimeFilterEnabled(e.target.checked)} /> <span className="slider round"></span> </label> <span style={{ marginLeft: '8px' }}>Last 7 Days Only</span> </div> </div> <div id="bubble-chart-container" className={processedData.length > 0 ? 'bubble-active' : 'bubble-empty'}> <svg id="bubble-chart" ref={svgRef}></svg> </div> </section> <section id="add-word"> <h2>Add a word</h2> <form id="add-word-form" onSubmit={handleNewWordSubmit}> <label htmlFor="new-word">New Word:</label> <input type="text" id="new-word" name="new-word" maxLength={30} required value={newWord} onChange={(e) => setNewWord(e.target.value)} /> <button type="submit">Add Word</button> </form> </section> </div> );
 }
 
 function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: BubbleData[], layoutData: LayoutData, politicianId: string, handleVote: (word: string) => void) {
@@ -160,19 +205,13 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
     
     svg.attr("viewBox", `0 0 ${canvasWidth} ${canvasHeight}`).attr("preserveAspectRatio", "xMidYMid meet");
     
-    // --- FIX START ---
-    // This new system dynamically calculates bubble sizes to fill the face area.
     const faceArea = polygonArea(headShapePoints);
-    const targetCoverage = 0.85; // Target 85% of the face area to be covered by bubbles.
+    const targetCoverage = 0.85;
     const targetTotalBubbleArea = faceArea * targetCoverage;
 
-    // Use a sqrt scale on the vote values to determine their contribution to the area.
-    // This makes bubble growth feel more natural.
     const totalVoteValue = d3.sum(data, d => d.value);
     
-    // Calculate a scaling factor to map the sum of all vote values to the target area.
-    const areaScalingFactor = targetTotalBubbleArea / totalVoteValue;
-    // --- FIX END ---
+    const areaScalingFactor = totalVoteValue > 0 ? targetTotalBubbleArea / totalVoteValue : 0;
     
     const dataSignature = data.length + d3.sum(data, d => d.value);
     const seed = Number(politicianId) * dataSignature;
@@ -182,13 +221,9 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
     const ANCHOR_COUNT = Math.min(featureTargets.length, sortedByPop.length, 5);
     
     const nodes: SimulationNode[] = sortedByPop.map((d, i) => { 
-        // --- FIX START ---
-        // Each bubble's area is its value * the scaling factor.
         const bubbleArea = d.value * areaScalingFactor;
-        // The radius is the sqrt of the area, with a minimum size enforced.
         let radius = Math.sqrt(bubbleArea / Math.PI);
-        radius = Math.max(8, radius); // Enforce a minimum radius of 8px.
-        // --- FIX END ---
+        radius = Math.max(8, radius);
         
         let targetX, targetY, forceStrengthModifier; 
         if (i < ANCHOR_COUNT && featureTargets[i]) { 
@@ -266,25 +301,20 @@ function drawFallbackLayout(svg: d3.Selection<SVGSVGElement, unknown, null, unde
          .style("font-family", "Inter, sans-serif")
          .style("font-size", `${fontSize}px`)
          .style("fill", "#6c757d")
-         .text("Be the first to add a word.");
+         .text("Be the first to add a word."); // More specific message
       return;
   }
 
-  // --- FIX START ---
-  // For d3.pack, simply summing by the value is the most direct way to make
-  // the bubble area proportional to the vote count. D3 handles the sqrt scaling internally.
-  const pack = d3.pack<BubbleData>().size([width, height]).padding(8); // Increased padding
+  const pack = d3.pack<BubbleData>().size([width, height]).padding(8);
 
   const rootData: BubbleData & { children?: BubbleData[] } = {
     word: 'root',
     value: 0,
     score: 0,
-    decayFactor: 1,
     children: data
   };
   
   const root = d3.hierarchy(rootData).sum((d) => d.value || 0);
-  // --- FIX END ---
   
   const nodes = pack(root).leaves();
   

@@ -83,11 +83,21 @@ async function getOrCreateUserIdFromIP(ip) {
     return newUser.id;
 }
 
-async function getAggregatedVotesForPolitician(politicianId) {
+// --- FIX START: Modify helper function to accept an optional date range ---
+async function getAggregatedVotesForPolitician(politicianId, days = null) {
     try {
-        const aggregatedVotes = await db('votes as v')
+        let query = db('votes as v')
             .join('words as w', 'v.word_id', 'w.word_id')
-            .where('v.politician_id', politicianId)
+            .where('v.politician_id', politicianId);
+
+        // If a 'days' parameter is provided, add a date filter to the query
+        if (days && Number.isInteger(days)) {
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - days);
+            query = query.where('v.created_at', '>=', cutoffDate);
+        }
+
+        const aggregatedVotes = await query
             .groupBy('w.word', 'w.sentiment_score')
             .select(
                 'w.word',
@@ -101,6 +111,8 @@ async function getAggregatedVotesForPolitician(politicianId) {
         return [];
     }
 }
+// --- FIX END ---
+
 
 function getClientIP(req) {
     const forwarded = req.headers['x-forwarded-for'];
@@ -110,23 +122,38 @@ function getClientIP(req) {
 // --- API ROUTES ---
 app.get('/healthz', (req, res) => res.status(200).json({ status: 'ok' }));
 
+// --- FIX START: Update route to handle the 'range' query parameter ---
 app.get('/politician/:id/data', async (req, res) => {
     const { id } = req.params;
+    const { range } = req.query; // e.g., '7d'
+
     if (!id || isNaN(Number(id))) {
         return res.status(400).json({ error: 'A valid politician ID is required.' });
     }
+
+    let days = null;
+    if (range === '7d') {
+        days = 7;
+    }
+    // You could add more ranges here like '30d', '1y', etc.
+
     try {
         const politician = await db('politicians').where({ politician_id: Number(id) }).first();
         if (!politician) {
             return res.status(404).json({ error: 'Politician not found' });
         }
-        const votesForPolitician = await getAggregatedVotesForPolitician(Number(id));
+        
+        // Pass the 'days' variable to the helper function
+        const votesForPolitician = await getAggregatedVotesForPolitician(Number(id), days);
+        
         res.json({ politician, votesForPolitician });
     } catch (err) {
         console.error(`Error in /politician/:id/data for ID ${id}:`, err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+// --- FIX END ---
+
 
 app.get('/politicians', async (req, res) => {
     try {
