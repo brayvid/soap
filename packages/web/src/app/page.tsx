@@ -1,7 +1,14 @@
 // packages/web/src/app/page.tsx
 
+import type { Metadata } from 'next';
 import React, { Suspense } from 'react';
 import { HomePage } from '@/components/HomePage';
+
+// --- METADATA OBJECT ---
+export const metadata: Metadata = {
+  title: 'Soap | Public Polling',
+  description: 'See what people really think. Soap provides live, public polling data and sentiment analysis on leading political figures. Your vote, your voice.',
+};
 
 type Politician = {
   politician_id: number;
@@ -24,11 +31,6 @@ async function getPoliticians(): Promise<Politician[] | null> {
     console.log(`Fetching politicians from production URL: ${apiUrl}/politicians`);
     
     const res = await fetch(`${apiUrl}/politicians`, {
-      // --- CHANGE THIS ---
-      // next: {
-      //   tags: ['politicians-list'],
-      // },
-      // --- TO THIS ---
       cache: 'no-store', // This forces the request to be dynamic every time
     });
 

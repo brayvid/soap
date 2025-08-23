@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useParams } from 'next/navigation';
 import * as d3 from 'd3';
 import { Socket } from 'socket.io-client';
 import { useToast } from '@/context/ToastContext';
@@ -16,6 +15,13 @@ type BubbleData = { word: string; value: number; score: number; };
 type SimulationNode = BubbleData & d3.SimulationNodeDatum & { radius: number; targetX: number; targetY: number; forceStrengthModifier: number; };
 type HierarchyBubbleNode = d3.HierarchyCircularNode<BubbleData>;
 
+// --- Props that the component will receive from the server page ---
+type PoliticianPageClientProps = {
+    politician: Politician;
+    initialVotes: Vote[];
+    layout: LayoutData | null;
+};
+
 // --- D3 Helper Functions ---
 const FACE_SILHOUETTE_INDICES = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109];
 const LEFT_EYE_CONTOUR_INDICES = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
@@ -23,50 +29,35 @@ const RIGHT_EYE_CONTOUR_INDICES = [263, 249, 390, 373, 374, 380, 381, 382, 362, 
 const MOUTH_OUTER_CONTOUR_INDICES = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146];
 const NOSE_TIP_INDEX = 4;
 const CHIN_POINT_INDEX = 152;
-
 function polygonArea(points: { x: number; y: number }[]): number { let a = 0; for (let i = 0, j = points.length - 1; i < points.length; j = i++) a += (points[j].x + points[i].x) * (points[j].y - points[i].y); return Math.abs(a / 2); }
 function isInside(point: { x: number; y: number }, vs: { x: number; y: number }[]): boolean { const x = point.x, y = point.y; let inside = false; for (let c = 0, j = vs.length - 1; c < vs.length; j = c++) { const vi = vs[c]; const vj = vs[j]; if (((vi.y > y) !== (vj.y > y)) && (x < (vj.x - vi.x) * (y - vi.y) / (vj.y - vi.y) + vi.x)) inside = !inside; } return inside; }
 function getPointsByIndices(allPoints: LayoutPoint[], indices: number[]): { x: number; y: number }[] { return indices.map(i => allPoints?.[i]).filter(Boolean); }
 function getCenterOfPoints(points: { x: number; y: number }[]): { x: number; y: number } | null { if (!points || points.length === 0) return null; const s = points.reduce((a, p) => ({ x: a.x + p.x, y: a.y + p.y }), { x: 0, y: 0 }); return { x: s.x / points.length, y: s.y / points.length }; }
 function mulberry32(seed: number): () => number { return function() { let t = seed += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; } }
 
-// --- STYLING LOGIC PORTED FROM ORIGINAL SCRIPT ---
+// --- STYLING LOGIC ---
 const positiveColorScale = d3.scaleLinear<string>().domain([0.05, 1.0]).range(['#9fad42', '#2a8d64']).clamp(true);
 const negativeColorScale = d3.scaleLinear<string>().domain([-0.05, -1.0]).range(['#CDb14c', '#DE3B3B']).clamp(true);
-
 function getBubbleFillStyle(score: number): { fill: string; fillOpacity: number } {
     const BUBBLE_OPACITY = 1.0;
     let colorString: string;
-
-    if (score >= 0.05) {
-        colorString = positiveColorScale(score);
-    } else if (score <= -0.05) {
-        colorString = negativeColorScale(score);
-    } else {
-        colorString = '#BFBFBF';
-    }
-    
+    if (score >= 0.05) { colorString = positiveColorScale(score); }
+    else if (score <= -0.05) { colorString = negativeColorScale(score); }
+    else { colorString = '#BFBFBF'; }
     return { fill: colorString, fillOpacity: BUBBLE_OPACITY };
 }
 
 
-export function PoliticianPageClient() {
-    const params = useParams();
-    const politicianId = params.id as string;
+export function PoliticianPageClient({ politician, initialVotes, layout }: PoliticianPageClientProps) {
+    const politicianId = politician.politician_id.toString();
     const { showToast } = useToast();
 
-    const [politician, setPolitician] = useState<Politician | null>(null);
-    const [allTimeVotes, setAllTimeVotes] = useState<Vote[]>([]);
+    const [allTimeVotes, setAllTimeVotes] = useState<Vote[]>(initialVotes);
     const [recentVotes, setRecentVotes] = useState<Vote[] | null>(null);
-    const [layout, setLayout] = useState<LayoutData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
     const [isRecentLoading, setIsRecentLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [newWord, setNewWord] = useState('');
     const [isTimeFilterEnabled, setIsTimeFilterEnabled] = useState(false);
-    // --- FIX START: Add a state to trigger refetching without clearing data ---
     const [refetchTrigger, setRefetchTrigger] = useState(0);
-    // --- FIX END ---
     
     const svgRef = useRef<SVGSVGElement>(null);
     const socketRef = useRef<Socket | null>(null);
@@ -87,28 +78,8 @@ export function PoliticianPageClient() {
             showToast("A network error occurred.", 'error');
         }
     }, [politicianId, showToast]);
-
-    useEffect(() => {
-        if (!politicianId) return;
-        const fetchData = async () => {
-            try {
-                setIsLoading(true); setError(null);
-                const [politicianRes, layoutRes] = await Promise.all([
-                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/politician/${politicianId}/data`), 
-                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/data/layout-${politicianId}.json`)
-                ]);
-                if (!politicianRes.ok) throw new Error('Politician not found');
-                const politicianData = await politicianRes.json();
-                setPolitician(politicianData.politician); setAllTimeVotes(politicianData.votesForPolitician);
-                if (layoutRes.ok) { setLayout(await layoutRes.json()); } else { setLayout(null); }
-            } catch (err) { setError('Failed to load politician data.'); console.error(err); } 
-            finally { setIsLoading(false); }
-        };
-        fetchData();
-    }, [politicianId]);
     
     useEffect(() => {
-        // --- FIX: This effect now triggers on toggle OR when refetchTrigger changes ---
         if (isTimeFilterEnabled && politicianId) {
             const fetchRecentData = async () => {
                 setIsRecentLoading(true);
@@ -138,7 +109,6 @@ export function PoliticianPageClient() {
             socketRef.current.on('connect', () => console.log(`Socket connected to ${socketUrl}`));
             socketRef.current.on(`wordsUpdated:${politicianId}`, (updatedWords: Vote[]) => { 
                 if (isTimeFilterEnabled) {
-                    // --- FIX: Instead of clearing data, just trigger a refetch ---
                     setRefetchTrigger(c => c + 1);
                 } else {
                     setAllTimeVotes(updatedWords);
@@ -150,29 +120,19 @@ export function PoliticianPageClient() {
     }, [politicianId, isTimeFilterEnabled]);
 
     const processedData = useMemo(() => {
-        // --- FIX: Simplify logic to prevent clearing data during a refetch ---
         const sourceData = isTimeFilterEnabled ? (recentVotes || []) : allTimeVotes;
-        
-        return sourceData.map(d => ({
-            word: d.word,
-            value: d.count,
-            score: d.sentiment_score
-        }));
+        return sourceData.map(d => ({ word: d.word, value: d.count, score: d.sentiment_score }));
     }, [allTimeVotes, recentVotes, isTimeFilterEnabled]);
     
     useEffect(() => {
         if (!svgRef.current) return;
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
-        
         const dataForChart: BubbleData[] = processedData;
-        
-        // --- FIX: Show a loading message only on the initial load of recent data ---
         if (isTimeFilterEnabled && isRecentLoading && !recentVotes) {
-            drawFallbackLayout(svg, [], handleVote); // Will draw the loading/empty message
+            drawFallbackLayout(svg, [], handleVote);
             return;
         }
-
         if (layout) {
             drawFaceLayout(svg, dataForChart, layout, politicianId, handleVote);
         } else {
@@ -186,45 +146,62 @@ export function PoliticianPageClient() {
         if (newWord) { handleVote(newWord); setNewWord(''); }
     };
 
-    if (isLoading) return <p style={{ textAlign: 'center', padding: '2rem' }}>Loading...</p>;
-    if (error) return <p style={{ textAlign: 'center', padding: '2rem', color: 'red' }}>{error}</p>;
-    if (!politician) return <p style={{ textAlign: 'center', padding: '2rem' }}>Politician not found.</p>;
-
-    return ( <div className="container"> <header> <h1>{politician.name}</h1> <p>{politician.position}</p> </header> <section id="votes-summary"> <div className="section-header"> <h2>Click to agree</h2> <div id="chart-controls"> <label className="switch"> <input type="checkbox" id="time-fade-toggle" checked={isTimeFilterEnabled} onChange={(e) => setIsTimeFilterEnabled(e.target.checked)} /> <span className="slider round"></span> </label> <span style={{ marginLeft: '8px' }}>Last 7 Days Only</span> </div> </div> <div id="bubble-chart-container" className={processedData.length > 0 ? 'bubble-active' : 'bubble-empty'}> <svg id="bubble-chart" ref={svgRef}></svg> </div> </section> <section id="add-word"> <h2>Add a word</h2> <form id="add-word-form" onSubmit={handleNewWordSubmit}> <label htmlFor="new-word">New Word:</label> <input type="text" id="new-word" name="new-word" maxLength={30} required value={newWord} onChange={(e) => setNewWord(e.target.value)} /> <button type="submit">Add Word</button> </form> </section> </div> );
+    return ( 
+        <div className="container"> 
+            <header> 
+                <h1>{politician.name}</h1> 
+                <p>{politician.position}</p> 
+            </header> 
+            <section id="votes-summary"> 
+                <div className="section-header"> 
+                    <h2>Click to agree</h2> 
+                    <div id="chart-controls"> 
+                        <label className="switch"> 
+                            <input type="checkbox" id="time-fade-toggle" checked={isTimeFilterEnabled} onChange={(e) => setIsTimeFilterEnabled(e.target.checked)} /> 
+                            <span className="slider round"></span> 
+                        </label> 
+                        <span style={{ marginLeft: '8px' }}>Last 7 Days Only</span> 
+                    </div> 
+                </div> 
+                <div id="bubble-chart-container" className={processedData.length > 0 ? 'bubble-active' : 'bubble-empty'}> 
+                    <svg id="bubble-chart" ref={svgRef}></svg> 
+                </div> 
+            </section> 
+            <section id="add-word"> 
+                <h2>Add a word</h2> 
+                <form id="add-word-form" onSubmit={handleNewWordSubmit}> 
+                    <label htmlFor="new-word">New Word:</label> 
+                    <input type="text" id="new-word" name="new-word" maxLength={30} required value={newWord} onChange={(e) => setNewWord(e.target.value)} /> 
+                    <button type="submit">Add Word</button> 
+                </form> 
+            </section> 
+        </div> 
+    );
 }
 
+// D3 drawing functions
 function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: BubbleData[], layoutData: LayoutData, politicianId: string, handleVote: (word: string) => void) {
-    if (data.length === 0) {
-        return drawFallbackLayout(svg, data, handleVote);
-    }
-
+    if (data.length === 0) { return drawFallbackLayout(svg, data, handleVote); }
     const { all_points, canvasWidth, canvasHeight } = layoutData;
     const headShapePoints = getPointsByIndices(all_points, FACE_SILHOUETTE_INDICES);
     const faceCentroid = getCenterOfPoints(headShapePoints);
     if (!headShapePoints || headShapePoints.length < 3 || !canvasWidth || !canvasHeight || !faceCentroid) { return drawFallbackLayout(svg, data, handleVote); }
-    
     svg.attr("viewBox", `0 0 ${canvasWidth} ${canvasHeight}`).attr("preserveAspectRatio", "xMidYMid meet");
-    
     const faceArea = polygonArea(headShapePoints);
     const targetCoverage = 0.85;
     const targetTotalBubbleArea = faceArea * targetCoverage;
-
     const totalVoteValue = d3.sum(data, d => d.value);
-    
     const areaScalingFactor = totalVoteValue > 0 ? targetTotalBubbleArea / totalVoteValue : 0;
-    
     const dataSignature = data.length + d3.sum(data, d => d.value);
     const seed = Number(politicianId) * dataSignature;
     const random = mulberry32(seed);
     const featureTargets = [getCenterOfPoints(getPointsByIndices(all_points, LEFT_EYE_CONTOUR_INDICES)), getCenterOfPoints(getPointsByIndices(all_points, RIGHT_EYE_CONTOUR_INDICES)), all_points[NOSE_TIP_INDEX], getCenterOfPoints(getPointsByIndices(all_points, MOUTH_OUTER_CONTOUR_INDICES)), all_points[CHIN_POINT_INDEX]].filter(Boolean);
     const sortedByPop = [...data].sort((a, b) => b.value - a.value);
     const ANCHOR_COUNT = Math.min(featureTargets.length, sortedByPop.length, 5);
-    
     const nodes: SimulationNode[] = sortedByPop.map((d, i) => { 
         const bubbleArea = d.value * areaScalingFactor;
         let radius = Math.sqrt(bubbleArea / Math.PI);
         radius = Math.max(8, radius);
-        
         let targetX, targetY, forceStrengthModifier; 
         if (i < ANCHOR_COUNT && featureTargets[i]) { 
             targetX = featureTargets[i]!.x; 
@@ -246,7 +223,6 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
         } 
         return { ...d, radius: radius, targetX: targetX, targetY: targetY, forceStrengthModifier: forceStrengthModifier, x: targetX + (random() - 0.5), y: targetY + (random() - 0.5) }; 
     });
-    
     const simulation = d3.forceSimulation(nodes)
         .force("collide", d3.forceCollide<SimulationNode>().radius(d => d.radius + 1.5).strength(0.8))
         .force("x_target", d3.forceX<SimulationNode>().strength(d => d.forceStrengthModifier).x(d => d.targetX))
@@ -254,21 +230,15 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
         .force("boundary", alpha => { for (const node of nodes) { const point = { x: node.x ?? 0, y: node.y ?? 0 }; if (!isInside(point, headShapePoints)) { node.vx = (node.vx || 0) + (faceCentroid.x - point.x) * 0.3 * alpha; node.vy = (node.vy || 0) + (faceCentroid.y - point.y) * 0.3 * alpha; } } })
         .force("center_overall", d3.forceCenter(faceCentroid.x, faceCentroid.y).strength(0.04))
         .stop();
-
     for (let i = 0; i < 300; ++i) simulation.tick();
-
     const chartGroup = svg.append("g");
     const imageUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/portraits/portrait-${politicianId}.jpg`;
     chartGroup.append("image").attr("href", imageUrl).attr("width", canvasWidth).attr("height", canvasHeight);
-    
     nodes.sort((a, b) => a.radius - b.radius);
-
     const circleLayer = chartGroup.append("g").style("mix-blend-mode", "multiply");
     const textLayer = chartGroup.append("g").style("mix-blend-mode", "normal");
-    
     const circleGroups = circleLayer.selectAll<SVGGElement, SimulationNode>("g.bubble-circle-group").data(nodes, d => d.word).join("g").attr("class", "bubble-circle-group").attr('transform', d => `translate(${d.x!.toFixed(2)},${d.y!.toFixed(2)})`);
     circleGroups.append("circle").attr("r", d => d.radius).attr("fill", d => getBubbleFillStyle(d.score).fill).attr("fill-opacity", d => getBubbleFillStyle(d.score).fillOpacity).style("cursor", "pointer").on("click", (event, d) => handleVote(d.word));
-    
     const textGroups = textLayer.selectAll<SVGGElement, SimulationNode>("g.bubble-text-group").data(nodes, d => d.word).join("g").attr("class", "bubble-text-group").attr('transform', d => `translate(${d.x!.toFixed(2)},${d.y!.toFixed(2)})`);
     textGroups.append("text").text(d => d.word).attr("text-anchor", "middle").attr("dominant-baseline", "central").style("fill", "#fff").style("font-family", "Inter, sans-serif").style("pointer-events", "none")
       .each(function(d) {
@@ -276,21 +246,16 @@ function drawFaceLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefine
           const availableWidth = d.radius * 1.8;
           textSelection.style("font-size", "10px");
           const naturalWidth = (this as SVGTextElement).getComputedTextLength();
-          if (naturalWidth === 0 || d.radius < 8) {
-              textSelection.style('display', 'none');
-              return;
-          }
+          if (naturalWidth === 0 || d.radius < 8) { textSelection.style('display', 'none'); return; }
           const newFontSize = (10 * availableWidth) / naturalWidth;
           textSelection.style("font-size", `${Math.min(d.radius * 1.2, Math.max(newFontSize, 8))}px`);
       });
 }
-
 function drawFallbackLayout(svg: d3.Selection<SVGSVGElement, unknown, null, undefined>, data: BubbleData[], handleVote: (word: string) => void) {
   const container = svg.node()!.parentElement as HTMLElement;
   const width = container.clientWidth;
   const height = container.clientHeight;
   svg.attr("viewBox", `0 0 ${width} ${height}`).attr("preserveAspectRatio", "xMidYMid meet");
-
   if (data.length === 0) {
       const fontSize = Math.max(20, width / 45);
       svg.append("text")
@@ -301,52 +266,23 @@ function drawFallbackLayout(svg: d3.Selection<SVGSVGElement, unknown, null, unde
          .style("font-family", "Inter, sans-serif")
          .style("font-size", `${fontSize}px`)
          .style("fill", "#6c757d")
-         .text("Be the first to add a word."); // More specific message
+         .text("Be the first to add a word.");
       return;
   }
-
   const pack = d3.pack<BubbleData>().size([width, height]).padding(8);
-
-  const rootData: BubbleData & { children?: BubbleData[] } = {
-    word: 'root',
-    value: 0,
-    score: 0,
-    children: data
-  };
-  
+  const rootData: BubbleData & { children?: BubbleData[] } = { word: 'root', value: 0, score: 0, children: data };
   const root = d3.hierarchy(rootData).sum((d) => d.value || 0);
-  
   const nodes = pack(root).leaves();
-  
-  const circleGroups = svg.selectAll<SVGGElement, HierarchyBubbleNode>("g")
-      .data(nodes)
-      .join("g")
-      .attr('transform', d => `translate(${d.x},${d.y})`);
-  
-  circleGroups.append("circle")
-      .attr("r", d => d.r)
-      .attr("fill", d => getBubbleFillStyle(d.data.score).fill)
-      .attr("fill-opacity", d => getBubbleFillStyle(d.data.score).fillOpacity)
-      .style("cursor", "pointer")
-      .on("click", (event, d) => handleVote(d.data.word));
-  
-  circleGroups.append("text")
-      .text(d => d.data.word)
-      .attr("text-anchor", "middle")
-      .attr("dominant-baseline", "central")
-      .style("fill", "#000")
-      .style("font-family", "Inter, sans-serif")
-      .style("pointer-events", "none")
+  const circleGroups = svg.selectAll<SVGGElement, HierarchyBubbleNode>("g").data(nodes).join("g").attr('transform', d => `translate(${d.x},${d.y})`);
+  circleGroups.append("circle").attr("r", d => d.r).attr("fill", d => getBubbleFillStyle(d.data.score).fill).attr("fill-opacity", d => getBubbleFillStyle(d.data.score).fillOpacity).style("cursor", "pointer").on("click", (event, d) => handleVote(d.data.word));
+  circleGroups.append("text").text(d => d.data.word).attr("text-anchor", "middle").attr("dominant-baseline", "central").style("fill", "#000").style("font-family", "Inter, sans-serif").style("pointer-events", "none")
       .each(function(d) {
           const textSelection = d3.select(this);
           const radius = d.r;
           const availableWidth = radius * 1.8;
           textSelection.style("font-size", "10px");
           const naturalWidth = (this as SVGTextElement).getComputedTextLength();
-           if (naturalWidth === 0 || radius < 8) {
-              textSelection.style('display', 'none');
-              return;
-          }
+           if (naturalWidth === 0 || radius < 8) { textSelection.style('display', 'none'); return; }
           const newFontSize = (10 * availableWidth) / naturalWidth;
           textSelection.style("font-size", `${Math.min(radius * 1.2, Math.max(newFontSize, 8))}px`);
       });
