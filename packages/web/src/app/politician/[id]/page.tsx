@@ -3,13 +3,17 @@ import type { Metadata } from 'next';
 import { PoliticianPageClient } from '@/components/PoliticianPageClient';
 import { notFound } from 'next/navigation';
 
+// --- NEW TYPE: Define the structure of a point to satisfy the linter ---
+type LayoutPoint = { id: number; x: number; y: number; };
+
 // Define the types for the data we will fetch and pass
 type Politician = { politician_id: number; name: string; position: string; };
 type Vote = { word: string; count: number; sentiment_score: number; last_voted_at: string; };
-type LayoutData = { canvasWidth: number; canvasHeight: number; all_points: any[]; };
+// --- FIX: Use the specific LayoutPoint type instead of `any` ---
+type LayoutData = { canvasWidth: number; canvasHeight: number; all_points: LayoutPoint[]; };
 
-// Define the shape of the props this page will receive from Next.js
-type Props = {
+// Define the shape of the props this page will receive.
+type PageProps = {
   params: { id: string };
 };
 
@@ -45,12 +49,8 @@ async function getInitialData(id: string) {
   }
 }
 
-// This function generates the dynamic metadata (title, description, canonical) on the server
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // --- FIX START: Explicitly declare `id` here ---
-  const id = params.id;
-  // --- FIX END ---
-
+// Destructure `id` directly from `params` in the function signature.
+export async function generateMetadata({ params: { id } }: PageProps): Promise<Metadata> {
   const data = await getInitialData(id);
 
   if (!data?.politician) {
@@ -62,19 +62,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${data.politician.name} | Public Sentiment on Soap`,
     description: `View real-time polling data and public sentiment for ${data.politician.name}.`,
-    // This generates the correct canonical URL for each politician
     alternates: {
-      canonical: `/politician/${id}`, // --- FIX: Use the explicitly declared `id` ---
+      canonical: `/politician/${id}`,
     },
   };
 }
 
-// The page component is now async. It fetches data and passes it to the client component.
-export default async function PoliticianPage({ params }: Props) {
-  // --- FIX START: Explicitly declare `id` here ---
-  const id = params.id;
-  // --- FIX END ---
-
+// Destructure `id` directly from `params` in the function signature here as well.
+export default async function PoliticianPage({ params: { id } }: PageProps) {
   const initialData = await getInitialData(id);
 
   if (!initialData) {
