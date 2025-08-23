@@ -3,19 +3,11 @@ import type { Metadata } from 'next';
 import { PoliticianPageClient } from '@/components/PoliticianPageClient';
 import { notFound } from 'next/navigation';
 
-// --- NEW TYPE: Define the structure of a point to satisfy the linter ---
+// --- TYPE DEFINITIONS for the data being fetched ---
 type LayoutPoint = { id: number; x: number; y: number; };
-
-// Define the types for the data we will fetch and pass
 type Politician = { politician_id: number; name: string; position: string; };
 type Vote = { word: string; count: number; sentiment_score: number; last_voted_at: string; };
-// --- FIX: Use the specific LayoutPoint type instead of `any` ---
 type LayoutData = { canvasWidth: number; canvasHeight: number; all_points: LayoutPoint[]; };
-
-// Define the shape of the props this page will receive.
-type PageProps = {
-  params: { id: string };
-};
 
 // This function fetches all the initial data needed for the page on the server
 async function getInitialData(id: string) {
@@ -49,8 +41,12 @@ async function getInitialData(id: string) {
   }
 }
 
-// Destructure `id` directly from `params` in the function signature.
-export async function generateMetadata({ params: { id } }: PageProps): Promise<Metadata> {
+// --- FIX ---
+// The props type is now defined inline to avoid conflicts with Next.js's internal types.
+export async function generateMetadata(
+  { params }: { params: { id: string } }
+): Promise<Metadata> {
+  const id = params.id;
   const data = await getInitialData(id);
 
   if (!data?.politician) {
@@ -68,8 +64,12 @@ export async function generateMetadata({ params: { id } }: PageProps): Promise<M
   };
 }
 
-// Destructure `id` directly from `params` in the function signature here as well.
-export default async function PoliticianPage({ params: { id } }: PageProps) {
+// --- FIX ---
+// The props type is also defined inline here for the same reason.
+export default async function PoliticianPage(
+  { params }: { params: { id: string } }
+) {
+  const id = params.id;
   const initialData = await getInitialData(id);
 
   if (!initialData) {
