@@ -24,7 +24,7 @@ async function getInitialData(id: string) {
     ]);
 
     if (!politicianRes.ok) {
-      return null; // Politician doesn't exist, will lead to a 404
+      return null;
     }
 
     const politicianData = await politicianRes.json();
@@ -41,7 +41,7 @@ async function getInitialData(id: string) {
   }
 }
 
-// The props object is explicitly typed inline
+// The props object is explicitly typed inline. This is the standard pattern.
 export async function generateMetadata(
   { params }: { params: { id: string } }
 ): Promise<Metadata> {
@@ -63,15 +63,15 @@ export async function generateMetadata(
   };
 }
 
-// The same explicit inline type is used here
+// The same explicit inline type is used here.
 export default async function PoliticianPage(
-  { params }: { params: { id: string } }
+  { params }: { params: { id:string } }
 ) {
   const id = params.id;
   const initialData = await getInitialData(id);
 
   if (!initialData) {
-    notFound(); // Triggers a 404 page if the politician isn't found
+    notFound(); 
   }
 
   return (
