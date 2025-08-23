@@ -42,7 +42,8 @@ async function getInitialData(id: string) {
 }
 
 // --- FIX ---
-// The props type is now defined inline to avoid conflicts with Next.js's internal types.
+// The props object is explicitly typed inline to satisfy `noImplicitAny`.
+// This is the standard signature Next.js expects for these functions.
 export async function generateMetadata(
   { params }: { params: { id: string } }
 ): Promise<Metadata> {
@@ -65,7 +66,7 @@ export async function generateMetadata(
 }
 
 // --- FIX ---
-// The props type is also defined inline here for the same reason.
+// The same explicit inline type is used here for the page component.
 export default async function PoliticianPage(
   { params }: { params: { id: string } }
 ) {
