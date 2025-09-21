@@ -13,7 +13,7 @@ Users can update their choices at any time, allowing for a dynamic and evolving 
 
 Soap is more than just a social platform—it's a movement towards more constructive discourse about our leaders. Join us in shaping a new way to discuss politics, where every word counts and every voice is heard. Together, we can create a more thoughtful, reasonable, and effective conversation.
 
-<h3 align="center"><a href="https://www.use.soap.fyi">Try Soap Now 🫧</a></h3>
+<h3 align="center"><a href="https://use.soap.fyi">Try Soap Now 🫧</a></h3>
 
 ---
 
@@ -27,10 +27,10 @@ Soap is more than just a social platform—it's a movement towards more construc
 - <s>Rate limit submissions</s> (4/20/25)
 - <s>Switch from table to something more mobile friendly</s> (4/20/25)
 - <s>Valence of words</s> (5/3/25)
- <i>Phase 1 complete</i>
+- <s>Last 7 days view</s> (7/10/25) <i>Phase 1 complete</i>
+
 <h3>Phase 2</h3>
 
-- <s>Last 7 days view</s> (7/10/25)
 - User accounts, demographics
 - Public vs logged-in views
 - Ability to undo submissions
@@ -47,6 +47,7 @@ Soap is more than just a social platform—it's a movement towards more construc
 - Data products
 - Cohort analysis
 - Social features
+- Staking mechanism (token)
 - Support multiple languages
 
 ---
@@ -89,17 +90,17 @@ A separate Python script is responsible for analyzing politician portraits. The 
 
 <br>
 <div align="center"><img src="images/home.png"></div>
-<p align="center"><a href="https://www.use.soap.fyi">Home page</a> (7/12/25)</p>
+<p align="center"><a href="https://use.soap.fyi">Home page</a> (7/12/25)</p>
 <br>
 
 <br>
 <div align="center"><img src="images/example.png"></div>
-<p align="center"><a href="https://www.use.soap.fyi/politician/1">Politician page</a> (7/12/25)</p>
+<p align="center"><a href="https://use.soap.fyi/politician/1">Politician page</a> (7/12/25)</p>
 <br>
 
 <br>
 <div align="center"><img src="images/dash.png"></div>
-<p align="center"><a href="https://www.dash.soap.fyi">Data dashboard</a> (7/12/25)</p>
+<p align="center"><a href="https://dash.soap.fyi">Data dashboard</a> (7/12/25)</p>
 <br>
 
 ---
