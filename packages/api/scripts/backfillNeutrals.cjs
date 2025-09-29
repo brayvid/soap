@@ -17,7 +17,7 @@ if (!GEMINI_API_KEY) {
     process.exit(1);
 }
 
-const GEMINI_MODEL_NAME = "gemini-1.5-flash-latest"; // Or your preferred model
+const GEMINI_MODEL_NAME = "gemini-2.5-flash"; // Or your preferred model
 
 const CUSTOM_MANUAL_LEXICON_PATH = path.join(__dirname, '..', 'custom_sentiment_lexicon.json');
 
