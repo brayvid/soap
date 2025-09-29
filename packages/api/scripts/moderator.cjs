@@ -15,7 +15,7 @@ if (!process.env.GOOGLE_GEMINI_API_KEY || !process.env.DB_MOD_URL || !process.en
 }
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
 const generationConfig = { temperature: 0.1, responseMimeType: "application/json" };
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest", generationConfig });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash", generationConfig });
 const dbClient = new Client({ connectionString: process.env.DB_MOD_URL });
 
 // --- SCRIPT FUNCTIONS ---
