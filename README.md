@@ -51,6 +51,22 @@ Soap is more than just a social platform—it's a movement towards more construc
 - Support multiple languages
 
 ---
+
+
+
+## Related projects
+
+
+| Project | Description | Technologies |
+|---|---|---|
+| **[soap-dashboard](https://github.com/brayvid/soap-dashboard)** | Public data dashboard for Soap. | Flask, SQLAlchemy, NLTK, spaCy, matplotlib |
+| **[soap-research](https://github.com/brayvid/soap-research)** | Data science environment for Soap. | Pandas, SQLAlchemy, Jupyter, Colab |
+| **[soap-simulation](https://github.com/brayvid/soap-simulation)** | Exploring a token-based Soap platform. | NumPy, Pandas, matplotlib, Jupyter, Colab |
+---
+
+
+
+
 ## Tech Stack
 
 Soap is built with a modern, decoupled architecture. The frontend is a [Next.js](https://nextjs.org/) application that communicates with a dedicated backend API and a separate image processing pipeline.
@@ -104,5 +120,6 @@ A separate Python script is responsible for analyzing politician portraits. The 
 <br>
 
 ---
+
 <br>
 <p align="center">&copy; Copyright 2024-2025 <a href="mailto:info@soap.fyi">soap.fyi</a>. All rights reserved.</p>
